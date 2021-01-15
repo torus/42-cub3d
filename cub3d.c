@@ -6,7 +6,7 @@
 /*   By: thisai <thisai@student.42tokyo.jp>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/01/13 16:23:13 by thisai            #+#    #+#             */
-/*   Updated: 2021/01/13 18:33:45 by thisai           ###   ########.fr       */
+/*   Updated: 2021/01/15 12:30:29 by thisai           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,8 +15,12 @@
 
 #include <stdarg.h>
 #include <stdlib.h>
+
 #define XK_MISCELLANY
+#define XK_LATIN1
 #include <X11/keysymdef.h>
+#include <X11/XKBlib.h>
+
 #include <mlx.h>
 
 #define C3_CHECK(val, mesg) c3_check((int64_t)val, mesg)
@@ -29,6 +33,16 @@ typedef struct	s_c3_imgdata
 	int		endian;
 }		t_c3_imgdata;
 
+typedef struct	s_c3_keystate
+{
+	char	w;
+	char	a;
+	char	s;
+	char	d;
+	char	left;
+	char	right;
+}		t_c3_keystate;
+
 typedef struct	s_c3_state
 {
 	void			*mlx;
@@ -37,6 +51,7 @@ typedef struct	s_c3_state
 	int				screen_height;
 	void			*img;
 	t_c3_imgdata	imgdata;
+	t_c3_keystate	keystate;
 }		t_c3_state;
 
 void	c3_log(const char *format, ...)
@@ -58,12 +73,38 @@ void	c3_check(int64_t val, const char *message)
 
 void	c3_cleanup(t_c3_state *stat)
 {
+	int	tmp;
+
+	c3_log("%s: %p\n", __FUNCTION__, stat);
+	tmp = mlx_do_key_autorepeaton(stat->mlx);
+	C3_CHECK(tmp, "mlx_do_key_autorepeaton() returned false.");
+
 	mlx_destroy_window(stat->mlx, stat->window);
 	if (stat->img)
 		mlx_destroy_image(stat->mlx, stat->img);
+
+	mlx_loop_end(stat->mlx);
+
+	mlx_destroy_display(stat->mlx);
 }
 
-int		c3_key_hook(int key, void *param)
+int		c3_key_press_hook(int key, void *param)
+{
+	t_c3_state	*stat;
+
+	stat = (t_c3_state*)param;
+	c3_log("%s: %02x : %p\n", __FUNCTION__, key, param);
+
+	if (key == XK_Escape)
+	{
+		c3_cleanup(stat);
+		exit(0);
+	}
+
+	return (1);
+}
+
+int		c3_key_release_hook(int key, void *param)
 {
 	t_c3_state	*stat;
 
@@ -74,7 +115,31 @@ int		c3_key_hook(int key, void *param)
 		c3_cleanup(stat);
 		exit(0);
 	}
-	return (0);
+
+	if (key == XK_a || key == XK_A)
+	{
+		for (int i = 0; i < stat->screen_height; i++)
+		{
+			for (int j = 0; j < stat->screen_width; j++)
+			{
+				int r = i * 256 / stat->screen_height;
+				int g = j * 256 / stat->screen_width;
+				int b = 0;
+				unsigned int col = mlx_get_color_value(
+					stat->mlx, (r << 16) + (g << 8) + b);
+				int index =
+					i * stat->imgdata.size_line +
+					j * stat->imgdata.bits_per_pixel / 8;
+				stat->imgdata.data[index + 0] = (col >> 24) & 0xff;
+				stat->imgdata.data[index + 1] = (col >> 16) & 0xff;
+				stat->imgdata.data[index + 2] = (col >> 8) & 0xff;
+				stat->imgdata.data[index + 3] = col & 0xff;
+			}
+		}
+		mlx_put_image_to_window(stat->mlx, stat->window, stat->img, 0, 0);
+	}
+
+	return (1);
 }
 
 int		c3_init(t_c3_state *stat)
@@ -89,8 +154,20 @@ int		c3_init(t_c3_state *stat)
 		stat->mlx, stat->screen_width, stat->screen_height, "Cub3D!");
 	C3_CHECK(stat->window, "window is NULL.");
 
-	tmp = mlx_key_hook(stat->window, c3_key_hook, stat);
-	C3_CHECK(tmp, "mlx_key_hook() returned false.");
+	/* tmp = mlx_key_hook(stat->window, c3_key_release_hook, stat); */
+	/* C3_CHECK(tmp, "mlx_key_hook() returned false."); */
+
+	tmp = mlx_hook(
+		stat->window, KeyRelease,
+		KeyReleaseMask,
+		c3_key_release_hook, stat);
+	C3_CHECK(tmp, "mlx_hook() returned false.");
+
+	tmp = mlx_hook(
+		stat->window, KeyPress,
+		KeyPressMask,
+		c3_key_press_hook, stat);
+	C3_CHECK(tmp, "mlx_hook() returned false.");
 
 	stat->img = mlx_new_image(
 		stat->mlx, stat->screen_width, stat->screen_height);
@@ -105,6 +182,9 @@ int		c3_init(t_c3_state *stat)
 		"bpp: %d, linesize: %d, endian: %d\n",
 		stat->imgdata.bits_per_pixel,
 		stat->imgdata.size_line, stat->imgdata.endian);
+
+	tmp = mlx_do_key_autorepeatoff(stat->mlx);
+	C3_CHECK(tmp, "mlx_do_key_autorepeatoff() returned false.");
 
 	return (1);
 }
