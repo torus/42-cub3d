@@ -6,7 +6,7 @@
 /*   By: thisai <thisai@student.42tokyo.jp>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/01/13 16:23:13 by thisai            #+#    #+#             */
-/*   Updated: 2021/01/15 15:57:07 by thisai           ###   ########.fr       */
+/*   Updated: 2021/01/15 16:18:31 by thisai           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,23 @@
 #include <mlx.h>
 
 #define C3_CHECK(val, mesg) c3_check((int64_t)val, mesg)
+
+const int c3_map[] = {
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	1, 0, 0, 0, 1, 0, 1, 0, 0, 1,
+	1, 1, 1, 0, 1, 0, 0, 0, 0, 1,
+	1, 0, 0, 0, 1, 0, 1, 1, 0, 1,
+	1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	1, 0, 0, 0, 1, 1, 1, 0, 0, 1,
+	1, 0, 0, 0, 0, 0, 1, 0, 0, 1,
+	1, 0, 0, 0, 1, 0, 1, 0, 0, 1,
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+};
+
+const int map_width = 10;
+const int map_height = 10;
+const int block_width = 32;
 
 typedef struct	s_c3_imgdata
 {
@@ -43,6 +60,13 @@ typedef struct	s_c3_keystate
 	char	right;
 }		t_c3_keystate;
 
+typedef struct	s_c3_player
+{
+	double	x;
+	double	y;
+	double	direction;
+}		t_c3_player;
+
 typedef struct	s_c3_state
 {
 	void			*mlx;
@@ -52,7 +76,25 @@ typedef struct	s_c3_state
 	void			*img;
 	t_c3_imgdata	imgdata;
 	t_c3_keystate	keystate;
+	t_c3_player		player;
 }		t_c3_state;
+
+void	c3_player_init(t_c3_player *player)
+{
+	player->x = map_width * block_width / 2.;
+	player->y = map_height * block_width / 2.;
+	player->direction = 0.;
+}
+
+void	c3_keystate_init(t_c3_keystate *keystat)
+{
+	keystat->w = 0;
+	keystat->a = 0;
+	keystat->s = 0;
+	keystat->d = 0;
+	keystat->left = 0;
+	keystat->right = 0;
+}
 
 void	c3_log(const char *format, ...)
 {
@@ -138,27 +180,13 @@ int		c3_key_release_hook(int key, void *param)
 	return (1);
 }
 
-const int c3_map[] = {
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-	1, 0, 0, 0, 1, 0, 1, 0, 0, 1,
-	1, 1, 1, 0, 1, 0, 0, 0, 0, 1,
-	1, 0, 0, 0, 1, 0, 1, 1, 0, 1,
-	1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-	1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-	1, 0, 0, 0, 1, 1, 1, 0, 0, 1,
-	1, 0, 0, 0, 0, 0, 1, 0, 0, 1,
-	1, 0, 0, 0, 1, 0, 1, 0, 0, 1,
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-};
-
-const int map_width = 10;
-const int map_height = 10;
-
 void	c3_draw_map(t_c3_state *stat)
 {
 	for (int i = 0; i < stat->screen_height; i++)
 	{
 		int y = map_height * i / stat->screen_height;
+		double field_y = (double)i / stat->screen_height * map_height * block_width;
+		double dist_y = field_y - stat->player.y;
 		for (int j = 0; j < stat->screen_width; j++)
 		{
 			int x = map_width * j / stat->screen_width;
@@ -166,7 +194,18 @@ void	c3_draw_map(t_c3_state *stat)
 
 			int b = 255 * (1 - cell);
 			int g = j * 256 / stat->screen_width;
-			int r = i * 128 / stat->screen_height;
+			int r = i * 128 / stat->screen_height + 128;
+
+			// player
+			double field_x = (double)j / stat->screen_width * map_width * block_width;
+			double dist_x = field_x - stat->player.x;
+			if (dist_y > -3 && dist_y < 3
+				&& dist_x > -3 && dist_x < 3)
+			{
+				r = 0;
+				b = 0;
+			}
+
 			unsigned int col = mlx_get_color_value(
 				stat->mlx, (r << 24) + (g << 16) + (b << 8));
 			int index =
@@ -208,6 +247,9 @@ int		c3_init(t_c3_state *stat)
 
 	stat->screen_width = 640;
 	stat->screen_height = 480;
+	c3_keystate_init(&stat->keystate);
+	c3_player_init(&stat->player);
+
 	stat->mlx = mlx_init();
 	C3_CHECK(stat->mlx, "mlx is NULL.");
 	stat->window = mlx_new_window(
