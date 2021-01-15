@@ -6,12 +6,13 @@
 /*   By: thisai <thisai@student.42tokyo.jp>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/01/13 16:23:13 by thisai            #+#    #+#             */
-/*   Updated: 2021/01/15 16:30:20 by thisai           ###   ########.fr       */
+/*   Updated: 2021/01/15 17:27:44 by thisai           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <assert.h>
 #include <stdio.h>
+#include <math.h>
 
 #include <stdarg.h>
 #include <stdlib.h>
@@ -25,7 +26,7 @@
 
 #define C3_CHECK(val, mesg) c3_check((int64_t)val, mesg)
 
-const int c3_map[] = {
+const char	c3_map[] = {
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 	1, 0, 0, 0, 1, 0, 1, 0, 0, 1,
 	1, 1, 1, 0, 1, 0, 0, 0, 0, 1,
@@ -41,6 +42,19 @@ const int c3_map[] = {
 const int map_width = 10;
 const int map_height = 10;
 const int block_width = 32;
+
+const char	c3_player_bitmap[] = {
+	0, 0, 0, 0, 1, 0, 0, 0,
+	0, 0, 0, 0, 1, 1, 0, 0,
+	1, 1, 1, 1, 1, 1, 1, 0,
+	1, 1, 1, 1, 1, 1, 1, 1,
+	1, 1, 1, 1, 1, 1, 1, 0,
+	0, 0, 0, 0, 1, 1, 0, 0,
+	0, 0, 0, 0, 1, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0,
+};
+const int	c3_player_bitmap_height = 8;
+const int	c3_player_bitmap_width = 8;
 
 typedef struct	s_c3_imgdata
 {
@@ -184,20 +198,28 @@ void	c3_draw_player_on_map(t_c3_state *stat)
 {
 	int x = stat->player.x * stat->screen_width / (map_width * block_width);
 	int y = stat->player.y * stat->screen_height / (map_height * block_width);
+	double angle = stat->player.direction;
 
-	for (int i = y - 3; i < y + 4; i++)
+	for (int i = -8; i < 9; i++)
 	{
-		for (int j = x - 3; j < x + 4; j++)
+		for (int j = -8; j < 9; j++)
 		{
-			int index =
-				i * stat->imgdata.size_line +
-				j * stat->imgdata.bits_per_pixel / 8;
-			unsigned int col = mlx_get_color_value(
-				stat->mlx, (0 << 24) + (0 << 16) + (0 << 8));
-			stat->imgdata.data[index + 0] = (col >> 24) & 0xff;
-			stat->imgdata.data[index + 1] = (col >> 16) & 0xff;
-			stat->imgdata.data[index + 2] = (col >> 8) & 0xff;
-			stat->imgdata.data[index + 3] = col & 0xff;
+			int xx = j * cos(-angle) - i * sin(-angle);
+			int yy = j * sin(-angle) + i * cos(-angle);
+			if (xx >= 0 && xx < c3_player_bitmap_width
+				&& yy >= 0 && yy < c3_player_bitmap_height
+				&& c3_player_bitmap[yy * c3_player_bitmap_width + xx])
+			{
+				int index =
+					(i + y) * stat->imgdata.size_line +
+					(j + x) * stat->imgdata.bits_per_pixel / 8;
+				unsigned int col = mlx_get_color_value(
+					stat->mlx, (0 << 24) + (0 << 16) + (0 << 8));
+				stat->imgdata.data[index + 0] = (col >> 24) & 0xff;
+				stat->imgdata.data[index + 1] = (col >> 16) & 0xff;
+				stat->imgdata.data[index + 2] = (col >> 8) & 0xff;
+				stat->imgdata.data[index + 3] = col & 0xff;
+			}
 		}
 	}
 }
