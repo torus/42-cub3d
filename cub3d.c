@@ -6,7 +6,7 @@
 /*   By: thisai <thisai@student.42tokyo.jp>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/01/13 16:23:13 by thisai            #+#    #+#             */
-/*   Updated: 2021/01/15 12:30:29 by thisai           ###   ########.fr       */
+/*   Updated: 2021/01/15 15:57:07 by thisai           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,7 +71,7 @@ void	c3_check(int64_t val, const char *message)
 	}
 }
 
-void	c3_cleanup(t_c3_state *stat)
+void	c3_terminate(t_c3_state *stat)
 {
 	int	tmp;
 
@@ -95,11 +95,18 @@ int		c3_key_press_hook(int key, void *param)
 	stat = (t_c3_state*)param;
 	c3_log("%s: %02x : %p\n", __FUNCTION__, key, param);
 
-	if (key == XK_Escape)
-	{
-		c3_cleanup(stat);
-		exit(0);
-	}
+	if (key == XK_W || key == XK_w)
+		stat->keystate.w = 1;
+	else if (key == XK_A || key == XK_a)
+		stat->keystate.a = 1;
+	else if (key == XK_S || key == XK_s)
+		stat->keystate.s = 1;
+	else if (key == XK_D || key == XK_d)
+		stat->keystate.d = 1;
+	else if (key == XK_Left)
+		stat->keystate.left = 1;
+	else if (key == XK_Right)
+		stat->keystate.right = 1;
 
 	return (1);
 }
@@ -112,33 +119,86 @@ int		c3_key_release_hook(int key, void *param)
 	stat = (t_c3_state*)param;
 	if (key == XK_Escape)
 	{
-		c3_cleanup(stat);
+		c3_terminate(stat);
 		exit(0);
 	}
 
-	if (key == XK_a || key == XK_A)
-	{
-		for (int i = 0; i < stat->screen_height; i++)
-		{
-			for (int j = 0; j < stat->screen_width; j++)
-			{
-				int r = i * 256 / stat->screen_height;
-				int g = j * 256 / stat->screen_width;
-				int b = 0;
-				unsigned int col = mlx_get_color_value(
-					stat->mlx, (r << 16) + (g << 8) + b);
-				int index =
-					i * stat->imgdata.size_line +
-					j * stat->imgdata.bits_per_pixel / 8;
-				stat->imgdata.data[index + 0] = (col >> 24) & 0xff;
-				stat->imgdata.data[index + 1] = (col >> 16) & 0xff;
-				stat->imgdata.data[index + 2] = (col >> 8) & 0xff;
-				stat->imgdata.data[index + 3] = col & 0xff;
-			}
-		}
-		mlx_put_image_to_window(stat->mlx, stat->window, stat->img, 0, 0);
-	}
+	if (key == XK_W || key == XK_w)
+		stat->keystate.w = 0;
+	else if (key == XK_A || key == XK_a)
+		stat->keystate.a = 0;
+	else if (key == XK_S || key == XK_s)
+		stat->keystate.s = 0;
+	else if (key == XK_D || key == XK_d)
+		stat->keystate.d = 0;
+	else if (key == XK_Left)
+		stat->keystate.left = 0;
+	else if (key == XK_Right)
+		stat->keystate.right = 0;
+	return (1);
+}
 
+const int c3_map[] = {
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	1, 0, 0, 0, 1, 0, 1, 0, 0, 1,
+	1, 1, 1, 0, 1, 0, 0, 0, 0, 1,
+	1, 0, 0, 0, 1, 0, 1, 1, 0, 1,
+	1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+	1, 0, 0, 0, 1, 1, 1, 0, 0, 1,
+	1, 0, 0, 0, 0, 0, 1, 0, 0, 1,
+	1, 0, 0, 0, 1, 0, 1, 0, 0, 1,
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+};
+
+const int map_width = 10;
+const int map_height = 10;
+
+void	c3_draw_map(t_c3_state *stat)
+{
+	for (int i = 0; i < stat->screen_height; i++)
+	{
+		int y = map_height * i / stat->screen_height;
+		for (int j = 0; j < stat->screen_width; j++)
+		{
+			int x = map_width * j / stat->screen_width;
+			int cell = c3_map[y * map_width + x];
+
+			int b = 255 * (1 - cell);
+			int g = j * 256 / stat->screen_width;
+			int r = i * 128 / stat->screen_height;
+			unsigned int col = mlx_get_color_value(
+				stat->mlx, (r << 24) + (g << 16) + (b << 8));
+			int index =
+				i * stat->imgdata.size_line +
+				j * stat->imgdata.bits_per_pixel / 8;
+			stat->imgdata.data[index + 0] = (col >> 24) & 0xff;
+			stat->imgdata.data[index + 1] = (col >> 16) & 0xff;
+			stat->imgdata.data[index + 2] = (col >> 8) & 0xff;
+			stat->imgdata.data[index + 3] = col & 0xff;
+		}
+	}
+	mlx_put_image_to_window(stat->mlx, stat->window, stat->img, 0, 0);
+}
+
+void	c3_draw(t_c3_state *stat)
+{
+	c3_draw_map(stat);
+	mlx_string_put(
+		stat->mlx, stat->window, 10, 10, mlx_get_color_value(stat->mlx, 0xffffff), "AHO");
+}
+
+void	c3_update(t_c3_state *stat)
+{
+}
+
+int		c3_loop_hook(void *param)
+{
+	t_c3_state	*stat;
+ 
+	stat = (t_c3_state*)param;
+	c3_update(stat);
+	c3_draw(stat);
 	return (1);
 }
 
@@ -154,14 +214,8 @@ int		c3_init(t_c3_state *stat)
 		stat->mlx, stat->screen_width, stat->screen_height, "Cub3D!");
 	C3_CHECK(stat->window, "window is NULL.");
 
-	/* tmp = mlx_key_hook(stat->window, c3_key_release_hook, stat); */
-	/* C3_CHECK(tmp, "mlx_key_hook() returned false."); */
-
-	tmp = mlx_hook(
-		stat->window, KeyRelease,
-		KeyReleaseMask,
-		c3_key_release_hook, stat);
-	C3_CHECK(tmp, "mlx_hook() returned false.");
+	tmp = mlx_key_hook(stat->window, c3_key_release_hook, stat);
+	C3_CHECK(tmp, "mlx_key_hook() returned false.");
 
 	tmp = mlx_hook(
 		stat->window, KeyPress,
@@ -182,6 +236,14 @@ int		c3_init(t_c3_state *stat)
 		"bpp: %d, linesize: %d, endian: %d\n",
 		stat->imgdata.bits_per_pixel,
 		stat->imgdata.size_line, stat->imgdata.endian);
+
+	tmp = mlx_loop_hook(stat->mlx, c3_loop_hook, stat);
+	C3_CHECK(tmp, "mlx_loop_hook() returned false.");
+
+
+
+
+
 
 	tmp = mlx_do_key_autorepeatoff(stat->mlx);
 	C3_CHECK(tmp, "mlx_do_key_autorepeatoff() returned false.");
