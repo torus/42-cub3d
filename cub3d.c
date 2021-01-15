@@ -6,7 +6,7 @@
 /*   By: thisai <thisai@student.42tokyo.jp>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/01/13 16:23:13 by thisai            #+#    #+#             */
-/*   Updated: 2021/01/15 17:27:44 by thisai           ###   ########.fr       */
+/*   Updated: 2021/01/15 17:50:26 by thisai           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,6 +79,8 @@ typedef struct	s_c3_player
 	double	x;
 	double	y;
 	double	direction;
+	double	walk_speed;
+	double	rotation_speed;
 }		t_c3_player;
 
 typedef struct	s_c3_state
@@ -98,6 +100,8 @@ void	c3_player_init(t_c3_player *player)
 	player->x = map_width * block_width / 2.;
 	player->y = map_height * block_width / 2.;
 	player->direction = 0.;
+	player->walk_speed = 0.2;
+	player->rotation_speed = 0.03;
 }
 
 void	c3_keystate_init(t_c3_keystate *keystat)
@@ -205,7 +209,7 @@ void	c3_draw_player_on_map(t_c3_state *stat)
 		for (int j = -8; j < 9; j++)
 		{
 			int xx = j * cos(-angle) - i * sin(-angle);
-			int yy = j * sin(-angle) + i * cos(-angle);
+			int yy = j * sin(-angle) + i * cos(-angle) + 3;
 			if (xx >= 0 && xx < c3_player_bitmap_width
 				&& yy >= 0 && yy < c3_player_bitmap_height
 				&& c3_player_bitmap[yy * c3_player_bitmap_width + xx])
@@ -264,6 +268,27 @@ void	c3_draw(t_c3_state *stat)
 
 void	c3_update(t_c3_state *stat)
 {
+	if (stat->keystate.left)
+	{
+		stat->player.direction -= stat->player.rotation_speed;
+	}
+	else if (stat->keystate.right)
+	{
+		stat->player.direction += stat->player.rotation_speed;
+	}
+	if (stat->keystate.w || stat->keystate.s)
+	{
+		double delta_x = stat->player.walk_speed * cos(stat->player.direction);
+		double delta_y = stat->player.walk_speed * sin(stat->player.direction);
+		double new_x = stat->player.x + delta_x * (stat->keystate.w ? 1 : -1);
+		double new_y = stat->player.y + delta_y * (stat->keystate.w ? 1 : -1);
+		if (new_x >= 0 && new_x < map_width * block_width
+			&& new_y >= 0 && new_y < map_height * block_width)
+		{
+			stat->player.x = new_x;
+			stat->player.y = new_y;
+		}
+	}
 }
 
 int		c3_loop_hook(void *param)
