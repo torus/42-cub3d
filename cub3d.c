@@ -6,7 +6,7 @@
 /*   By: thisai <thisai@student.42tokyo.jp>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/01/13 16:23:13 by thisai            #+#    #+#             */
-/*   Updated: 2021/01/15 16:18:31 by thisai           ###   ########.fr       */
+/*   Updated: 2021/01/15 16:30:20 by thisai           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -180,13 +180,33 @@ int		c3_key_release_hook(int key, void *param)
 	return (1);
 }
 
+void	c3_draw_player_on_map(t_c3_state *stat)
+{
+	int x = stat->player.x * stat->screen_width / (map_width * block_width);
+	int y = stat->player.y * stat->screen_height / (map_height * block_width);
+
+	for (int i = y - 3; i < y + 4; i++)
+	{
+		for (int j = x - 3; j < x + 4; j++)
+		{
+			int index =
+				i * stat->imgdata.size_line +
+				j * stat->imgdata.bits_per_pixel / 8;
+			unsigned int col = mlx_get_color_value(
+				stat->mlx, (0 << 24) + (0 << 16) + (0 << 8));
+			stat->imgdata.data[index + 0] = (col >> 24) & 0xff;
+			stat->imgdata.data[index + 1] = (col >> 16) & 0xff;
+			stat->imgdata.data[index + 2] = (col >> 8) & 0xff;
+			stat->imgdata.data[index + 3] = col & 0xff;
+		}
+	}
+}
+
 void	c3_draw_map(t_c3_state *stat)
 {
 	for (int i = 0; i < stat->screen_height; i++)
 	{
 		int y = map_height * i / stat->screen_height;
-		double field_y = (double)i / stat->screen_height * map_height * block_width;
-		double dist_y = field_y - stat->player.y;
 		for (int j = 0; j < stat->screen_width; j++)
 		{
 			int x = map_width * j / stat->screen_width;
@@ -195,16 +215,6 @@ void	c3_draw_map(t_c3_state *stat)
 			int b = 255 * (1 - cell);
 			int g = j * 256 / stat->screen_width;
 			int r = i * 128 / stat->screen_height + 128;
-
-			// player
-			double field_x = (double)j / stat->screen_width * map_width * block_width;
-			double dist_x = field_x - stat->player.x;
-			if (dist_y > -3 && dist_y < 3
-				&& dist_x > -3 && dist_x < 3)
-			{
-				r = 0;
-				b = 0;
-			}
 
 			unsigned int col = mlx_get_color_value(
 				stat->mlx, (r << 24) + (g << 16) + (b << 8));
@@ -217,12 +227,15 @@ void	c3_draw_map(t_c3_state *stat)
 			stat->imgdata.data[index + 3] = col & 0xff;
 		}
 	}
-	mlx_put_image_to_window(stat->mlx, stat->window, stat->img, 0, 0);
+	c3_draw_player_on_map(stat);
 }
 
 void	c3_draw(t_c3_state *stat)
 {
 	c3_draw_map(stat);
+
+	mlx_put_image_to_window(stat->mlx, stat->window, stat->img, 0, 0);
+
 	mlx_string_put(
 		stat->mlx, stat->window, 10, 10, mlx_get_color_value(stat->mlx, 0xffffff), "AHO");
 }
