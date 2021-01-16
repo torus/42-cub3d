@@ -6,7 +6,7 @@
 /*   By: thisai <thisai@student.42tokyo.jp>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/01/13 16:23:13 by thisai            #+#    #+#             */
-/*   Updated: 2021/01/16 16:20:16 by thisai           ###   ########.fr       */
+/*   Updated: 2021/01/16 16:56:48 by thisai           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -286,26 +286,52 @@ void	c3_cast_ray(t_c3_state *stat, double x, double y, double theta, t_coord *ou
 	if (tan_theta != 0.0)
 		while (1)
 		{
-			hori_hit_y = floor(y) + i;
-			hori_hit_x = x + (hori_hit_y - y) / tan_theta;
-			if (hori_hit_x < 0 || hori_hit_x >= map_width
-				|| hori_hit_y < 0 || hori_hit_y >= map_height)
-				break ;
-			if (c3_map[(int)hori_hit_y * map_width + (int)hori_hit_x])
-				break ;
+			if (theta >= 0 && theta < M_PI)
+			{
+				hori_hit_y = floor(y) + i;
+				hori_hit_x = x + (hori_hit_y - y) / tan_theta;
+				if (hori_hit_x < 0 || hori_hit_x >= map_width
+					|| hori_hit_y < 0 || hori_hit_y >= map_height)
+					break ;
+				if (c3_map[(int)hori_hit_y * map_width + (int)hori_hit_x])
+					break ;
+			}
+			else
+			{
+				hori_hit_y = floor(y) - i + 1;
+				hori_hit_x = x + (hori_hit_y - y) / tan_theta;
+				if (hori_hit_x < 0 || hori_hit_x >= map_width
+					|| hori_hit_y < 1 || hori_hit_y >= map_height + 1)
+					break ;
+				if (c3_map[(int)(hori_hit_y - 1) * map_width + (int)hori_hit_x])
+					break ;
+			}
 			i++;
 		}
 
 	i = 1;
 	while (1)
 	{
-		vert_hit_x = floor(x) + i;
-		vert_hit_y = y + (vert_hit_x - x) * tan_theta;
-		if (vert_hit_x < 0 || vert_hit_x >= map_width
-			|| vert_hit_y < 0 || vert_hit_y >= map_height)
-			break ;
-		if (c3_map[(int)vert_hit_y * map_width + (int)vert_hit_x])
-			break ;
+		if (theta < M_PI_2 || theta >= 3 * M_PI_2)
+		{
+			vert_hit_x = floor(x) + i;
+			vert_hit_y = y + (vert_hit_x - x) * tan_theta;
+			if (vert_hit_x < 0 || vert_hit_x >= map_width
+				|| vert_hit_y < 0 || vert_hit_y >= map_height)
+				break ;
+			if (c3_map[(int)vert_hit_y * map_width + (int)vert_hit_x])
+				break ;
+		}
+		else
+		{
+			vert_hit_x = floor(x) - i + 1;
+			vert_hit_y = y + (vert_hit_x - x) * tan_theta;
+			if (vert_hit_x < 1 || vert_hit_x >= map_width + 1
+				|| vert_hit_y < 0 || vert_hit_y >= map_height)
+				break ;
+			if (c3_map[(int)vert_hit_y * map_width + (int)vert_hit_x - 1])
+				break ;
+		}
 		i++;
 	}
 
@@ -338,7 +364,7 @@ void	c3_draw_ray(t_c3_state *stat)
 
 	mlx_string_put(
 		stat->mlx, stat->window, screen_x, screen_y,
-		mlx_get_color_value(stat->mlx, 0xff0000), "x");
+		mlx_get_color_value(stat->mlx, 0x000000), "*");
 }
 
 void	c3_draw(t_c3_state *stat)
