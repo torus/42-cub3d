@@ -6,7 +6,7 @@
 /*   By: thisai <thisai@student.42tokyo.jp>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/01/13 16:23:13 by thisai            #+#    #+#             */
-/*   Updated: 2021/01/15 17:50:26 by thisai           ###   ########.fr       */
+/*   Updated: 2021/01/16 15:52:31 by thisai           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -256,12 +256,101 @@ void	c3_draw_map(t_c3_state *stat)
 	c3_draw_player_on_map(stat);
 }
 
+double	distance_squared(double x1, double y1, double x2, double y2)
+{
+	double	dx;
+	double	dy;
+
+	dx = x1 - x2;
+	dy = y1 - y2;
+	return (dx * dx + dy * dy);
+}
+
+typedef struct	s_coord
+{
+	double	x;
+	double	y;
+}		t_coord;
+
+void	c3_cast_ray(t_c3_state *stat, double x, double y, double theta, t_coord *out)
+{
+	double	tan_theta;
+	int		i;
+	double	hori_hit_x;
+	double	hori_hit_y;
+	double	vert_hit_x;
+	double	vert_hit_y;
+
+	tan_theta = tan(theta);
+	y /= block_width;
+	x /= block_width;
+
+	i = 1;
+	if (tan_theta != 0.0)
+		while (1)
+		{
+			hori_hit_y = floor(y) + i;
+			hori_hit_x = x + (hori_hit_y - y) / tan_theta;
+			if (hori_hit_x < 0 || hori_hit_x >= map_width
+				|| hori_hit_y < 0 || hori_hit_y >= map_height)
+				break ;
+			if (c3_map[(int)hori_hit_y * map_width + (int)hori_hit_x])
+				break ;
+			i++;
+		}
+
+	i = 1;
+	while (1)
+	{
+		vert_hit_x = floor(x) + i;
+		vert_hit_y = y + (hori_hit_x - x) * tan_theta;
+		if (vert_hit_x < 0 || vert_hit_x >= map_width
+			|| vert_hit_y < 0 || vert_hit_y >= map_height)
+			break ;
+		if (c3_map[(int)vert_hit_y * map_width + (int)vert_hit_x])
+			break ;
+		i++;
+	}
+
+	if (distance_squared(x, y, hori_hit_x, hori_hit_y)
+		< distance_squared(x, y, vert_hit_x, vert_hit_y))
+	{
+		out->x = hori_hit_x * block_width;
+		out->y = hori_hit_y * block_width;
+	}
+	else
+	{
+		out->x = vert_hit_x * block_width;
+		out->y = vert_hit_y * block_width;
+	}
+}
+
+void	c3_draw_ray(t_c3_state *stat)
+{
+	t_coord	hit;
+	double	world_x;
+	double	world_y;
+	double	screen_x;
+	double	screen_y;
+
+	c3_cast_ray(stat, stat->player.x, stat->player.y, stat->player.direction, &hit);
+	world_x = hit.x;
+	world_y = hit.y;
+	screen_x = world_x / block_width * stat->screen_width / map_width;
+	screen_y = world_y / block_width * stat->screen_height / map_height;
+
+	mlx_string_put(
+		stat->mlx, stat->window, screen_x, screen_y,
+		mlx_get_color_value(stat->mlx, 0xff0000), "x");
+}
+
 void	c3_draw(t_c3_state *stat)
 {
 	c3_draw_map(stat);
 
 	mlx_put_image_to_window(stat->mlx, stat->window, stat->img, 0, 0);
 
+	c3_draw_ray(stat);
 	mlx_string_put(
 		stat->mlx, stat->window, 10, 10, mlx_get_color_value(stat->mlx, 0xffffff), "AHO");
 }
@@ -271,11 +360,16 @@ void	c3_update(t_c3_state *stat)
 	if (stat->keystate.left)
 	{
 		stat->player.direction -= stat->player.rotation_speed;
+		while (stat->player.direction < 0)
+			stat->player.direction += M_PI * 2;
 	}
 	else if (stat->keystate.right)
 	{
 		stat->player.direction += stat->player.rotation_speed;
+		while (stat->player.direction >= M_PI * 2)
+			stat->player.direction -= M_PI * 2;
 	}
+
 	if (stat->keystate.w || stat->keystate.s)
 	{
 		double delta_x = stat->player.walk_speed * cos(stat->player.direction);
