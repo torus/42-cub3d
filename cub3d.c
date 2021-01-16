@@ -6,7 +6,7 @@
 /*   By: thisai <thisai@student.42tokyo.jp>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/01/13 16:23:13 by thisai            #+#    #+#             */
-/*   Updated: 2021/01/16 16:56:48 by thisai           ###   ########.fr       */
+/*   Updated: 2021/01/16 20:25:14 by thisai           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,6 +82,32 @@ typedef struct	s_c3_player
 	double	rotation_speed;
 }		t_c3_player;
 
+typedef struct	s_c3_coord
+{
+	double	x;
+	double	y;
+}		t_c3_coord;
+
+typedef struct	s_c3_ray
+{
+	double		distance;
+	double		angle;
+	t_c3_coord	hit;
+}		t_c3_ray;
+
+typedef struct	s_c3_renderer
+{
+	double		plane_distance;
+	double		fov;
+	int			resolution_x;
+	t_c3_ray	*rays;
+}		t_c3_renderer;
+
+void	c3_renderer_cleanup(t_c3_renderer *rend)
+{
+	free(rend->rays);
+}
+
 typedef struct	s_c3_state
 {
 	void			*mlx;
@@ -92,6 +118,7 @@ typedef struct	s_c3_state
 	t_c3_imgdata	imgdata;
 	t_c3_keystate	keystate;
 	t_c3_player		player;
+	t_c3_renderer	renderer;
 }		t_c3_state;
 
 void	c3_player_init(t_c3_player *player)
@@ -101,6 +128,14 @@ void	c3_player_init(t_c3_player *player)
 	player->direction = 0.;
 	player->walk_speed = 0.01;
 	player->rotation_speed = 0.03;
+}
+
+void	c3_renderer_init(t_c3_renderer *rend)
+{
+	rend->plane_distance = 1.;
+	rend->fov = M_PI / 6.;
+	rend->resolution_x = 320;
+	rend->rays = malloc(sizeof(t_c3_renderer) * rend->resolution_x);
 }
 
 void	c3_keystate_init(t_c3_keystate *keystat)
@@ -145,6 +180,7 @@ void	c3_terminate(t_c3_state *stat)
 	mlx_loop_end(stat->mlx);
 
 	mlx_destroy_display(stat->mlx);
+	c3_renderer_cleanup(&stat->renderer);
 }
 
 int		c3_key_press_hook(int key, void *param)
@@ -265,13 +301,7 @@ double	distance_squared(double x1, double y1, double x2, double y2)
 	return (dx * dx + dy * dy);
 }
 
-typedef struct	s_coord
-{
-	double	x;
-	double	y;
-}		t_coord;
-
-void	c3_cast_ray(t_c3_state *stat, double x, double y, double theta, t_coord *out)
+void	c3_cast_ray(t_c3_state *stat, double x, double y, double theta, t_c3_coord *out)
 {
 	double	tan_theta;
 	int		i;
@@ -348,23 +378,28 @@ void	c3_cast_ray(t_c3_state *stat, double x, double y, double theta, t_coord *ou
 	}
 }
 
-void	c3_draw_ray(t_c3_state *stat)
+void	c3_draw_rays(t_c3_state *stat)
 {
-	t_coord	hit;
-	double	world_x;
-	double	world_y;
-	double	screen_x;
-	double	screen_y;
+	double		world_x;
+	double		world_y;
+	double		screen_x;
+	double		screen_y;
+	int			x;
 
-	c3_cast_ray(stat, stat->player.x, stat->player.y, stat->player.direction, &hit);
-	world_x = hit.x;
-	world_y = hit.y;
-	screen_x = world_x * stat->screen_width / map_width;
-	screen_y = world_y * stat->screen_height / map_height;
+	x = 0;
+	while (x < stat->renderer.resolution_x)
+	{
+		world_x = stat->renderer.rays[x].hit.x;
+		world_y = stat->renderer.rays[x].hit.y;
+		screen_x = world_x * stat->screen_width / map_width;
+		screen_y = world_y * stat->screen_height / map_height;
 
-	mlx_string_put(
-		stat->mlx, stat->window, screen_x, screen_y,
-		mlx_get_color_value(stat->mlx, 0x000000), "*");
+		mlx_string_put(
+			stat->mlx, stat->window, screen_x, screen_y,
+			mlx_get_color_value(stat->mlx, 0x000000), "*");
+
+		x++;
+	}
 }
 
 void	c3_draw(t_c3_state *stat)
@@ -373,9 +408,29 @@ void	c3_draw(t_c3_state *stat)
 
 	mlx_put_image_to_window(stat->mlx, stat->window, stat->img, 0, 0);
 
-	c3_draw_ray(stat);
+	c3_draw_rays(stat);
 	mlx_string_put(
 		stat->mlx, stat->window, 10, 10, mlx_get_color_value(stat->mlx, 0xffffff), "AHO");
+}
+
+void	c3_scan(t_c3_state *stat)
+{
+	int	x;
+	int	half_res;
+
+	half_res = stat->renderer.resolution_x / 2;
+	x = -half_res;
+	while (x < half_res)
+	{
+		double a =
+			x * (stat->renderer.plane_distance * tan(stat->renderer.fov))
+			/ half_res;
+		double theta = atan(a / stat->renderer.plane_distance);
+		c3_cast_ray(stat, stat->player.x, stat->player.y, theta + stat->player.direction,
+					&stat->renderer.rays[x + half_res].hit);
+		stat->renderer.rays[x + half_res].angle = theta;
+		x++;
+	}
 }
 
 void	c3_update(t_c3_state *stat)
@@ -420,6 +475,8 @@ void	c3_update(t_c3_state *stat)
 			stat->player.y = new_y;
 		}
 	}
+
+	c3_scan(stat);
 }
 
 int		c3_loop_hook(void *param)
@@ -440,6 +497,7 @@ int		c3_init(t_c3_state *stat)
 	stat->screen_height = 480;
 	c3_keystate_init(&stat->keystate);
 	c3_player_init(&stat->player);
+	c3_renderer_init(&stat->renderer);
 
 	stat->mlx = mlx_init();
 	C3_CHECK(stat->mlx, "mlx is NULL.");
