@@ -6,7 +6,7 @@
 /*   By: thisai <thisai@student.42tokyo.jp>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/01/13 16:23:13 by thisai            #+#    #+#             */
-/*   Updated: 2021/01/16 15:52:31 by thisai           ###   ########.fr       */
+/*   Updated: 2021/01/16 16:03:43 by thisai           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,6 @@ const char	c3_map[] = {
 
 const int map_width = 10;
 const int map_height = 10;
-const int block_width = 32;
 
 const char	c3_player_bitmap[] = {
 	0, 0, 0, 0, 1, 0, 0, 0,
@@ -97,10 +96,10 @@ typedef struct	s_c3_state
 
 void	c3_player_init(t_c3_player *player)
 {
-	player->x = map_width * block_width / 2.;
-	player->y = map_height * block_width / 2.;
+	player->x = map_width / 2.;
+	player->y = map_height / 2.;
 	player->direction = 0.;
-	player->walk_speed = 0.2;
+	player->walk_speed = 0.01;
 	player->rotation_speed = 0.03;
 }
 
@@ -200,8 +199,8 @@ int		c3_key_release_hook(int key, void *param)
 
 void	c3_draw_player_on_map(t_c3_state *stat)
 {
-	int x = stat->player.x * stat->screen_width / (map_width * block_width);
-	int y = stat->player.y * stat->screen_height / (map_height * block_width);
+	int x = stat->player.x * stat->screen_width / map_width;
+	int y = stat->player.y * stat->screen_height / map_height;
 	double angle = stat->player.direction;
 
 	for (int i = -8; i < 9; i++)
@@ -282,8 +281,6 @@ void	c3_cast_ray(t_c3_state *stat, double x, double y, double theta, t_coord *ou
 	double	vert_hit_y;
 
 	tan_theta = tan(theta);
-	y /= block_width;
-	x /= block_width;
 
 	i = 1;
 	if (tan_theta != 0.0)
@@ -315,13 +312,13 @@ void	c3_cast_ray(t_c3_state *stat, double x, double y, double theta, t_coord *ou
 	if (distance_squared(x, y, hori_hit_x, hori_hit_y)
 		< distance_squared(x, y, vert_hit_x, vert_hit_y))
 	{
-		out->x = hori_hit_x * block_width;
-		out->y = hori_hit_y * block_width;
+		out->x = hori_hit_x;
+		out->y = hori_hit_y;
 	}
 	else
 	{
-		out->x = vert_hit_x * block_width;
-		out->y = vert_hit_y * block_width;
+		out->x = vert_hit_x;
+		out->y = vert_hit_y;
 	}
 }
 
@@ -336,8 +333,8 @@ void	c3_draw_ray(t_c3_state *stat)
 	c3_cast_ray(stat, stat->player.x, stat->player.y, stat->player.direction, &hit);
 	world_x = hit.x;
 	world_y = hit.y;
-	screen_x = world_x / block_width * stat->screen_width / map_width;
-	screen_y = world_y / block_width * stat->screen_height / map_height;
+	screen_x = world_x * stat->screen_width / map_width;
+	screen_y = world_y * stat->screen_height / map_height;
 
 	mlx_string_put(
 		stat->mlx, stat->window, screen_x, screen_y,
@@ -376,8 +373,8 @@ void	c3_update(t_c3_state *stat)
 		double delta_y = stat->player.walk_speed * sin(stat->player.direction);
 		double new_x = stat->player.x + delta_x * (stat->keystate.w ? 1 : -1);
 		double new_y = stat->player.y + delta_y * (stat->keystate.w ? 1 : -1);
-		if (new_x >= 0 && new_x < map_width * block_width
-			&& new_y >= 0 && new_y < map_height * block_width)
+		if (new_x >= 0 && new_x < map_width
+			&& new_y >= 0 && new_y < map_height)
 		{
 			stat->player.x = new_x;
 			stat->player.y = new_y;
