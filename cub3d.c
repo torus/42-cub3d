@@ -6,7 +6,7 @@
 /*   By: thisai <thisai@student.42tokyo.jp>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/01/13 16:23:13 by thisai            #+#    #+#             */
-/*   Updated: 2021/01/16 20:25:14 by thisai           ###   ########.fr       */
+/*   Updated: 2021/01/16 20:43:23 by thisai           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -273,9 +273,12 @@ void	c3_draw_map(t_c3_state *stat)
 			int x = map_width * j / stat->screen_width;
 			int cell = c3_map[y * map_width + x];
 
-			int b = 255 * (1 - cell);
-			int g = j * 256 / stat->screen_width;
-			int r = i * 128 / stat->screen_height + 128;
+			/* int b = 255 * (1 - cell); */
+			/* int g = j * 256 / stat->screen_width; */
+			/* int r = i * 128 / stat->screen_height + 128; */
+			int r = 128 * (1 - cell);
+			int g = 128 * (1 - cell);
+			int b = 128 * (1 - cell);
 
 			unsigned int col = mlx_get_color_value(
 				stat->mlx, (r << 24) + (g << 16) + (b << 8));
@@ -394,9 +397,11 @@ void	c3_draw_rays(t_c3_state *stat)
 		screen_x = world_x * stat->screen_width / map_width;
 		screen_y = world_y * stat->screen_height / map_height;
 
+		int r = 255 * x / stat->renderer.resolution_x;
+		int col = (r << 16) + ((255 - r) << 0);
 		mlx_string_put(
 			stat->mlx, stat->window, screen_x, screen_y,
-			mlx_get_color_value(stat->mlx, 0x000000), "*");
+			mlx_get_color_value(stat->mlx, col), "*");
 
 		x++;
 	}
@@ -426,7 +431,12 @@ void	c3_scan(t_c3_state *stat)
 			x * (stat->renderer.plane_distance * tan(stat->renderer.fov))
 			/ half_res;
 		double theta = atan(a / stat->renderer.plane_distance);
-		c3_cast_ray(stat, stat->player.x, stat->player.y, theta + stat->player.direction,
+		double angle = theta + stat->player.direction;
+		if (angle >= M_PI * 2)
+			angle -= M_PI * 2;
+		if (angle < 0)
+			angle += M_PI * 2;
+		c3_cast_ray(stat, stat->player.x, stat->player.y, angle,
 					&stat->renderer.rays[x + half_res].hit);
 		stat->renderer.rays[x + half_res].angle = theta;
 		x++;
