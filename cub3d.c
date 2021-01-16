@@ -6,7 +6,7 @@
 /*   By: thisai <thisai@student.42tokyo.jp>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/01/13 16:23:13 by thisai            #+#    #+#             */
-/*   Updated: 2021/01/16 16:03:43 by thisai           ###   ########.fr       */
+/*   Updated: 2021/01/16 16:08:10 by thisai           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -300,7 +300,7 @@ void	c3_cast_ray(t_c3_state *stat, double x, double y, double theta, t_coord *ou
 	while (1)
 	{
 		vert_hit_x = floor(x) + i;
-		vert_hit_y = y + (hori_hit_x - x) * tan_theta;
+		vert_hit_y = y + (vert_hit_x - x) * tan_theta;
 		if (vert_hit_x < 0 || vert_hit_x >= map_width
 			|| vert_hit_y < 0 || vert_hit_y >= map_height)
 			break ;
