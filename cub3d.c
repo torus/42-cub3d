@@ -6,7 +6,7 @@
 /*   By: thisai <thisai@student.42tokyo.jp>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/01/13 16:23:13 by thisai            #+#    #+#             */
-/*   Updated: 2021/01/16 16:08:10 by thisai           ###   ########.fr       */
+/*   Updated: 2021/01/16 16:20:16 by thisai           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -373,6 +373,20 @@ void	c3_update(t_c3_state *stat)
 		double delta_y = stat->player.walk_speed * sin(stat->player.direction);
 		double new_x = stat->player.x + delta_x * (stat->keystate.w ? 1 : -1);
 		double new_y = stat->player.y + delta_y * (stat->keystate.w ? 1 : -1);
+		if (new_x >= 0 && new_x < map_width
+			&& new_y >= 0 && new_y < map_height)
+		{
+			stat->player.x = new_x;
+			stat->player.y = new_y;
+		}
+	}
+
+	if (stat->keystate.a || stat->keystate.d)
+	{
+		double delta_x = stat->player.walk_speed * sin(stat->player.direction);
+		double delta_y = stat->player.walk_speed * -cos(stat->player.direction);
+		double new_x = stat->player.x + delta_x * (stat->keystate.a ? 1 : -1);
+		double new_y = stat->player.y + delta_y * (stat->keystate.a ? 1 : -1);
 		if (new_x >= 0 && new_x < map_width
 			&& new_y >= 0 && new_y < map_height)
 		{
