@@ -6,7 +6,7 @@
 /*   By: thisai <thisai@student.42tokyo.jp>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/01/13 16:23:13 by thisai            #+#    #+#             */
-/*   Updated: 2021/01/17 14:22:04 by thisai           ###   ########.fr       */
+/*   Updated: 2021/01/17 14:33:09 by thisai           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -427,22 +427,22 @@ void	c3_draw_walls(t_c3_state *stat)
 
 		int wall_height = 1000 / (ray->distance * cos(ray->angle));
 
-		for (int screen_x = stat->screen_width * x / stat->renderer.resolution_x;
-			 screen_x < stat->screen_width * (x + 1) / stat->renderer.resolution_x;
-			 screen_x++)
+		for (int screen_y = 0; screen_y < stat->screen_height; screen_y++)
 		{
-			for (int screen_y = 0; screen_y < stat->screen_height; screen_y++)
+			int r = screen_y < (stat->screen_height - wall_height) / 2
+				|| screen_y > (stat->screen_height + wall_height) / 2
+				? 0
+				: 128;
+			int g = 128;
+			int b = 128;
+
+			unsigned int col = mlx_get_color_value(
+				stat->mlx, (r << 24) + (g << 16) + (b << 8));
+
+			for (int screen_x = stat->screen_width * x / stat->renderer.resolution_x;
+				 screen_x < stat->screen_width * (x + 1) / stat->renderer.resolution_x;
+				 screen_x++)
 			{
-				int r = screen_y < (stat->screen_height - wall_height) / 2
-					|| screen_y > (stat->screen_height + wall_height) / 2
-					? 0
-					: 128;
-				int g = 128;
-				int b = 128;
-
-				unsigned int col = mlx_get_color_value(
-					stat->mlx, (r << 24) + (g << 16) + (b << 8));
-
 				int index =
 					screen_y * stat->imgdata.size_line +
 					screen_x * stat->imgdata.bits_per_pixel / 8;
