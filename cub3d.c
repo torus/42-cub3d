@@ -6,7 +6,7 @@
 /*   By: thisai <thisai@student.42tokyo.jp>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/01/13 16:23:13 by thisai            #+#    #+#             */
-/*   Updated: 2021/01/17 14:33:09 by thisai           ###   ########.fr       */
+/*   Updated: 2021/01/17 15:00:21 by thisai           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -88,11 +88,26 @@ typedef struct	s_c3_coord
 	double	y;
 }		t_c3_coord;
 
+typedef enum	e_c3_object_type
+{
+	C3_OBJTYPE_WALL_N,
+	C3_OBJTYPE_WALL_E,
+	C3_OBJTYPE_WALL_S,
+	C3_OBJTYPE_WALL_W,
+	C3_OBJTYPE_SPRITE,
+}		t_c3_object_type;
+
+typedef struct	s_c3_hit_result
+{
+	t_c3_object_type	type;
+	t_c3_coord			position;
+}		t_c3_hit_result;
+
 typedef struct	s_c3_ray
 {
-	double		distance;
-	double		angle;
-	t_c3_coord	hit;
+	double			distance;
+	double			angle;
+	t_c3_hit_result	hit;
 }		t_c3_ray;
 
 typedef struct	s_c3_renderer
@@ -308,7 +323,8 @@ double	distance_squared(double x1, double y1, double x2, double y2)
 	return (dx * dx + dy * dy);
 }
 
-void	c3_cast_ray(t_c3_state *stat, double x, double y, double theta, t_c3_coord *out)
+void	c3_cast_ray(
+	t_c3_state *stat, double x, double y, double theta, t_c3_hit_result *out)
 {
 	double	tan_theta;
 	int		i;
@@ -375,13 +391,13 @@ void	c3_cast_ray(t_c3_state *stat, double x, double y, double theta, t_c3_coord 
 	if (distance_squared(x, y, hori_hit_x, hori_hit_y)
 		< distance_squared(x, y, vert_hit_x, vert_hit_y))
 	{
-		out->x = hori_hit_x;
-		out->y = hori_hit_y;
+		out->position.x = hori_hit_x;
+		out->position.y = hori_hit_y;
 	}
 	else
 	{
-		out->x = vert_hit_x;
-		out->y = vert_hit_y;
+		out->position.x = vert_hit_x;
+		out->position.y = vert_hit_y;
 	}
 }
 
@@ -396,8 +412,8 @@ void	c3_draw_rays_on_map(t_c3_state *stat)
 	x = 0;
 	while (x < stat->renderer.resolution_x)
 	{
-		world_x = stat->renderer.rays[x].hit.x;
-		world_y = stat->renderer.rays[x].hit.y;
+		world_x = stat->renderer.rays[x].hit.position.x;
+		world_y = stat->renderer.rays[x].hit.position.y;
 		screen_x = world_x * stat->renderer.minimap_width / map_width;
 		screen_y = world_y * stat->renderer.minimap_height / map_height;
 
@@ -413,10 +429,6 @@ void	c3_draw_rays_on_map(t_c3_state *stat)
 
 void	c3_draw_walls(t_c3_state *stat)
 {
-	double		world_x;
-	double		world_y;
-	double		screen_x;
-	double		screen_y;
 	int			x;
 
 	x = 0;
@@ -495,8 +507,8 @@ void	c3_scan(t_c3_state *stat)
 					&stat->renderer.rays[x + half_res].hit);
 		double sq_dist = distance_squared(
 			stat->player.x, stat->player.y,
-			stat->renderer.rays[x + half_res].hit.x,
-			stat->renderer.rays[x + half_res].hit.y);
+			stat->renderer.rays[x + half_res].hit.position.x,
+			stat->renderer.rays[x + half_res].hit.position.y);
 		double distance = sqrt(sq_dist);
 		stat->renderer.rays[x + half_res].distance = distance;
 		x++;
