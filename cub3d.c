@@ -6,7 +6,7 @@
 /*   By: thisai <thisai@student.42tokyo.jp>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/01/13 16:23:13 by thisai            #+#    #+#             */
-/*   Updated: 2021/01/17 14:07:50 by thisai           ###   ########.fr       */
+/*   Updated: 2021/01/17 14:22:04 by thisai           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -425,7 +425,7 @@ void	c3_draw_walls(t_c3_state *stat)
 		t_c3_ray	*ray;
 		ray = &stat->renderer.rays[x];
 
-		int wall_height = 1000 / ray->distance;
+		int wall_height = 1000 / (ray->distance * cos(ray->angle));
 
 		for (int screen_x = stat->screen_width * x / stat->renderer.resolution_x;
 			 screen_x < stat->screen_width * (x + 1) / stat->renderer.resolution_x;
@@ -457,8 +457,6 @@ void	c3_draw_walls(t_c3_state *stat)
 		x++;
 	}
 }
-
-
 
 void	c3_draw(t_c3_state *stat)
 {
