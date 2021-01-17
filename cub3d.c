@@ -6,7 +6,7 @@
 /*   By: thisai <thisai@student.42tokyo.jp>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/01/13 16:23:13 by thisai            #+#    #+#             */
-/*   Updated: 2021/01/17 12:46:37 by thisai           ###   ########.fr       */
+/*   Updated: 2021/01/17 12:48:28 by thisai           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -507,11 +507,11 @@ int		c3_init(t_c3_state *stat)
 {
 	int			tmp;
 
-	stat->screen_width = 640;
-	stat->screen_height = 480;
+	stat->screen_width = 1280;
+	stat->screen_height = 720;
 	c3_keystate_init(&stat->keystate);
 	c3_player_init(&stat->player);
-	c3_renderer_init(&stat->renderer, map_width * 32, map_height * 32);
+	c3_renderer_init(&stat->renderer, map_width * 16, map_height * 16);
 
 	stat->mlx = mlx_init();
 	C3_CHECK(stat->mlx, "mlx is NULL.");
