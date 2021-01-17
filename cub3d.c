@@ -6,7 +6,7 @@
 /*   By: thisai <thisai@student.42tokyo.jp>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/01/13 16:23:13 by thisai            #+#    #+#             */
-/*   Updated: 2021/01/17 12:48:28 by thisai           ###   ########.fr       */
+/*   Updated: 2021/01/17 14:07:50 by thisai           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -129,7 +129,7 @@ void	c3_player_init(t_c3_player *player)
 	player->y = map_height / 2.;
 	player->direction = 0.;
 	player->walk_speed = 0.01;
-	player->rotation_speed = 0.03;
+	player->rotation_speed = 0.01;
 }
 
 void	c3_renderer_init(t_c3_renderer *rend, int minimap_width, int minimap_height)
@@ -385,7 +385,7 @@ void	c3_cast_ray(t_c3_state *stat, double x, double y, double theta, t_c3_coord 
 	}
 }
 
-void	c3_draw_rays(t_c3_state *stat)
+void	c3_draw_rays_on_map(t_c3_state *stat)
 {
 	double		world_x;
 	double		world_y;
@@ -411,15 +411,66 @@ void	c3_draw_rays(t_c3_state *stat)
 	}
 }
 
+void	c3_draw_walls(t_c3_state *stat)
+{
+	double		world_x;
+	double		world_y;
+	double		screen_x;
+	double		screen_y;
+	int			x;
+
+	x = 0;
+	while (x < stat->renderer.resolution_x)
+	{
+		t_c3_ray	*ray;
+		ray = &stat->renderer.rays[x];
+
+		int wall_height = 1000 / ray->distance;
+
+		for (int screen_x = stat->screen_width * x / stat->renderer.resolution_x;
+			 screen_x < stat->screen_width * (x + 1) / stat->renderer.resolution_x;
+			 screen_x++)
+		{
+			for (int screen_y = 0; screen_y < stat->screen_height; screen_y++)
+			{
+				int r = screen_y < (stat->screen_height - wall_height) / 2
+					|| screen_y > (stat->screen_height + wall_height) / 2
+					? 0
+					: 128;
+				int g = 128;
+				int b = 128;
+
+				unsigned int col = mlx_get_color_value(
+					stat->mlx, (r << 24) + (g << 16) + (b << 8));
+
+				int index =
+					screen_y * stat->imgdata.size_line +
+					screen_x * stat->imgdata.bits_per_pixel / 8;
+
+				stat->imgdata.data[index + 0] = (col >> 24) & 0xff;
+				stat->imgdata.data[index + 1] = (col >> 16) & 0xff;
+				stat->imgdata.data[index + 2] = (col >> 8) & 0xff;
+				stat->imgdata.data[index + 3] = col & 0xff;
+			}
+		}
+
+		x++;
+	}
+}
+
+
+
 void	c3_draw(t_c3_state *stat)
 {
+	c3_draw_walls(stat);
 	c3_draw_map(stat);
 
 	mlx_put_image_to_window(stat->mlx, stat->window, stat->img, 0, 0);
 
-	c3_draw_rays(stat);
+	c3_draw_rays_on_map(stat);
+
 	mlx_string_put(
-		stat->mlx, stat->window, 10, 10, mlx_get_color_value(stat->mlx, 0xffffff), "AHO");
+		stat->mlx, stat->window, 10, 10, mlx_get_color_value(stat->mlx, 0xffffff), "CUB3D");
 }
 
 void	c3_scan(t_c3_state *stat)
@@ -435,6 +486,8 @@ void	c3_scan(t_c3_state *stat)
 			x * (stat->renderer.plane_distance * tan(stat->renderer.fov))
 			/ half_res;
 		double theta = atan(a / stat->renderer.plane_distance);
+		stat->renderer.rays[x + half_res].angle = theta;
+
 		double angle = theta + stat->player.direction;
 		if (angle >= M_PI * 2)
 			angle -= M_PI * 2;
@@ -442,7 +495,12 @@ void	c3_scan(t_c3_state *stat)
 			angle += M_PI * 2;
 		c3_cast_ray(stat, stat->player.x, stat->player.y, angle,
 					&stat->renderer.rays[x + half_res].hit);
-		stat->renderer.rays[x + half_res].angle = theta;
+		double sq_dist = distance_squared(
+			stat->player.x, stat->player.y,
+			stat->renderer.rays[x + half_res].hit.x,
+			stat->renderer.rays[x + half_res].hit.y);
+		double distance = sqrt(sq_dist);
+		stat->renderer.rays[x + half_res].distance = distance;
 		x++;
 	}
 }
