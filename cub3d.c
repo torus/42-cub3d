@@ -6,7 +6,7 @@
 /*   By: thisai <thisai@student.42tokyo.jp>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/01/13 16:23:13 by thisai            #+#    #+#             */
-/*   Updated: 2021/01/16 20:43:23 by thisai           ###   ########.fr       */
+/*   Updated: 2021/01/17 12:46:37 by thisai           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -100,6 +100,8 @@ typedef struct	s_c3_renderer
 	double		plane_distance;
 	double		fov;
 	int			resolution_x;
+	int			minimap_width;
+	int			minimap_height;
 	t_c3_ray	*rays;
 }		t_c3_renderer;
 
@@ -130,12 +132,14 @@ void	c3_player_init(t_c3_player *player)
 	player->rotation_speed = 0.03;
 }
 
-void	c3_renderer_init(t_c3_renderer *rend)
+void	c3_renderer_init(t_c3_renderer *rend, int minimap_width, int minimap_height)
 {
 	rend->plane_distance = 1.;
 	rend->fov = M_PI / 6.;
 	rend->resolution_x = 320;
 	rend->rays = malloc(sizeof(t_c3_renderer) * rend->resolution_x);
+	rend->minimap_width = minimap_width;
+	rend->minimap_height = minimap_height;
 }
 
 void	c3_keystate_init(t_c3_keystate *keystat)
@@ -235,8 +239,8 @@ int		c3_key_release_hook(int key, void *param)
 
 void	c3_draw_player_on_map(t_c3_state *stat)
 {
-	int x = stat->player.x * stat->screen_width / map_width;
-	int y = stat->player.y * stat->screen_height / map_height;
+	int x = stat->player.x * stat->renderer.minimap_width / map_width;
+	int y = stat->player.y * stat->renderer.minimap_height / map_height;
 	double angle = stat->player.direction;
 
 	for (int i = -8; i < 9; i++)
@@ -265,12 +269,12 @@ void	c3_draw_player_on_map(t_c3_state *stat)
 
 void	c3_draw_map(t_c3_state *stat)
 {
-	for (int i = 0; i < stat->screen_height; i++)
+	for (int i = 0; i < stat->screen_height && i < stat->renderer.minimap_height; i++)
 	{
-		int y = map_height * i / stat->screen_height;
-		for (int j = 0; j < stat->screen_width; j++)
+		int y = map_height * i / stat->renderer.minimap_height;
+		for (int j = 0; j < stat->screen_width && j < stat->renderer.minimap_width; j++)
 		{
-			int x = map_width * j / stat->screen_width;
+			int x = map_width * j / stat->renderer.minimap_width;
 			int cell = c3_map[y * map_width + x];
 
 			/* int b = 255 * (1 - cell); */
@@ -394,8 +398,8 @@ void	c3_draw_rays(t_c3_state *stat)
 	{
 		world_x = stat->renderer.rays[x].hit.x;
 		world_y = stat->renderer.rays[x].hit.y;
-		screen_x = world_x * stat->screen_width / map_width;
-		screen_y = world_y * stat->screen_height / map_height;
+		screen_x = world_x * stat->renderer.minimap_width / map_width;
+		screen_y = world_y * stat->renderer.minimap_height / map_height;
 
 		int r = 255 * x / stat->renderer.resolution_x;
 		int col = (r << 16) + ((255 - r) << 0);
@@ -492,7 +496,7 @@ void	c3_update(t_c3_state *stat)
 int		c3_loop_hook(void *param)
 {
 	t_c3_state	*stat;
- 
+
 	stat = (t_c3_state*)param;
 	c3_update(stat);
 	c3_draw(stat);
@@ -507,7 +511,7 @@ int		c3_init(t_c3_state *stat)
 	stat->screen_height = 480;
 	c3_keystate_init(&stat->keystate);
 	c3_player_init(&stat->player);
-	c3_renderer_init(&stat->renderer);
+	c3_renderer_init(&stat->renderer, map_width * 32, map_height * 32);
 
 	stat->mlx = mlx_init();
 	C3_CHECK(stat->mlx, "mlx is NULL.");
