@@ -6,16 +6,17 @@
 /*   By: thisai <thisai@student.42tokyo.jp>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/01/13 16:23:13 by thisai            #+#    #+#             */
-/*   Updated: 2021/01/17 15:00:21 by thisai           ###   ########.fr       */
+/*   Updated: 2021/01/17 19:25:57 by thisai           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <assert.h>
 #include <stdio.h>
-#include <math.h>
 
 #include <stdarg.h>
 #include <stdlib.h>
+#include <stdint.h>
+#include <math.h>
 
 #define XK_MISCELLANY
 #define XK_LATIN1
@@ -41,6 +42,40 @@ const char	c3_map[] = {
 
 const int map_width = 10;
 const int map_height = 10;
+
+//  0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+// 0: black
+// 1: blue
+// 2: green
+// 3: cyan
+// 4: red
+// 5: magenta
+// 6: yellow
+// 7: white
+
+const char	c3_wall_texture[] = {
+	7, 7, 7, 7, 7, 7, 7, 0, 7, 7, 7, 7, 7, 7, 7, 0,
+	7, 4, 0, 4, 0, 4, 7, 0, 7, 4, 0, 4, 0, 4, 7, 0,
+	7, 0, 4, 0, 4, 0, 4, 0, 7, 0, 4, 0, 4, 0, 4, 0,
+	7, 4, 0, 4, 0, 4, 0, 0, 7, 4, 0, 4, 0, 4, 0, 0,
+
+	7, 7, 7, 0, 7, 7, 7, 7, 7, 7, 7, 0, 7, 7, 7, 7,
+	0, 4, 7, 0, 7, 4, 0, 4, 0, 4, 7, 0, 7, 4, 0, 4,
+	4, 0, 4, 0, 7, 0, 4, 0, 4, 0, 4, 0, 7, 0, 4, 0,
+	0, 4, 0, 0, 7, 4, 0, 4, 0, 4, 0, 0, 7, 4, 0, 4,
+
+	7, 7, 7, 7, 7, 7, 7, 0, 7, 7, 7, 7, 7, 7, 7, 0,
+	7, 4, 0, 4, 0, 4, 7, 0, 7, 4, 0, 4, 0, 4, 7, 0,
+	7, 0, 4, 0, 4, 0, 4, 0, 7, 0, 4, 0, 4, 0, 4, 0,
+	7, 4, 0, 4, 0, 4, 0, 0, 7, 4, 0, 4, 0, 4, 0, 0,
+
+	7, 7, 7, 0, 7, 7, 7, 7, 7, 7, 7, 0, 7, 7, 7, 7,
+	0, 4, 7, 0, 7, 4, 0, 4, 0, 4, 7, 0, 7, 4, 0, 4,
+	4, 0, 4, 0, 7, 0, 4, 0, 4, 0, 4, 0, 7, 0, 4, 0,
+	0, 4, 0, 0, 7, 4, 0, 4, 0, 4, 0, 0, 7, 4, 0, 4,
+};
+
+const int	c3_texture_size = 16;
 
 const char	c3_player_bitmap[] = {
 	0, 0, 0, 0, 1, 0, 0, 0,
@@ -332,6 +367,8 @@ void	c3_cast_ray(
 	double	hori_hit_y;
 	double	vert_hit_x;
 	double	vert_hit_y;
+	int		facing_north;
+	int		facing_east;
 
 	tan_theta = tan(theta);
 
@@ -343,6 +380,7 @@ void	c3_cast_ray(
 			{
 				hori_hit_y = floor(y) + i;
 				hori_hit_x = x + (hori_hit_y - y) / tan_theta;
+				facing_north = 0;
 				if (hori_hit_x < 0 || hori_hit_x >= map_width
 					|| hori_hit_y < 0 || hori_hit_y >= map_height)
 					break ;
@@ -353,6 +391,7 @@ void	c3_cast_ray(
 			{
 				hori_hit_y = floor(y) - i + 1;
 				hori_hit_x = x + (hori_hit_y - y) / tan_theta;
+				facing_north = 1;
 				if (hori_hit_x < 0 || hori_hit_x >= map_width
 					|| hori_hit_y < 1 || hori_hit_y >= map_height + 1)
 					break ;
@@ -369,6 +408,7 @@ void	c3_cast_ray(
 		{
 			vert_hit_x = floor(x) + i;
 			vert_hit_y = y + (vert_hit_x - x) * tan_theta;
+			facing_east = 1;
 			if (vert_hit_x < 0 || vert_hit_x >= map_width
 				|| vert_hit_y < 0 || vert_hit_y >= map_height)
 				break ;
@@ -379,6 +419,7 @@ void	c3_cast_ray(
 		{
 			vert_hit_x = floor(x) - i + 1;
 			vert_hit_y = y + (vert_hit_x - x) * tan_theta;
+			facing_east = 0;
 			if (vert_hit_x < 1 || vert_hit_x >= map_width + 1
 				|| vert_hit_y < 0 || vert_hit_y >= map_height)
 				break ;
@@ -393,11 +434,13 @@ void	c3_cast_ray(
 	{
 		out->position.x = hori_hit_x;
 		out->position.y = hori_hit_y;
+		out->type = facing_north ? C3_OBJTYPE_WALL_N : C3_OBJTYPE_WALL_S;
 	}
 	else
 	{
 		out->position.x = vert_hit_x;
 		out->position.y = vert_hit_y;
+		out->type = facing_east ? C3_OBJTYPE_WALL_E : C3_OBJTYPE_WALL_W;
 	}
 }
 
@@ -427,6 +470,11 @@ void	c3_draw_rays_on_map(t_c3_state *stat)
 	}
 }
 
+char	c3_sample_texture(int u, int v)
+{
+	return (c3_wall_texture[v * c3_texture_size + u]);
+}
+
 void	c3_draw_walls(t_c3_state *stat)
 {
 	int			x;
@@ -441,15 +489,45 @@ void	c3_draw_walls(t_c3_state *stat)
 
 		for (int screen_y = 0; screen_y < stat->screen_height; screen_y++)
 		{
-			int r = screen_y < (stat->screen_height - wall_height) / 2
-				|| screen_y > (stat->screen_height + wall_height) / 2
-				? 0
-				: 128;
-			int g = 128;
-			int b = 128;
+			uint32_t rgb;
+			char	texcol;
+			int		v = c3_texture_size *
+				(screen_y - (stat->screen_height - wall_height) / 2) /
+				wall_height;
+			if (screen_y < (stat->screen_height - wall_height) / 2)
+				rgb = 0xff888800;
+			else if (screen_y > (stat->screen_height + wall_height) / 2)
+				rgb = 0x88880000;
+
+			else
+			{
+				if (ray->hit.type == C3_OBJTYPE_WALL_N)
+					texcol = c3_sample_texture(
+						(int)(ray->hit.position.x * c3_texture_size) % c3_texture_size,
+						v);
+
+				else if (ray->hit.type == C3_OBJTYPE_WALL_E)
+					texcol = c3_sample_texture(
+						(int)(ray->hit.position.y * c3_texture_size) % c3_texture_size,
+						v);
+
+				else if (ray->hit.type == C3_OBJTYPE_WALL_S)
+					texcol = c3_sample_texture(
+						c3_texture_size - (int)(ray->hit.position.x * c3_texture_size) % c3_texture_size,
+						v);
+
+				else //(ray->hit.type == C3_OBJTYPE_WALL_W)
+					texcol = c3_sample_texture(
+						c3_texture_size - (int)(ray->hit.position.y * c3_texture_size) % c3_texture_size,
+						v);
+
+				rgb = (texcol & 1 ? 0xff000000 : 0) +
+					(texcol & 2 ? 0x00ff0000 : 0) +
+					(texcol & 4 ? 0x0000ff00 : 0);
+			}
 
 			unsigned int col = mlx_get_color_value(
-				stat->mlx, (r << 24) + (g << 16) + (b << 8));
+				stat->mlx, rgb);
 
 			for (int screen_x = stat->screen_width * x / stat->renderer.resolution_x;
 				 screen_x < stat->screen_width * (x + 1) / stat->renderer.resolution_x;
