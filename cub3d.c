@@ -27,22 +27,6 @@
 
 #define C3_CHECK(val, mesg) c3_check((int64_t)val, mesg)
 
-const char	c3_map[] = {
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-	1, 0, 0, 0, 1, 0, 1, 0, 0, 1,
-	1, 1, 1, 0, 1, 0, 0, 0, 0, 1,
-	1, 0, 0, 0, 1, 0, 1, 1, 0, 1,
-	1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-	1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-	1, 0, 0, 0, 1, 1, 1, 0, 0, 1,
-	1, 0, 0, 0, 0, 0, 1, 0, 0, 1,
-	1, 0, 0, 0, 1, 0, 1, 0, 0, 1,
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-};
-
-const int map_width = 10;
-const int map_height = 10;
-
 //  0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
 // 0: black
 // 1: blue
@@ -160,6 +144,36 @@ void	c3_renderer_cleanup(t_c3_renderer *rend)
 	free(rend->rays);
 }
 
+typedef struct	s_c3_map
+{
+	char	*map;
+	int		width;
+	int		height;
+}		t_c3_map;
+
+void	c3_map_init(t_c3_map *map)
+{
+	static char	mapdata[] = {
+		1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+		1, 0, 0, 0, 1, 0, 1, 0, 0, 1,
+		1, 1, 1, 0, 1, 0, 0, 0, 0, 1,
+		1, 0, 0, 0, 1, 0, 1, 1, 0, 1,
+		1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+		1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+		1, 0, 0, 0, 1, 1, 1, 0, 0, 1,
+		1, 0, 0, 0, 0, 0, 1, 0, 0, 1,
+		1, 0, 0, 0, 1, 0, 1, 0, 0, 1,
+		1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	};
+
+	const int width = 10;
+	const int height = 10;
+
+	map->map = mapdata;
+	map->width = width;
+	map->height = height;
+}
+
 typedef struct	s_c3_state
 {
 	void			*mlx;
@@ -171,12 +185,13 @@ typedef struct	s_c3_state
 	t_c3_keystate	keystate;
 	t_c3_player		player;
 	t_c3_renderer	renderer;
+	t_c3_map		map;
 }		t_c3_state;
 
-void	c3_player_init(t_c3_player *player)
+void	c3_player_init(t_c3_player *player, t_c3_map *map)
 {
-	player->x = map_width / 2.;
-	player->y = map_height / 2.;
+	player->x = map->width / 2.;
+	player->y = map->height / 2.;
 	player->direction = 0.;
 	player->walk_speed = 0.01;
 	player->rotation_speed = 0.01;
@@ -289,8 +304,8 @@ int		c3_key_release_hook(int key, void *param)
 
 void	c3_draw_player_on_map(t_c3_state *stat)
 {
-	int x = stat->player.x * stat->renderer.minimap_width / map_width;
-	int y = stat->player.y * stat->renderer.minimap_height / map_height;
+	int x = stat->player.x * stat->renderer.minimap_width / stat->map.width;
+	int y = stat->player.y * stat->renderer.minimap_height / stat->map.height;
 	double angle = stat->player.direction;
 
 	for (int i = -8; i < 9; i++)
@@ -321,11 +336,11 @@ void	c3_draw_map(t_c3_state *stat)
 {
 	for (int i = 0; i < stat->screen_height && i < stat->renderer.minimap_height; i++)
 	{
-		int y = map_height * i / stat->renderer.minimap_height;
+		int y = stat->map.height * i / stat->renderer.minimap_height;
 		for (int j = 0; j < stat->screen_width && j < stat->renderer.minimap_width; j++)
 		{
-			int x = map_width * j / stat->renderer.minimap_width;
-			int cell = c3_map[y * map_width + x];
+			int x = stat->map.width * j / stat->renderer.minimap_width;
+			int cell = stat->map.map[y * stat->map.width + x];
 
 			/* int b = 255 * (1 - cell); */
 			/* int g = j * 256 / stat->screen_width; */
@@ -381,10 +396,10 @@ void	c3_cast_ray(
 				hori_hit_y = floor(y) + i;
 				hori_hit_x = x + (hori_hit_y - y) / tan_theta;
 				facing_north = 0;
-				if (hori_hit_x < 0 || hori_hit_x >= map_width
-					|| hori_hit_y < 0 || hori_hit_y >= map_height)
+				if (hori_hit_x < 0 || hori_hit_x >= stat->map.width
+					|| hori_hit_y < 0 || hori_hit_y >= stat->map.height)
 					break ;
-				if (c3_map[(int)hori_hit_y * map_width + (int)hori_hit_x])
+				if (stat->map.map[(int)hori_hit_y * stat->map.width + (int)hori_hit_x])
 					break ;
 			}
 			else
@@ -392,10 +407,10 @@ void	c3_cast_ray(
 				hori_hit_y = floor(y) - i + 1;
 				hori_hit_x = x + (hori_hit_y - y) / tan_theta;
 				facing_north = 1;
-				if (hori_hit_x < 0 || hori_hit_x >= map_width
-					|| hori_hit_y < 1 || hori_hit_y >= map_height + 1)
+				if (hori_hit_x < 0 || hori_hit_x >= stat->map.width
+					|| hori_hit_y < 1 || hori_hit_y >= stat->map.height + 1)
 					break ;
-				if (c3_map[(int)(hori_hit_y - 1) * map_width + (int)hori_hit_x])
+				if (stat->map.map[(int)(hori_hit_y - 1) * stat->map.width + (int)hori_hit_x])
 					break ;
 			}
 			i++;
@@ -409,10 +424,10 @@ void	c3_cast_ray(
 			vert_hit_x = floor(x) + i;
 			vert_hit_y = y + (vert_hit_x - x) * tan_theta;
 			facing_east = 1;
-			if (vert_hit_x < 0 || vert_hit_x >= map_width
-				|| vert_hit_y < 0 || vert_hit_y >= map_height)
+			if (vert_hit_x < 0 || vert_hit_x >= stat->map.width
+				|| vert_hit_y < 0 || vert_hit_y >= stat->map.height)
 				break ;
-			if (c3_map[(int)vert_hit_y * map_width + (int)vert_hit_x])
+			if (stat->map.map[(int)vert_hit_y * stat->map.width + (int)vert_hit_x])
 				break ;
 		}
 		else
@@ -420,10 +435,10 @@ void	c3_cast_ray(
 			vert_hit_x = floor(x) - i + 1;
 			vert_hit_y = y + (vert_hit_x - x) * tan_theta;
 			facing_east = 0;
-			if (vert_hit_x < 1 || vert_hit_x >= map_width + 1
-				|| vert_hit_y < 0 || vert_hit_y >= map_height)
+			if (vert_hit_x < 1 || vert_hit_x >= stat->map.width + 1
+				|| vert_hit_y < 0 || vert_hit_y >= stat->map.height)
 				break ;
-			if (c3_map[(int)vert_hit_y * map_width + (int)vert_hit_x - 1])
+			if (stat->map.map[(int)vert_hit_y * stat->map.width + (int)vert_hit_x - 1])
 				break ;
 		}
 		i++;
@@ -457,8 +472,8 @@ void	c3_draw_rays_on_map(t_c3_state *stat)
 	{
 		world_x = stat->renderer.rays[x].hit.position.x;
 		world_y = stat->renderer.rays[x].hit.position.y;
-		screen_x = world_x * stat->renderer.minimap_width / map_width;
-		screen_y = world_y * stat->renderer.minimap_height / map_height;
+		screen_x = world_x * stat->renderer.minimap_width / stat->map.width;
+		screen_y = world_y * stat->renderer.minimap_height / stat->map.height;
 
 		int r = 255 * x / stat->renderer.resolution_x;
 		int col = (r << 16) + ((255 - r) << 0);
@@ -614,8 +629,8 @@ void	c3_update(t_c3_state *stat)
 		double delta_y = stat->player.walk_speed * sin(stat->player.direction);
 		double new_x = stat->player.x + delta_x * (stat->keystate.w ? 1 : -1);
 		double new_y = stat->player.y + delta_y * (stat->keystate.w ? 1 : -1);
-		if (new_x >= 0 && new_x < map_width
-			&& new_y >= 0 && new_y < map_height)
+		if (new_x >= 0 && new_x < stat->map.width
+			&& new_y >= 0 && new_y < stat->map.height)
 		{
 			stat->player.x = new_x;
 			stat->player.y = new_y;
@@ -628,8 +643,8 @@ void	c3_update(t_c3_state *stat)
 		double delta_y = stat->player.walk_speed * -cos(stat->player.direction);
 		double new_x = stat->player.x + delta_x * (stat->keystate.a ? 1 : -1);
 		double new_y = stat->player.y + delta_y * (stat->keystate.a ? 1 : -1);
-		if (new_x >= 0 && new_x < map_width
-			&& new_y >= 0 && new_y < map_height)
+		if (new_x >= 0 && new_x < stat->map.width
+			&& new_y >= 0 && new_y < stat->map.height)
 		{
 			stat->player.x = new_x;
 			stat->player.y = new_y;
@@ -653,11 +668,13 @@ int		c3_init(t_c3_state *stat)
 {
 	int			tmp;
 
+	c3_map_init(&stat->map);
+
 	stat->screen_width = 1280;
 	stat->screen_height = 720;
 	c3_keystate_init(&stat->keystate);
-	c3_player_init(&stat->player);
-	c3_renderer_init(&stat->renderer, map_width * 16, map_height * 16);
+	c3_player_init(&stat->player, &stat->map);
+	c3_renderer_init(&stat->renderer, stat->map.width * 16, stat->map.height * 16);
 
 	stat->mlx = mlx_init();
 	C3_CHECK(stat->mlx, "mlx is NULL.");
