@@ -485,9 +485,17 @@ void	c3_draw_rays_on_map(t_c3_state *stat)
 	}
 }
 
-char	c3_sample_texture(int u, int v)
+uint32_t	c3_sample_texture(t_c3_object_type type, int u, int v)
 {
-	return (c3_wall_texture[v * c3_texture_size + u]);
+	uint32_t	rgb;
+	char		texcol;
+
+	texcol = c3_wall_texture[v * c3_texture_size + u];
+	rgb = (texcol & 1 ? 0xff000000 : 0) +
+		(texcol & 2 ? 0x00ff0000 : 0) +
+		(texcol & 4 ? 0x0000ff00 : 0);
+
+	return (rgb);
 }
 
 void	c3_draw_walls(t_c3_state *stat)
@@ -505,7 +513,6 @@ void	c3_draw_walls(t_c3_state *stat)
 		for (int screen_y = 0; screen_y < stat->screen_height; screen_y++)
 		{
 			uint32_t rgb;
-			char	texcol;
 			int		v = c3_texture_size *
 				(screen_y - (stat->screen_height - wall_height) / 2) /
 				wall_height;
@@ -517,28 +524,29 @@ void	c3_draw_walls(t_c3_state *stat)
 			else
 			{
 				if (ray->hit.type == C3_OBJTYPE_WALL_N)
-					texcol = c3_sample_texture(
+					rgb = c3_sample_texture(
+						C3_OBJTYPE_WALL_N,
 						(int)(ray->hit.position.x * c3_texture_size) % c3_texture_size,
 						v);
 
 				else if (ray->hit.type == C3_OBJTYPE_WALL_E)
-					texcol = c3_sample_texture(
+					rgb = c3_sample_texture(
+						C3_OBJTYPE_WALL_E,
 						(int)(ray->hit.position.y * c3_texture_size) % c3_texture_size,
 						v);
 
 				else if (ray->hit.type == C3_OBJTYPE_WALL_S)
-					texcol = c3_sample_texture(
+					rgb = c3_sample_texture(
+						C3_OBJTYPE_WALL_S,
 						c3_texture_size - (int)(ray->hit.position.x * c3_texture_size) % c3_texture_size,
 						v);
 
 				else //(ray->hit.type == C3_OBJTYPE_WALL_W)
-					texcol = c3_sample_texture(
+					rgb = c3_sample_texture(
+						C3_OBJTYPE_WALL_W,
 						c3_texture_size - (int)(ray->hit.position.y * c3_texture_size) % c3_texture_size,
 						v);
 
-				rgb = (texcol & 1 ? 0xff000000 : 0) +
-					(texcol & 2 ? 0x00ff0000 : 0) +
-					(texcol & 4 ? 0x0000ff00 : 0);
 			}
 
 			unsigned int col = mlx_get_color_value(
