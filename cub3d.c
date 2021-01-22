@@ -114,6 +114,7 @@ typedef enum	e_c3_object_type
 	C3_OBJTYPE_WALL_S,
 	C3_OBJTYPE_WALL_W,
 	C3_OBJTYPE_SPRITE,
+	C3_OBJTYPE_NUM
 }		t_c3_object_type;
 
 typedef struct	s_c3_hit_result
@@ -174,18 +175,35 @@ void	c3_map_init(t_c3_map *map)
 	map->height = height;
 }
 
+typedef struct	s_c3_texture
+{
+	void	*image;
+	char	*data;
+	int		width;
+	int		height;
+	int		bits_per_pixel;
+	int		size_line;
+	int		endian;
+}		t_c3_texture;
+
+typedef struct	s_c3_texture_cache
+{
+	t_c3_texture	cache[C3_OBJTYPE_NUM];
+}		t_c3_texture_cache;
+
 typedef struct	s_c3_state
 {
-	void			*mlx;
-	void			*window;
-	int				screen_width;
-	int				screen_height;
-	void			*img;
-	t_c3_imgdata	imgdata;
-	t_c3_keystate	keystate;
-	t_c3_player		player;
-	t_c3_renderer	renderer;
-	t_c3_map		map;
+	void				*mlx;
+	void				*window;
+	int					screen_width;
+	int					screen_height;
+	void				*img;
+	t_c3_imgdata		imgdata;
+	t_c3_keystate		keystate;
+	t_c3_player			player;
+	t_c3_renderer		renderer;
+	t_c3_map			map;
+	t_c3_texture_cache	*texture_cache;
 }		t_c3_state;
 
 void	c3_player_init(t_c3_player *player, t_c3_map *map)
@@ -250,6 +268,11 @@ void	c3_terminate(t_c3_state *stat)
 
 	mlx_destroy_display(stat->mlx);
 	c3_renderer_cleanup(&stat->renderer);
+
+	int	i;
+	i = 0;
+	while (i < C3_OBJTYPE_NUM)
+		free(stat->texture_cache->cache[i].image);
 }
 
 int		c3_key_press_hook(int key, void *param)
@@ -485,17 +508,50 @@ void	c3_draw_rays_on_map(t_c3_state *stat)
 	}
 }
 
-uint32_t	c3_sample_texture(t_c3_object_type type, int u, int v)
+void		c3_texture_cache_load(
+	t_c3_state *stat, t_c3_object_type type, char *path)
 {
-	uint32_t	rgb;
-	char		texcol;
+	int				width;
+	int				height;
+	void			*image;
+	t_c3_texture	*tex;
 
-	texcol = c3_wall_texture[v * c3_texture_size + u];
-	rgb = (texcol & 1 ? 0xff000000 : 0) +
-		(texcol & 2 ? 0x00ff0000 : 0) +
-		(texcol & 4 ? 0x0000ff00 : 0);
+	tex = &stat->texture_cache->cache[type];
 
-	return (rgb);
+	image = mlx_xpm_file_to_image(stat->mlx, path, &width, &height);
+	tex->image = image;
+	stat->texture_cache->cache[type].data = mlx_get_data_addr(
+		image, &tex->bits_per_pixel, &tex->size_line, &tex->endian);
+
+	printf("texture loaded: %s\n", path);
+}
+
+uint32_t	c3_sample_texture(
+	t_c3_state *stat, t_c3_object_type type, int u, int v)
+{
+	unsigned int		texcol;
+	t_c3_texture_cache	*cache;
+	t_c3_texture		*tex;
+
+	char	*path[] = {
+		"wall-1.xpm",
+		"wall-2.xpm",
+		"wall-3.xpm",
+		"wall-4.xpm",
+	};
+
+	cache = stat->texture_cache;
+	tex = &cache->cache[type];
+	if (!tex->image)
+		c3_texture_cache_load(stat, type, path[type]);
+
+	int	index = v * tex->size_line + u * tex->bits_per_pixel / 8;
+	texcol = (tex->data[index] << 24)
+		+ (tex->data[index + 1] << 16)
+		+ (tex->data[index + 2] << 8)
+		+ tex->data[index + 3];
+
+	return (texcol);
 }
 
 void	c3_draw_walls(t_c3_state *stat)
@@ -505,52 +561,53 @@ void	c3_draw_walls(t_c3_state *stat)
 	x = 0;
 	while (x < stat->renderer.resolution_x)
 	{
-		t_c3_ray	*ray;
+		t_c3_ray		*ray;
+		unsigned int	col;
 		ray = &stat->renderer.rays[x];
 
 		int wall_height = 1000 / (ray->distance * cos(ray->angle));
 
 		for (int screen_y = 0; screen_y < stat->screen_height; screen_y++)
 		{
-			uint32_t rgb;
 			int		v = c3_texture_size *
 				(screen_y - (stat->screen_height - wall_height) / 2) /
 				wall_height;
 			if (screen_y < (stat->screen_height - wall_height) / 2)
-				rgb = 0xff888800;
+				col = mlx_get_color_value(stat->mlx, 0xff888800);
 			else if (screen_y > (stat->screen_height + wall_height) / 2)
-				rgb = 0x88880000;
+				col = mlx_get_color_value(stat->mlx, 0x88880000);
 
 			else
 			{
 				if (ray->hit.type == C3_OBJTYPE_WALL_N)
-					rgb = c3_sample_texture(
+					col = c3_sample_texture(
+						stat,
 						C3_OBJTYPE_WALL_N,
 						(int)(ray->hit.position.x * c3_texture_size) % c3_texture_size,
 						v);
 
 				else if (ray->hit.type == C3_OBJTYPE_WALL_E)
-					rgb = c3_sample_texture(
+					col = c3_sample_texture(
+						stat,
 						C3_OBJTYPE_WALL_E,
 						(int)(ray->hit.position.y * c3_texture_size) % c3_texture_size,
 						v);
 
 				else if (ray->hit.type == C3_OBJTYPE_WALL_S)
-					rgb = c3_sample_texture(
+					col = c3_sample_texture(
+						stat,
 						C3_OBJTYPE_WALL_S,
 						c3_texture_size - (int)(ray->hit.position.x * c3_texture_size) % c3_texture_size,
 						v);
 
 				else //(ray->hit.type == C3_OBJTYPE_WALL_W)
-					rgb = c3_sample_texture(
+					col = c3_sample_texture(
+						stat,
 						C3_OBJTYPE_WALL_W,
 						c3_texture_size - (int)(ray->hit.position.y * c3_texture_size) % c3_texture_size,
 						v);
 
 			}
-
-			unsigned int col = mlx_get_color_value(
-				stat->mlx, rgb);
 
 			for (int screen_x = stat->screen_width * x / stat->renderer.resolution_x;
 				 screen_x < stat->screen_width * (x + 1) / stat->renderer.resolution_x;
@@ -672,7 +729,19 @@ int		c3_loop_hook(void *param)
 	return (1);
 }
 
-int		c3_init(t_c3_state *stat)
+void	c3_texture_cache_init(t_c3_texture_cache *cache)
+{
+	int	i;
+
+	i = 0;
+	while (i < C3_OBJTYPE_NUM)
+	{
+		cache->cache[i].image = NULL;
+		i++;
+	}
+}
+
+int		c3_init(t_c3_state *stat, t_c3_texture_cache *tex)
 {
 	int			tmp;
 
@@ -716,10 +785,8 @@ int		c3_init(t_c3_state *stat)
 	tmp = mlx_loop_hook(stat->mlx, c3_loop_hook, stat);
 	C3_CHECK(tmp, "mlx_loop_hook() returned false.");
 
-
-
-
-
+	c3_texture_cache_init(tex);
+	stat->texture_cache = tex;
 
 	tmp = mlx_do_key_autorepeatoff(stat->mlx);
 	C3_CHECK(tmp, "mlx_do_key_autorepeatoff() returned false.");
@@ -729,9 +796,10 @@ int		c3_init(t_c3_state *stat)
 
 int		main(void)
 {
-	t_c3_state	stat;
+	t_c3_state			stat;
+	t_c3_texture_cache	tex;
 
-	c3_init(&stat);
+	c3_init(&stat, &tex);
 
 	mlx_loop(stat.mlx);
 }
