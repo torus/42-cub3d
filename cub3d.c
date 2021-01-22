@@ -534,7 +534,7 @@ void		c3_texture_cache_load(
 uint32_t	c3_sample_texture(
 	t_c3_state *stat, t_c3_object_type type, int u, int v)
 {
-	unsigned int		texcol;
+	uint32_t			texcol;
 	t_c3_texture_cache	*cache;
 	t_c3_texture		*tex;
 
@@ -551,10 +551,8 @@ uint32_t	c3_sample_texture(
 		c3_texture_cache_load(stat, type, path[type]);
 
 	int	index = v * tex->size_line + u * tex->bits_per_pixel / 8;
-	texcol = (tex->data[index] << 24)
-		+ (tex->data[index + 1] << 16)
-		+ (tex->data[index + 2] << 8)
-		+ tex->data[index + 3];
+
+	texcol = ((uint32_t*)tex->data)[index / 4];
 
 	return (texcol);
 }
@@ -629,10 +627,7 @@ void	c3_draw_walls(t_c3_state *stat)
 						screen_y * stat->imgdata.size_line +
 						screen_x * stat->imgdata.bits_per_pixel / 8;
 
-					stat->imgdata.data[index + 0] = (col >> 24) & 0xff;
-					stat->imgdata.data[index + 1] = (col >> 16) & 0xff;
-					stat->imgdata.data[index + 2] = (col >> 8) & 0xff;
-					stat->imgdata.data[index + 3] = col & 0xff;
+					((uint32_t*)stat->imgdata.data)[index / 4] = col;
 				}
 				screen_y++;
 			}
