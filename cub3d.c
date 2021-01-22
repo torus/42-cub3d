@@ -135,6 +135,7 @@ typedef struct	s_c3_renderer
 	double		plane_distance;
 	double		fov;
 	int			resolution_x;
+	int			resolution_y;
 	int			minimap_width;
 	int			minimap_height;
 	t_c3_ray	*rays;
@@ -220,6 +221,7 @@ void	c3_renderer_init(t_c3_renderer *rend, int minimap_width, int minimap_height
 	rend->plane_distance = 1.;
 	rend->fov = M_PI / 6.;
 	rend->resolution_x = 320;
+	rend->resolution_y = 180;
 	rend->rays = malloc(sizeof(t_c3_renderer) * rend->resolution_x);
 	rend->minimap_width = minimap_width;
 	rend->minimap_height = minimap_height;
@@ -272,7 +274,10 @@ void	c3_terminate(t_c3_state *stat)
 	int	i;
 	i = 0;
 	while (i < C3_OBJTYPE_NUM)
+	{
 		free(stat->texture_cache->cache[i].image);
+		i++;
+	}
 }
 
 int		c3_key_press_hook(int key, void *param)
@@ -556,25 +561,28 @@ uint32_t	c3_sample_texture(
 
 void	c3_draw_walls(t_c3_state *stat)
 {
-	int			x;
+	int				x;
+	int				y;
+	t_c3_ray		*ray;
+	unsigned int	col;
+	int				screen_y;
 
 	x = 0;
 	while (x < stat->renderer.resolution_x)
 	{
-		t_c3_ray		*ray;
-		unsigned int	col;
 		ray = &stat->renderer.rays[x];
 
-		int wall_height = 1000 / (ray->distance * cos(ray->angle));
+		int wall_height = stat->renderer.resolution_y / (ray->distance * cos(ray->angle));
 
-		for (int screen_y = 0; screen_y < stat->screen_height; screen_y++)
+		y = 0;
+		while (y < stat->renderer.resolution_y)
 		{
 			int		v = c3_texture_size *
-				(screen_y - (stat->screen_height - wall_height) / 2) /
+				(y - (stat->renderer.resolution_y - wall_height) / 2) /
 				wall_height;
-			if (screen_y < (stat->screen_height - wall_height) / 2)
+			if (y < (stat->renderer.resolution_y - wall_height) / 2)
 				col = mlx_get_color_value(stat->mlx, 0xff888800);
-			else if (screen_y > (stat->screen_height + wall_height) / 2)
+			else if (y > (stat->renderer.resolution_y + wall_height) / 2)
 				col = mlx_get_color_value(stat->mlx, 0x88880000);
 
 			else
@@ -609,19 +617,26 @@ void	c3_draw_walls(t_c3_state *stat)
 
 			}
 
-			for (int screen_x = stat->screen_width * x / stat->renderer.resolution_x;
-				 screen_x < stat->screen_width * (x + 1) / stat->renderer.resolution_x;
-				 screen_x++)
+			screen_y = y * stat->screen_height / stat->renderer.resolution_y;
+			while (screen_y < (y + 1) * stat->screen_height / stat->renderer.resolution_y)
 			{
-				int index =
-					screen_y * stat->imgdata.size_line +
-					screen_x * stat->imgdata.bits_per_pixel / 8;
 
-				stat->imgdata.data[index + 0] = (col >> 24) & 0xff;
-				stat->imgdata.data[index + 1] = (col >> 16) & 0xff;
-				stat->imgdata.data[index + 2] = (col >> 8) & 0xff;
-				stat->imgdata.data[index + 3] = col & 0xff;
+				for (int screen_x = stat->screen_width * x / stat->renderer.resolution_x;
+					 screen_x < stat->screen_width * (x + 1) / stat->renderer.resolution_x;
+					 screen_x++)
+				{
+					int index =
+						screen_y * stat->imgdata.size_line +
+						screen_x * stat->imgdata.bits_per_pixel / 8;
+
+					stat->imgdata.data[index + 0] = (col >> 24) & 0xff;
+					stat->imgdata.data[index + 1] = (col >> 16) & 0xff;
+					stat->imgdata.data[index + 2] = (col >> 8) & 0xff;
+					stat->imgdata.data[index + 3] = col & 0xff;
+				}
+				screen_y++;
 			}
+			y++;
 		}
 
 		x++;
