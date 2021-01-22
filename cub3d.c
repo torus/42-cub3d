@@ -565,6 +565,14 @@ void	c3_draw_walls(t_c3_state *stat)
 	unsigned int	col;
 	int				screen_y;
 
+	uint32_t	ceiling_r = 0x88;
+	uint32_t	ceiling_g = 0x88;
+	uint32_t	ceiling_b = 0xff;
+
+	uint32_t	floor_r = 0x00;
+	uint32_t	floor_g = 0x88;
+	uint32_t	floor_b = 0x88;
+
 	x = 0;
 	while (x < stat->renderer.resolution_x)
 	{
@@ -579,9 +587,11 @@ void	c3_draw_walls(t_c3_state *stat)
 				(y - (stat->renderer.resolution_y - wall_height) / 2) /
 				wall_height;
 			if (y < (stat->renderer.resolution_y - wall_height) / 2)
-				col = mlx_get_color_value(stat->mlx, 0xff888800);
+				col = mlx_get_color_value(
+					stat->mlx, (ceiling_r << 16) + (ceiling_g << 8) + ceiling_b);
 			else if (y > (stat->renderer.resolution_y + wall_height) / 2)
-				col = mlx_get_color_value(stat->mlx, 0x88880000);
+				col = mlx_get_color_value(
+					stat->mlx, (floor_r << 16) + (floor_g << 8) + floor_b);
 
 			else
 			{
