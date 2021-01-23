@@ -423,39 +423,13 @@ void	c3_cast_ray(
 	int		facing_north;
 	int		facing_east;
 
-	/* tan_theta = tan(theta); */
-
 	i = 1;
 	if (theta != 0.0)
-		/* while (1) */
 		{
 			t_c3_coord	pos;
 			pos.x = x;
 			pos.y = y;
 			facing_north = c3_get_horizontal_hit(stat, &pos, theta, &hori_hit);
-			/* if (theta >= 0 && theta < M_PI) */
-			/* { */
-			/* 	hori_hit_y = floor(y) + i; */
-			/* 	hori_hit_x = x + (hori_hit_y - y) / tan_theta; */
-			/* 	facing_north = 0; */
-			/* 	if (hori_hit_x < 0 || hori_hit_x >= stat->map.width */
-			/* 		|| hori_hit_y < 0 || hori_hit_y >= stat->map.height) */
-			/* 		break ; */
-			/* 	if (c3_query_map(stat, hori_hit_x, hori_hit_y)) */
-			/* 		break ; */
-			/* } */
-			/* else */
-			/* { */
-			/* 	hori_hit_y = floor(y) - i + 1; */
-			/* 	hori_hit_x = x + (hori_hit_y - y) / tan_theta; */
-			/* 	facing_north = 1; */
-			/* 	if (hori_hit_x < 0 || hori_hit_x >= stat->map.width */
-			/* 		|| hori_hit_y < 1 || hori_hit_y >= stat->map.height + 1) */
-			/* 		break ; */
-			/* 	if (c3_query_map(stat, hori_hit_x, hori_hit_y - 1)) */
-			/* 		break ; */
-			/* } */
-			/* i++; */
 		}
 
 	i = 1;
