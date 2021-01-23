@@ -339,9 +339,6 @@ void	c3_draw_map(t_c3_state *stat)
 			int x = stat->map.width * j / stat->renderer.minimap_width;
 			int cell = stat->map.map[y * stat->map.width + x];
 
-			/* int b = 255 * (1 - cell); */
-			/* int g = j * 256 / stat->screen_width; */
-			/* int r = i * 128 / stat->screen_height + 128; */
 			int r = 128 * (1 - cell);
 			int g = 128 * (1 - cell);
 			int b = 128 * (1 - cell);
