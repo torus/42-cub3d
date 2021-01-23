@@ -412,32 +412,22 @@ int		c3_get_horizontal_hit(
 	return (facing_north);
 }
 
-void	c3_cast_ray(
-	t_c3_state *stat, double x, double y, double theta, t_c3_hit_result *out)
+int		c3_get_vertical_hit(
+	t_c3_state *stat, t_c3_coord *pos,
+	double theta, t_c3_coord *result)
 {
-	int		i;
-	t_c3_coord	hori_hit;
 	double	vert_hit_x;
 	double	vert_hit_y;
-	int		facing_north;
 	int		facing_east;
-
-	i = 1;
-	if (theta != 0.0)
-		{
-			t_c3_coord	pos;
-			pos.x = x;
-			pos.y = y;
-			facing_north = c3_get_horizontal_hit(stat, &pos, theta, &hori_hit);
-		}
+	int		i;
 
 	i = 1;
 	while (1)
 	{
 		if (theta < M_PI_2 || theta >= 3 * M_PI_2)
 		{
-			vert_hit_x = floor(x) + i;
-			vert_hit_y = y + (vert_hit_x - x) * tan(theta);
+			vert_hit_x = floor(pos->x) + i;
+			vert_hit_y = pos->y + (vert_hit_x - pos->x) * tan(theta);
 			facing_east = 1;
 			if (vert_hit_x < 0 || vert_hit_x >= stat->map.width
 				|| vert_hit_y < 0 || vert_hit_y >= stat->map.height)
@@ -447,8 +437,8 @@ void	c3_cast_ray(
 		}
 		else
 		{
-			vert_hit_x = floor(x) - i + 1;
-			vert_hit_y = y + (vert_hit_x - x) * tan(theta);
+			vert_hit_x = floor(pos->x) - i + 1;
+			vert_hit_y = pos->y + (vert_hit_x - pos->x) * tan(theta);
 			facing_east = 0;
 			if (vert_hit_x < 1 || vert_hit_x >= stat->map.width + 1
 				|| vert_hit_y < 0 || vert_hit_y >= stat->map.height)
@@ -458,9 +448,27 @@ void	c3_cast_ray(
 		}
 		i++;
 	}
+	result->x = vert_hit_x;
+	result->y = vert_hit_y;
+	return (facing_east);
+}
 
-	if (distance_squared(x, y, hori_hit.x, hori_hit.y)
-		< distance_squared(x, y, vert_hit_x, vert_hit_y))
+void	c3_cast_ray(
+	t_c3_state *stat, t_c3_coord *pos, double theta, t_c3_hit_result *out)
+{
+	t_c3_coord	hori_hit;
+	t_c3_coord	vert_hit;
+	int		facing_north;
+	int		facing_east;
+
+	if (tan(theta) != 0.0)
+		facing_north = c3_get_horizontal_hit(stat, pos, theta, &hori_hit);
+
+	facing_east = c3_get_vertical_hit(stat, pos, theta, &vert_hit);
+
+	if (tan(theta) != 0.0 &&
+		distance_squared(pos->x, pos->y, hori_hit.x, hori_hit.y)
+		< distance_squared(pos->x, pos->y, vert_hit.x, vert_hit.y))
 	{
 		out->position.x = hori_hit.x;
 		out->position.y = hori_hit.y;
@@ -468,8 +476,8 @@ void	c3_cast_ray(
 	}
 	else
 	{
-		out->position.x = vert_hit_x;
-		out->position.y = vert_hit_y;
+		out->position.x = vert_hit.x;
+		out->position.y = vert_hit.y;
 		out->type = facing_east ? C3_OBJTYPE_WALL_E : C3_OBJTYPE_WALL_W;
 	}
 }
@@ -668,7 +676,7 @@ void	c3_scan(t_c3_state *stat)
 			angle -= M_PI * 2;
 		if (angle < 0)
 			angle += M_PI * 2;
-		c3_cast_ray(stat, stat->player.position.x, stat->player.position.y, angle,
+		c3_cast_ray(stat, &stat->player.position, angle,
 					&stat->renderer.rays[x + half_res].hit);
 		double sq_dist = distance_squared(
 			stat->player.position.x, stat->player.position.y,
