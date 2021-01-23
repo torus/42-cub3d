@@ -372,47 +372,90 @@ char	c3_query_map(t_c3_state *stat, int x, int y)
 	return stat->map.map[y * stat->map.width + x];
 }
 
+int		c3_get_horizontal_hit(
+	t_c3_state *stat, t_c3_coord *pos,
+	double theta, t_c3_coord *result)
+{
+	double	hori_hit_x;
+	double	hori_hit_y;
+	int		facing_north;
+	int		index;
+
+	index = 1;
+	while (1)
+	{
+		if (theta >= 0 && theta < M_PI)
+		{
+			hori_hit_y = floor(pos->y) + index;
+			hori_hit_x = pos->x + (hori_hit_y - pos->y) / tan(theta);
+			facing_north = 0;
+			if (hori_hit_x < 0 || hori_hit_x >= stat->map.width
+				|| hori_hit_y < 0 || hori_hit_y >= stat->map.height)
+				break ;
+			if (c3_query_map(stat, hori_hit_x, hori_hit_y))
+				break ;
+		}
+		else
+		{
+			hori_hit_y = floor(pos->y) - index + 1;
+			hori_hit_x = pos->x + (hori_hit_y - pos->y) / tan(theta);
+			facing_north = 1;
+			if (hori_hit_x < 0 || hori_hit_x >= stat->map.width
+				|| hori_hit_y < 1 || hori_hit_y >= stat->map.height + 1)
+				break ;
+			if (c3_query_map(stat, hori_hit_x, hori_hit_y - 1))
+				break ;
+		}
+		index++;
+	}
+	result->x = hori_hit_x;
+	result->y = hori_hit_y;
+	return (facing_north);
+}
+
 void	c3_cast_ray(
 	t_c3_state *stat, double x, double y, double theta, t_c3_hit_result *out)
 {
-	double	tan_theta;
 	int		i;
-	double	hori_hit_x;
-	double	hori_hit_y;
+	t_c3_coord	hori_hit;
 	double	vert_hit_x;
 	double	vert_hit_y;
 	int		facing_north;
 	int		facing_east;
 
-	tan_theta = tan(theta);
+	/* tan_theta = tan(theta); */
 
 	i = 1;
-	if (tan_theta != 0.0)
-		while (1)
+	if (theta != 0.0)
+		/* while (1) */
 		{
-			if (theta >= 0 && theta < M_PI)
-			{
-				hori_hit_y = floor(y) + i;
-				hori_hit_x = x + (hori_hit_y - y) / tan_theta;
-				facing_north = 0;
-				if (hori_hit_x < 0 || hori_hit_x >= stat->map.width
-					|| hori_hit_y < 0 || hori_hit_y >= stat->map.height)
-					break ;
-				if (c3_query_map(stat, hori_hit_x, hori_hit_y))
-					break ;
-			}
-			else
-			{
-				hori_hit_y = floor(y) - i + 1;
-				hori_hit_x = x + (hori_hit_y - y) / tan_theta;
-				facing_north = 1;
-				if (hori_hit_x < 0 || hori_hit_x >= stat->map.width
-					|| hori_hit_y < 1 || hori_hit_y >= stat->map.height + 1)
-					break ;
-				if (c3_query_map(stat, hori_hit_x, hori_hit_y - 1))
-					break ;
-			}
-			i++;
+			t_c3_coord	pos;
+			pos.x = x;
+			pos.y = y;
+			facing_north = c3_get_horizontal_hit(stat, &pos, theta, &hori_hit);
+			/* if (theta >= 0 && theta < M_PI) */
+			/* { */
+			/* 	hori_hit_y = floor(y) + i; */
+			/* 	hori_hit_x = x + (hori_hit_y - y) / tan_theta; */
+			/* 	facing_north = 0; */
+			/* 	if (hori_hit_x < 0 || hori_hit_x >= stat->map.width */
+			/* 		|| hori_hit_y < 0 || hori_hit_y >= stat->map.height) */
+			/* 		break ; */
+			/* 	if (c3_query_map(stat, hori_hit_x, hori_hit_y)) */
+			/* 		break ; */
+			/* } */
+			/* else */
+			/* { */
+			/* 	hori_hit_y = floor(y) - i + 1; */
+			/* 	hori_hit_x = x + (hori_hit_y - y) / tan_theta; */
+			/* 	facing_north = 1; */
+			/* 	if (hori_hit_x < 0 || hori_hit_x >= stat->map.width */
+			/* 		|| hori_hit_y < 1 || hori_hit_y >= stat->map.height + 1) */
+			/* 		break ; */
+			/* 	if (c3_query_map(stat, hori_hit_x, hori_hit_y - 1)) */
+			/* 		break ; */
+			/* } */
+			/* i++; */
 		}
 
 	i = 1;
@@ -421,7 +464,7 @@ void	c3_cast_ray(
 		if (theta < M_PI_2 || theta >= 3 * M_PI_2)
 		{
 			vert_hit_x = floor(x) + i;
-			vert_hit_y = y + (vert_hit_x - x) * tan_theta;
+			vert_hit_y = y + (vert_hit_x - x) * tan(theta);
 			facing_east = 1;
 			if (vert_hit_x < 0 || vert_hit_x >= stat->map.width
 				|| vert_hit_y < 0 || vert_hit_y >= stat->map.height)
@@ -432,7 +475,7 @@ void	c3_cast_ray(
 		else
 		{
 			vert_hit_x = floor(x) - i + 1;
-			vert_hit_y = y + (vert_hit_x - x) * tan_theta;
+			vert_hit_y = y + (vert_hit_x - x) * tan(theta);
 			facing_east = 0;
 			if (vert_hit_x < 1 || vert_hit_x >= stat->map.width + 1
 				|| vert_hit_y < 0 || vert_hit_y >= stat->map.height)
@@ -443,11 +486,11 @@ void	c3_cast_ray(
 		i++;
 	}
 
-	if (distance_squared(x, y, hori_hit_x, hori_hit_y)
+	if (distance_squared(x, y, hori_hit.x, hori_hit.y)
 		< distance_squared(x, y, vert_hit_x, vert_hit_y))
 	{
-		out->position.x = hori_hit_x;
-		out->position.y = hori_hit_y;
+		out->position.x = hori_hit.x;
+		out->position.y = hori_hit.y;
 		out->type = facing_north ? C3_OBJTYPE_WALL_N : C3_OBJTYPE_WALL_S;
 	}
 	else
