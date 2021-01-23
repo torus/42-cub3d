@@ -339,9 +339,9 @@ void	c3_draw_map(t_c3_state *stat)
 			int x = stat->map.width * j / stat->renderer.minimap_width;
 			int cell = stat->map.map[y * stat->map.width + x];
 
-			int r = 128 * (1 - cell);
-			int g = 128 * (1 - cell);
-			int b = 128 * (1 - cell);
+			int r = 127 * (1 - cell) + 128;
+			int g = 127 * (1 - cell) + 128;
+			int b = 127 * (1 - cell) + 128;
 
 			unsigned int col = mlx_get_color_value(
 				stat->mlx, (r << 24) + (g << 16) + (b << 8));
