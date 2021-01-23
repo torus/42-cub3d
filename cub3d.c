@@ -61,20 +61,19 @@ typedef struct	s_c3_keystate
 	char	right;
 }		t_c3_keystate;
 
-typedef struct	s_c3_player
-{
-	double	x;
-	double	y;
-	double	direction;
-	double	walk_speed;
-	double	rotation_speed;
-}		t_c3_player;
-
 typedef struct	s_c3_coord
 {
 	double	x;
 	double	y;
 }		t_c3_coord;
+
+typedef struct	s_c3_player
+{
+	t_c3_coord	position;
+	double		direction;
+	double		walk_speed;
+	double		rotation_speed;
+}		t_c3_player;
 
 typedef enum	e_c3_object_type
 {
@@ -178,8 +177,8 @@ typedef struct	s_c3_state
 
 void	c3_player_init(t_c3_player *player, t_c3_map *map)
 {
-	player->x = map->width / 2.;
-	player->y = map->height / 2.;
+	player->position.x = map->width / 2.;
+	player->position.y = map->height / 2.;
 	player->direction = 0.;
 	player->walk_speed = 0.01;
 	player->rotation_speed = 0.01;
@@ -301,8 +300,8 @@ int		c3_key_release_hook(int key, void *param)
 
 void	c3_draw_player_on_map(t_c3_state *stat)
 {
-	int x = stat->player.x * stat->renderer.minimap_width / stat->map.width;
-	int y = stat->player.y * stat->renderer.minimap_height / stat->map.height;
+	int x = stat->player.position.x * stat->renderer.minimap_width / stat->map.width;
+	int y = stat->player.position.y * stat->renderer.minimap_height / stat->map.height;
 	double angle = stat->player.direction;
 
 	for (int i = -8; i < 9; i++)
@@ -669,10 +668,10 @@ void	c3_scan(t_c3_state *stat)
 			angle -= M_PI * 2;
 		if (angle < 0)
 			angle += M_PI * 2;
-		c3_cast_ray(stat, stat->player.x, stat->player.y, angle,
+		c3_cast_ray(stat, stat->player.position.x, stat->player.position.y, angle,
 					&stat->renderer.rays[x + half_res].hit);
 		double sq_dist = distance_squared(
-			stat->player.x, stat->player.y,
+			stat->player.position.x, stat->player.position.y,
 			stat->renderer.rays[x + half_res].hit.position.x,
 			stat->renderer.rays[x + half_res].hit.position.y);
 		double distance = sqrt(sq_dist);
@@ -700,13 +699,13 @@ void	c3_update(t_c3_state *stat)
 	{
 		double delta_x = stat->player.walk_speed * cos(stat->player.direction);
 		double delta_y = stat->player.walk_speed * sin(stat->player.direction);
-		double new_x = stat->player.x + delta_x * (stat->keystate.w ? 1 : -1);
-		double new_y = stat->player.y + delta_y * (stat->keystate.w ? 1 : -1);
+		double new_x = stat->player.position.x + delta_x * (stat->keystate.w ? 1 : -1);
+		double new_y = stat->player.position.y + delta_y * (stat->keystate.w ? 1 : -1);
 		if (new_x >= 0 && new_x < stat->map.width
 			&& new_y >= 0 && new_y < stat->map.height)
 		{
-			stat->player.x = new_x;
-			stat->player.y = new_y;
+			stat->player.position.x = new_x;
+			stat->player.position.y = new_y;
 		}
 	}
 
@@ -714,13 +713,13 @@ void	c3_update(t_c3_state *stat)
 	{
 		double delta_x = stat->player.walk_speed * sin(stat->player.direction);
 		double delta_y = stat->player.walk_speed * -cos(stat->player.direction);
-		double new_x = stat->player.x + delta_x * (stat->keystate.a ? 1 : -1);
-		double new_y = stat->player.y + delta_y * (stat->keystate.a ? 1 : -1);
+		double new_x = stat->player.position.x + delta_x * (stat->keystate.a ? 1 : -1);
+		double new_y = stat->player.position.y + delta_y * (stat->keystate.a ? 1 : -1);
 		if (new_x >= 0 && new_x < stat->map.width
 			&& new_y >= 0 && new_y < stat->map.height)
 		{
-			stat->player.x = new_x;
-			stat->player.y = new_y;
+			stat->player.position.x = new_x;
+			stat->player.position.y = new_y;
 		}
 	}
 
