@@ -367,6 +367,11 @@ double	distance_squared(double x1, double y1, double x2, double y2)
 	return (dx * dx + dy * dy);
 }
 
+char	c3_query_map(t_c3_state *stat, int x, int y)
+{
+	return stat->map.map[y * stat->map.width + x];
+}
+
 void	c3_cast_ray(
 	t_c3_state *stat, double x, double y, double theta, t_c3_hit_result *out)
 {
@@ -393,7 +398,7 @@ void	c3_cast_ray(
 				if (hori_hit_x < 0 || hori_hit_x >= stat->map.width
 					|| hori_hit_y < 0 || hori_hit_y >= stat->map.height)
 					break ;
-				if (stat->map.map[(int)hori_hit_y * stat->map.width + (int)hori_hit_x])
+				if (c3_query_map(stat, hori_hit_x, hori_hit_y))
 					break ;
 			}
 			else
@@ -404,7 +409,7 @@ void	c3_cast_ray(
 				if (hori_hit_x < 0 || hori_hit_x >= stat->map.width
 					|| hori_hit_y < 1 || hori_hit_y >= stat->map.height + 1)
 					break ;
-				if (stat->map.map[(int)(hori_hit_y - 1) * stat->map.width + (int)hori_hit_x])
+				if (c3_query_map(stat, hori_hit_x, hori_hit_y - 1))
 					break ;
 			}
 			i++;
@@ -421,7 +426,7 @@ void	c3_cast_ray(
 			if (vert_hit_x < 0 || vert_hit_x >= stat->map.width
 				|| vert_hit_y < 0 || vert_hit_y >= stat->map.height)
 				break ;
-			if (stat->map.map[(int)vert_hit_y * stat->map.width + (int)vert_hit_x])
+			if (c3_query_map(stat, vert_hit_x, vert_hit_y))
 				break ;
 		}
 		else
@@ -432,7 +437,7 @@ void	c3_cast_ray(
 			if (vert_hit_x < 1 || vert_hit_x >= stat->map.width + 1
 				|| vert_hit_y < 0 || vert_hit_y >= stat->map.height)
 				break ;
-			if (stat->map.map[(int)vert_hit_y * stat->map.width + (int)vert_hit_x - 1])
+			if (c3_query_map(stat, vert_hit_x - 1, vert_hit_y))
 				break ;
 		}
 		i++;
