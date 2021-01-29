@@ -399,40 +399,54 @@ int		c3_get_horizontal_hit(
 	t_c3_state *stat, t_c3_coord *pos,
 	double theta, t_c3_hit_result *result)
 {
-	double	hori_hit_x;
-	double	hori_hit_y;
-	int		facing_north;
-	int		index;
+	t_c3_coord	hit;
+	int			facing_north;
+	int			index;
+	int			hit_sprites;
 
+	hit_sprites = 0;
 	index = 1;
 	while (1)
 	{
 		if (theta >= 0 && theta < M_PI)
 		{
-			hori_hit_y = floor(pos->y) + index;
-			hori_hit_x = pos->x + (hori_hit_y - pos->y) / tan(theta);
+			hit.y = floor(pos->y) + index;
+			hit.x = pos->x + (hit.y - pos->y) / tan(theta);
 			facing_north = 0;
-			if (hori_hit_x < 0 || hori_hit_x >= stat->map.width
-				|| hori_hit_y < 0 || hori_hit_y >= stat->map.height)
+			if (hit.x < 0 || hit.x >= stat->map.width
+				|| hit.y < 0 || hit.y >= stat->map.height)
 				break ;
-			if (c3_query_map(stat, hori_hit_x, hori_hit_y) == C3_MAP_SYMBOL_WALL)
+			if (c3_query_map(stat, hit.x, hit.y) == C3_MAP_SYMBOL_WALL)
 				break ;
+			if (c3_query_map(stat, hit.x, hit.y) == C3_MAP_SYMBOL_SPRITE
+				&& hit_sprites < C3_MAX_COLLINEAR_SPRITES)
+			{
+				result[hit_sprites + 1].type = C3_MAP_SYMBOL_SPRITE;
+				result[hit_sprites + 1].position = hit;
+				hit_sprites++;
+			}
 		}
 		else
 		{
-			hori_hit_y = floor(pos->y) - index + 1;
-			hori_hit_x = pos->x + (hori_hit_y - pos->y) / tan(theta);
+			hit.y = floor(pos->y) - index + 1;
+			hit.x = pos->x + (hit.y - pos->y) / tan(theta);
 			facing_north = 1;
-			if (hori_hit_x < 0 || hori_hit_x >= stat->map.width
-				|| hori_hit_y < 1 || hori_hit_y >= stat->map.height + 1)
+			if (hit.x < 0 || hit.x >= stat->map.width
+				|| hit.y < 1 || hit.y >= stat->map.height + 1)
 				break ;
-			if (c3_query_map(stat, hori_hit_x, hori_hit_y - 1) == C3_MAP_SYMBOL_WALL)
+			if (c3_query_map(stat, hit.x, hit.y - 1) == C3_MAP_SYMBOL_WALL)
 				break ;
+			if (c3_query_map(stat, hit.x, hit.y - 1) == C3_MAP_SYMBOL_SPRITE
+				&& hit_sprites < C3_MAX_COLLINEAR_SPRITES)
+			{
+				result[hit_sprites + 1].type = C3_MAP_SYMBOL_SPRITE;
+				result[hit_sprites + 1].position = hit;
+				hit_sprites++;
+			}
 		}
 		index++;
 	}
-	result->position.x = hori_hit_x;
-	result->position.y = hori_hit_y;
+	result->position = hit;
 	return (facing_north);
 }
 
@@ -440,68 +454,82 @@ int		c3_get_vertical_hit(
 	t_c3_state *stat, t_c3_coord *pos,
 	double theta, t_c3_hit_result *result)
 {
-	double	vert_hit_x;
-	double	vert_hit_y;
-	int		facing_east;
-	int		i;
+	t_c3_coord	hit;
+	int			facing_east;
+	int			i;
+	int			hit_sprites;
 
+	hit_sprites = 0;
 	i = 1;
 	while (1)
 	{
 		if (theta < M_PI_2 || theta >= 3 * M_PI_2)
 		{
-			vert_hit_x = floor(pos->x) + i;
-			vert_hit_y = pos->y + (vert_hit_x - pos->x) * tan(theta);
+			hit.x = floor(pos->x) + i;
+			hit.y = pos->y + (hit.x - pos->x) * tan(theta);
 			facing_east = 1;
-			if (vert_hit_x < 0 || vert_hit_x >= stat->map.width
-				|| vert_hit_y < 0 || vert_hit_y >= stat->map.height)
+			if (hit.x < 0 || hit.x >= stat->map.width
+				|| hit.y < 0 || hit.y >= stat->map.height)
 				break ;
-			if (c3_query_map(stat, vert_hit_x, vert_hit_y) == C3_MAP_SYMBOL_WALL)
+			if (c3_query_map(stat, hit.x, hit.y) == C3_MAP_SYMBOL_WALL)
 				break ;
+			if (c3_query_map(stat, hit.x, hit.y) == C3_MAP_SYMBOL_SPRITE
+				&& hit_sprites < C3_MAX_COLLINEAR_SPRITES)
+			{
+				result[hit_sprites + 1].type = C3_MAP_SYMBOL_SPRITE;
+				result[hit_sprites + 1].position = hit;
+				hit_sprites++;
+			}
 		}
 		else
 		{
-			vert_hit_x = floor(pos->x) - i + 1;
-			vert_hit_y = pos->y + (vert_hit_x - pos->x) * tan(theta);
+			hit.x = floor(pos->x) - i + 1;
+			hit.y = pos->y + (hit.x - pos->x) * tan(theta);
 			facing_east = 0;
-			if (vert_hit_x < 1 || vert_hit_x >= stat->map.width + 1
-				|| vert_hit_y < 0 || vert_hit_y >= stat->map.height)
+			if (hit.x < 1 || hit.x >= stat->map.width + 1
+				|| hit.y < 0 || hit.y >= stat->map.height)
 				break ;
-			if (c3_query_map(stat, vert_hit_x - 1, vert_hit_y) == C3_MAP_SYMBOL_WALL)
+			if (c3_query_map(stat, hit.x - 1, hit.y) == C3_MAP_SYMBOL_WALL)
 				break ;
+			if (c3_query_map(stat, hit.x - 1, hit.y) == C3_MAP_SYMBOL_SPRITE
+				&& hit_sprites < C3_MAX_COLLINEAR_SPRITES)
+			{
+				result[hit_sprites + 1].type = C3_MAP_SYMBOL_SPRITE;
+				result[hit_sprites + 1].position = hit;
+				hit_sprites++;
+			}
 		}
 		i++;
 	}
-	result->position.x = vert_hit_x;
-	result->position.y = vert_hit_y;
+	result->position = hit;
 	return (facing_east);
 }
 
 void	c3_cast_ray(
 	t_c3_state *stat, t_c3_coord *pos, double theta, t_c3_hit_result *out)
 {
-	t_c3_hit_result	hori_hit;
-	t_c3_hit_result	vert_hit;
+	t_c3_hit_result	hori_hits[1 + C3_MAX_COLLINEAR_SPRITES];
+	t_c3_hit_result	vert_hits[1 + C3_MAX_COLLINEAR_SPRITES];
 	int				facing_north;
 	int				facing_east;
 
 	if (tan(theta) != 0.0)
-		facing_north = c3_get_horizontal_hit(stat, pos, theta, &hori_hit);
+		facing_north = c3_get_horizontal_hit(stat, pos, theta, hori_hits);
 
-	facing_east = c3_get_vertical_hit(stat, pos, theta, &vert_hit);
+	facing_east = c3_get_vertical_hit(stat, pos, theta, vert_hits);
 
 	if (tan(theta) != 0.0 &&
-		distance_squared(pos, &hori_hit.position)
-		< distance_squared(pos, &vert_hit.position))
+		distance_squared(pos, &hori_hits->position)
+		< distance_squared(pos, &vert_hits->position))
 	{
-		out->position.x = hori_hit.position.x;
-		out->position.y = hori_hit.position.y;
+		out->position.x = hori_hits->position.x;
+		out->position.y = hori_hits->position.y;
 		out->type = facing_north ? C3_OBJTYPE_WALL_N : C3_OBJTYPE_WALL_S;
 	}
 	else
 	{
-		out->position.x = vert_hit.position.x;
-		out->position.y = vert_hit.position.y;
+		out->position.x = vert_hits->position.x;
+		out->position.y = vert_hits->position.y;
 		out->type = facing_east ? C3_OBJTYPE_WALL_E : C3_OBJTYPE_WALL_W;
 	}
 }
