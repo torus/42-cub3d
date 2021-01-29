@@ -260,16 +260,18 @@ void	c3_terminate(t_c3_state *stat)
 
 	mlx_loop_end(stat->mlx);
 
-	mlx_destroy_display(stat->mlx);
 	c3_renderer_cleanup(&stat->renderer);
 
 	int	i;
 	i = 0;
 	while (i < C3_OBJTYPE_NUM)
 	{
-		free(stat->texture_cache->cache[i].image);
+		if (stat->texture_cache->cache[i].image)
+			mlx_destroy_image(stat->mlx, stat->texture_cache->cache[i].image);
 		i++;
 	}
+
+	mlx_destroy_display(stat->mlx);
 }
 
 int		c3_key_press_hook(int key, void *param)

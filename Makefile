@@ -18,8 +18,8 @@ OBJS = $(SRCS:%.c=%.o)
 
 NAME = cub3d
 
-CFLAGS = -g -I $(MLX_INC) -Wall -Wextra # -Werror
-LDFLAGS = -L $(MLX_LIB) -lmlx -lXext -lX11 -lm -lbsd
+CFLAGS = -g -fsanitize=address -I $(MLX_INC) -Wall -Wextra -Werror
+LDFLAGS = -fsanitize=address -L $(MLX_LIB) -lmlx -lXext -lX11 -lm -lbsd
 
 run: $(NAME)
 	./$(NAME)
