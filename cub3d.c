@@ -214,7 +214,7 @@ void	c3_renderer_init(t_c3_renderer *rend, int minimap_width, int minimap_height
 	rend->fov = M_PI / 6.;
 	rend->resolution_x = 320;
 	rend->resolution_y = 180;
-	rend->rays = malloc(sizeof(t_c3_renderer) * rend->resolution_x);
+	rend->rays = malloc(sizeof(t_c3_ray) * rend->resolution_x);
 	rend->minimap_width = minimap_width;
 	rend->minimap_height = minimap_height;
 }
