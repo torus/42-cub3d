@@ -380,13 +380,13 @@ void	c3_draw_map(t_c3_state *stat)
 	c3_draw_player_on_map(stat);
 }
 
-double	distance_squared(double x1, double y1, double x2, double y2)
+double	distance_squared(t_c3_coord *p1, t_c3_coord *p2)
 {
 	double	dx;
 	double	dy;
 
-	dx = x1 - x2;
-	dy = y1 - y2;
+	dx = p1->x - p2->x;
+	dy = p1->y - p2->y;
 	return (dx * dx + dy * dy);
 }
 
@@ -491,8 +491,8 @@ void	c3_cast_ray(
 	facing_east = c3_get_vertical_hit(stat, pos, theta, &vert_hit);
 
 	if (tan(theta) != 0.0 &&
-		distance_squared(pos->x, pos->y, hori_hit.position.x, hori_hit.position.y)
-		< distance_squared(pos->x, pos->y, vert_hit.position.x, vert_hit.position.y))
+		distance_squared(pos, &hori_hit.position)
+		< distance_squared(pos, &vert_hit.position))
 	{
 		out->position.x = hori_hit.position.x;
 		out->position.y = hori_hit.position.y;
@@ -703,9 +703,8 @@ void	c3_scan(t_c3_state *stat)
 		c3_cast_ray(stat, &stat->player.position, angle,
 					&stat->renderer.rays[x + half_res].hit);
 		double sq_dist = distance_squared(
-			stat->player.position.x, stat->player.position.y,
-			stat->renderer.rays[x + half_res].hit.position.x,
-			stat->renderer.rays[x + half_res].hit.position.y);
+			&stat->player.position,
+			&stat->renderer.rays[x + half_res].hit.position);
 		double distance = sqrt(sq_dist);
 		stat->renderer.rays[x + half_res].distance = distance;
 		x++;
