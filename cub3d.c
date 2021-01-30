@@ -6,7 +6,7 @@
 /*   By: thisai <thisai@student.42tokyo.jp>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/01/13 16:23:13 by thisai            #+#    #+#             */
-/*   Updated: 2021/01/30 14:12:11 by thisai           ###   ########.fr       */
+/*   Updated: 2021/01/30 18:11:09 by thisai           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -144,8 +144,8 @@ void	c3_map_init(t_c3_map *map)
 		1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
 		1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
 		1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-		1, 0, 2, 2, 2, 2, 2, 2, 0, 1,
-		1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+		1, 0, 2, 2, 0, 0, 0, 0, 0, 1,
+		1, 0, 0, 0, 0, 0, 2, 2, 2, 1,
 		1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
 		1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
 		1, 0, 2, 0, 0, 0, 0, 0, 0, 1,
@@ -423,6 +423,7 @@ int		c3_get_horizontal_hit(
 			{
 				result[hit_sprites + 1].type = C3_MAP_SYMBOL_SPRITE;
 				result[hit_sprites + 1].position = hit;
+				result[hit_sprites + 1].distance_sqared = c3_distance_squared(pos, &hit);
 				hit_sprites++;
 			}
 		}
@@ -441,6 +442,7 @@ int		c3_get_horizontal_hit(
 			{
 				result[hit_sprites + 1].type = C3_MAP_SYMBOL_SPRITE;
 				result[hit_sprites + 1].position = hit;
+				result[hit_sprites + 1].distance_sqared = c3_distance_squared(pos, &hit);
 				hit_sprites++;
 			}
 		}
@@ -481,6 +483,7 @@ int		c3_get_vertical_hit(
 			{
 				result[hit_sprites + 1].type = C3_MAP_SYMBOL_SPRITE;
 				result[hit_sprites + 1].position = hit;
+				result[hit_sprites + 1].distance_sqared = c3_distance_squared(pos, &hit);
 				hit_sprites++;
 			}
 		}
@@ -499,6 +502,7 @@ int		c3_get_vertical_hit(
 			{
 				result[hit_sprites + 1].type = C3_MAP_SYMBOL_SPRITE;
 				result[hit_sprites + 1].position = hit;
+				result[hit_sprites + 1].distance_sqared = c3_distance_squared(pos, &hit);
 				hit_sprites++;
 			}
 		}
@@ -510,39 +514,50 @@ int		c3_get_vertical_hit(
 	return (hit_sprites);
 }
 
-void	c3_cast_ray(
+int		c3_cast_ray(
 	t_c3_state *stat, t_c3_coord *pos, double theta, t_c3_hit_result *out)
 {
 	t_c3_hit_result	hori_hits[1 + C3_MAX_COLLINEAR_SPRITES];
 	t_c3_hit_result	vert_hits[1 + C3_MAX_COLLINEAR_SPRITES];
 	int				hori_sprites;
 	int				vert_sprites;
-	/* int				i; */
-	/* int				dist; */
+	int				hori_index;
+	int				vert_index;
+	int				sprites;
 
-	if (tan(theta) != 0.0)
-		hori_sprites = c3_get_horizontal_hit(stat, pos, theta, hori_hits);
-
+	hori_sprites = tan(theta) != 0.0 ? c3_get_horizontal_hit(stat, pos, theta, hori_hits) : 0;
 	vert_sprites = c3_get_vertical_hit(stat, pos, theta, vert_hits);
 
 	if (tan(theta) != 0.0 &&
-		c3_distance_squared(pos, &hori_hits->position)
-		< c3_distance_squared(pos, &vert_hits->position))
-	{
+		hori_hits[0].distance_sqared < vert_hits[0].distance_sqared)
 		*out = *hori_hits;
-	}
 	else
-	{
 		*out = *vert_hits;
-	}
 
-	/* i = 0; */
-	/* dist = 0; */
-	/* while (i < C3_MAX_COLLINEAR_SPRITES) */
-	/* { */
-	/* 	out[i] = hori_hits[1].distance_sqared < vert_hits[1].distance_sqared ? */
-	/* 		(hori_hits++)[1] : (vert_hits++)[1]; */
-	/* } */
+	hori_index = 0;
+	vert_index = 0;
+	sprites = 0;
+	while (sprites < C3_MAX_COLLINEAR_SPRITES
+		   && (hori_index < hori_sprites || vert_index < vert_sprites))
+	{
+		if (hori_index >= hori_sprites && vert_index < vert_sprites)
+		{
+			out[sprites + 1] = vert_hits[vert_index++ + 1];
+		}
+		else if (hori_index < hori_sprites && vert_index >= vert_sprites)
+		{
+			out[sprites + 1] = hori_hits[hori_index++ + 1];
+		}
+		else if (hori_hits[hori_index + 1].distance_sqared
+				 < vert_hits[vert_index + 1].distance_sqared)
+		{
+			out[sprites + 1] = hori_hits[hori_index++ + 1];
+		}
+		else
+			out[sprites + 1] = vert_hits[vert_index++ + 1];
+		sprites++;
+	}
+	return (sprites);
 }
 
 void	c3_draw_rays_on_map(t_c3_state *stat)
@@ -552,6 +567,7 @@ void	c3_draw_rays_on_map(t_c3_state *stat)
 	double		screen_x;
 	double		screen_y;
 	int			x;
+	int			i;
 
 	x = 0;
 	while (x < stat->renderer.resolution_x)
@@ -566,6 +582,22 @@ void	c3_draw_rays_on_map(t_c3_state *stat)
 		mlx_string_put(
 			stat->mlx, stat->window, screen_x, screen_y,
 			mlx_get_color_value(stat->mlx, col), "*");
+
+		i = 0;
+		while (i < stat->renderer.rays[x].hit_sprite_count)
+		{
+			world_x = stat->renderer.rays[x].hits[i + 1].position.x;
+			world_y = stat->renderer.rays[x].hits[i + 1].position.y;
+			screen_x = world_x * stat->renderer.minimap_width / stat->map.width;
+			screen_y = world_y * stat->renderer.minimap_height / stat->map.height;
+
+			int r = 255 * x / stat->renderer.resolution_x;
+			int col = (r << 16) + ((255 - r) << 0);
+			mlx_string_put(
+				stat->mlx, stat->window, screen_x, screen_y,
+				mlx_get_color_value(stat->mlx, col), "x");
+			i++;
+		}
 
 		x++;
 	}
@@ -725,6 +757,7 @@ void	c3_scan(t_c3_state *stat)
 {
 	int	x;
 	int	half_res;
+	int	hit_sprites;
 
 	half_res = stat->renderer.resolution_x / 2;
 	x = -half_res;
@@ -741,13 +774,10 @@ void	c3_scan(t_c3_state *stat)
 			angle -= M_PI * 2;
 		if (angle < 0)
 			angle += M_PI * 2;
-		c3_cast_ray(stat, &stat->player.position, angle,
-					stat->renderer.rays[x + half_res].hits);
-		/* double sq_dist = c3_distance_squared( */
-		/* 	&stat->player.position, */
-		/* 	&stat->renderer.rays[x + half_res].hit.position); */
-		/* double distance = sqrt(sq_dist); */
-		/* stat->renderer.rays[x + half_res].distance = distance; */
+		hit_sprites = c3_cast_ray(
+			stat, &stat->player.position, angle,
+			stat->renderer.rays[x + half_res].hits);
+		stat->renderer.rays[x + half_res].hit_sprite_count = hit_sprites;
 		x++;
 	}
 }
