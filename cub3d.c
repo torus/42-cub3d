@@ -6,7 +6,7 @@
 /*   By: thisai <thisai@student.42tokyo.jp>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/01/13 16:23:13 by thisai            #+#    #+#             */
-/*   Updated: 2021/01/17 19:25:57 by thisai           ###   ########.fr       */
+/*   Updated: 2021/01/30 14:12:11 by thisai           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,7 @@
 
 #define C3_CHECK(val, mesg) c3_check((int64_t)val, mesg)
 
+#define C3_MAX_COLLINEAR_SPRITES 10
 
 const int	c3_texture_size = 32;
 
@@ -89,13 +90,14 @@ typedef struct	s_c3_hit_result
 {
 	t_c3_object_type	type;
 	t_c3_coord			position;
+	double				distance_sqared;
 }		t_c3_hit_result;
 
 typedef struct	s_c3_ray
 {
-	double			distance;
 	double			angle;
-	t_c3_hit_result	hit;
+	t_c3_hit_result	hits[1 + C3_MAX_COLLINEAR_SPRITES];
+	int				hit_sprite_count;
 }		t_c3_ray;
 
 typedef struct	s_c3_renderer
@@ -120,15 +122,11 @@ typedef struct	s_c3_sprite
 	int					index;
 }		t_c3_sprite;
 
-#define C3_MAX_SPRITES 100
-#define C3_MAX_COLLINEAR_SPRITES 10
-
 typedef struct	s_c3_map
 {
 	char		*map;
 	int			width;
 	int			height;
-	t_c3_sprite	sprites[C3_MAX_SPRITES];
 }		t_c3_map;
 
 #define C3_MAP_SYMBOL_EMPTY 0
@@ -449,7 +447,10 @@ int		c3_get_horizontal_hit(
 		index++;
 	}
 	result->position = hit;
-	return (facing_north);
+	result->distance_sqared = c3_distance_squared(pos, &hit);
+	result->type = facing_north ? C3_OBJTYPE_WALL_N : C3_OBJTYPE_WALL_S;
+
+	return (hit_sprites);
 }
 
 int		c3_get_vertical_hit(
@@ -504,7 +505,9 @@ int		c3_get_vertical_hit(
 		i++;
 	}
 	result->position = hit;
-	return (facing_east);
+	result->distance_sqared = c3_distance_squared(pos, &hit);
+	result->type = facing_east ? C3_OBJTYPE_WALL_E : C3_OBJTYPE_WALL_W;
+	return (hit_sprites);
 }
 
 void	c3_cast_ray(
@@ -512,26 +515,34 @@ void	c3_cast_ray(
 {
 	t_c3_hit_result	hori_hits[1 + C3_MAX_COLLINEAR_SPRITES];
 	t_c3_hit_result	vert_hits[1 + C3_MAX_COLLINEAR_SPRITES];
-	int				facing_north;
-	int				facing_east;
+	int				hori_sprites;
+	int				vert_sprites;
+	/* int				i; */
+	/* int				dist; */
 
 	if (tan(theta) != 0.0)
-		facing_north = c3_get_horizontal_hit(stat, pos, theta, hori_hits);
+		hori_sprites = c3_get_horizontal_hit(stat, pos, theta, hori_hits);
 
-	facing_east = c3_get_vertical_hit(stat, pos, theta, vert_hits);
+	vert_sprites = c3_get_vertical_hit(stat, pos, theta, vert_hits);
 
 	if (tan(theta) != 0.0 &&
 		c3_distance_squared(pos, &hori_hits->position)
 		< c3_distance_squared(pos, &vert_hits->position))
 	{
-		out->position = hori_hits->position;
-		out->type = facing_north ? C3_OBJTYPE_WALL_N : C3_OBJTYPE_WALL_S;
+		*out = *hori_hits;
 	}
 	else
 	{
-		out->position = vert_hits->position;
-		out->type = facing_east ? C3_OBJTYPE_WALL_E : C3_OBJTYPE_WALL_W;
+		*out = *vert_hits;
 	}
+
+	/* i = 0; */
+	/* dist = 0; */
+	/* while (i < C3_MAX_COLLINEAR_SPRITES) */
+	/* { */
+	/* 	out[i] = hori_hits[1].distance_sqared < vert_hits[1].distance_sqared ? */
+	/* 		(hori_hits++)[1] : (vert_hits++)[1]; */
+	/* } */
 }
 
 void	c3_draw_rays_on_map(t_c3_state *stat)
@@ -545,8 +556,8 @@ void	c3_draw_rays_on_map(t_c3_state *stat)
 	x = 0;
 	while (x < stat->renderer.resolution_x)
 	{
-		world_x = stat->renderer.rays[x].hit.position.x;
-		world_y = stat->renderer.rays[x].hit.position.y;
+		world_x = stat->renderer.rays[x].hits[0].position.x;
+		world_y = stat->renderer.rays[x].hits[0].position.y;
 		screen_x = world_x * stat->renderer.minimap_width / stat->map.width;
 		screen_y = world_y * stat->renderer.minimap_height / stat->map.height;
 
@@ -625,7 +636,9 @@ void	c3_draw_walls(t_c3_state *stat)
 	{
 		ray = &stat->renderer.rays[x];
 
-		int wall_height = stat->renderer.resolution_y / (ray->distance * cos(ray->angle));
+		int wall_height =
+			stat->renderer.resolution_y
+			/ (sqrt(ray->hits[0].distance_sqared) * cos(ray->angle));
 
 		y = 0;
 		while (y < stat->renderer.resolution_y)
@@ -642,32 +655,32 @@ void	c3_draw_walls(t_c3_state *stat)
 
 			else
 			{
-				if (ray->hit.type == C3_OBJTYPE_WALL_N)
+				if (ray->hits[0].type == C3_OBJTYPE_WALL_N)
 					col = c3_sample_texture(
 						stat,
 						C3_OBJTYPE_WALL_N,
-						(int)(ray->hit.position.x * c3_texture_size) % c3_texture_size,
+						(int)(ray->hits[0].position.x * c3_texture_size) % c3_texture_size,
 						v);
 
-				else if (ray->hit.type == C3_OBJTYPE_WALL_E)
+				else if (ray->hits[0].type == C3_OBJTYPE_WALL_E)
 					col = c3_sample_texture(
 						stat,
 						C3_OBJTYPE_WALL_E,
-						(int)(ray->hit.position.y * c3_texture_size) % c3_texture_size,
+						(int)(ray->hits[0].position.y * c3_texture_size) % c3_texture_size,
 						v);
 
-				else if (ray->hit.type == C3_OBJTYPE_WALL_S)
+				else if (ray->hits[0].type == C3_OBJTYPE_WALL_S)
 					col = c3_sample_texture(
 						stat,
 						C3_OBJTYPE_WALL_S,
-						c3_texture_size - (int)(ray->hit.position.x * c3_texture_size) % c3_texture_size,
+						c3_texture_size - (int)(ray->hits[0].position.x * c3_texture_size) % c3_texture_size,
 						v);
 
 				else //(ray->hit.type == C3_OBJTYPE_WALL_W)
 					col = c3_sample_texture(
 						stat,
 						C3_OBJTYPE_WALL_W,
-						c3_texture_size - (int)(ray->hit.position.y * c3_texture_size) % c3_texture_size,
+						c3_texture_size - (int)(ray->hits[0].position.y * c3_texture_size) % c3_texture_size,
 						v);
 
 			}
@@ -729,12 +742,12 @@ void	c3_scan(t_c3_state *stat)
 		if (angle < 0)
 			angle += M_PI * 2;
 		c3_cast_ray(stat, &stat->player.position, angle,
-					&stat->renderer.rays[x + half_res].hit);
-		double sq_dist = c3_distance_squared(
-			&stat->player.position,
-			&stat->renderer.rays[x + half_res].hit.position);
-		double distance = sqrt(sq_dist);
-		stat->renderer.rays[x + half_res].distance = distance;
+					stat->renderer.rays[x + half_res].hits);
+		/* double sq_dist = c3_distance_squared( */
+		/* 	&stat->player.position, */
+		/* 	&stat->renderer.rays[x + half_res].hit.position); */
+		/* double distance = sqrt(sq_dist); */
+		/* stat->renderer.rays[x + half_res].distance = distance; */
 		x++;
 	}
 }
