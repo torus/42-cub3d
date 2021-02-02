@@ -458,6 +458,13 @@ int		c3_get_horizontal_hit(
 		if (hit_sprites < C3_MAX_COLLINEAR_SPRITES
 			&& c3_check_sprite(stat, &hit_cell, pos, &result[hit_sprites + 1]))
 		{
+
+			double dot = c3_dot(pos, &hit_cell, &hit);
+			t_c3_coord	ad = {hit.x - pos->x, hit.y - pos->y};
+			double	c = result[hit_sprites + 1].distance_sqared / dot;
+			hit.x = pos->x + ad.x * c;
+			hit.y = pos->y + ad.y * c;
+
 			result[hit_sprites + 1].position = hit;
 			hit_sprites ++;
 		}
@@ -507,6 +514,12 @@ int		c3_get_vertical_hit(
 		if (hit_sprites < C3_MAX_COLLINEAR_SPRITES
 			&& c3_check_sprite(stat, &hit_cell, pos, &result[hit_sprites + 1]))
 		{
+			double dot = c3_dot(pos, &hit_cell, &hit);
+			t_c3_coord	ad = {hit.x - pos->x, hit.y - pos->y};
+			double	c = result[hit_sprites + 1].distance_sqared / dot;
+			hit.x = pos->x + ad.x * c;
+			hit.y = pos->y + ad.y * c;
+
 			result[hit_sprites + 1].position = hit;
 			hit_sprites ++;
 		}
