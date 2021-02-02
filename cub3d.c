@@ -407,11 +407,15 @@ int		c3_check_wall(t_c3_state *stat, t_c3_coord *hit)
 
 int		c3_check_sprite(t_c3_state *stat, t_c3_coord *hit, t_c3_coord *pos, t_c3_hit_result *result)
 {
+	t_c3_coord	center;
+
+	center.x = floor(hit->x) + 0.5;
+	center.y = floor(hit->y) + 0.5;
 	if (c3_query_map(stat, hit->x, hit->y) == C3_MAP_SYMBOL_SPRITE)
 	{
 		result->type = C3_MAP_SYMBOL_SPRITE;
-		result->position = *hit;
-		result->distance_sqared = c3_distance_squared(pos, hit);
+		/* result->position = *hit; */
+		result->distance_sqared = c3_distance_squared(pos, &center);
 		return (1);
 	}
 	return (0);
@@ -422,6 +426,7 @@ int		c3_get_horizontal_hit(
 	double theta, t_c3_hit_result *result)
 {
 	t_c3_coord	hit;
+	t_c3_coord	hit_cell;
 	int			facing_north;
 	int			index;
 	int			hit_sprites;
@@ -435,24 +440,26 @@ int		c3_get_horizontal_hit(
 			hit.y = floor(pos->y) + index;
 			hit.x = pos->x + (hit.y - pos->y) / tan(theta);
 			facing_north = 0;
-			if (c3_check_wall(stat, &hit))
-				break ;
-			if (hit_sprites < C3_MAX_COLLINEAR_SPRITES)
-				hit_sprites += c3_check_sprite(
-					stat, &hit, pos, &result[hit_sprites + 1]);
+			hit_cell = hit;
 		}
 		else
 		{
 			hit.y = floor(pos->y) - index + 1;
 			hit.x = pos->x + (hit.y - pos->y) / tan(theta);
 			facing_north = 1;
-			t_c3_coord hit2 = {hit.x, hit.y - 1};
-			if (c3_check_wall(stat, &hit2))
-				break ;
-			if (hit_sprites < C3_MAX_COLLINEAR_SPRITES)
-				hit_sprites += c3_check_sprite(
-					stat, &hit2, pos, &result[hit_sprites + 1]);
+			hit_cell.x = hit.x;
+			hit_cell.y = hit.y - 1;
 		}
+
+		if (c3_check_wall(stat, &hit_cell))
+			break ;
+		if (hit_sprites < C3_MAX_COLLINEAR_SPRITES
+			&& c3_check_sprite(stat, &hit_cell, pos, &result[hit_sprites + 1]))
+		{
+			result[hit_sprites + 1].position = hit;
+			hit_sprites ++;
+		}
+
 		index++;
 	}
 	result->position = hit;
@@ -467,6 +474,7 @@ int		c3_get_vertical_hit(
 	double theta, t_c3_hit_result *result)
 {
 	t_c3_coord	hit;
+	t_c3_coord	hit_cell;
 	int			facing_east;
 	int			i;
 	int			hit_sprites;
@@ -480,24 +488,26 @@ int		c3_get_vertical_hit(
 			hit.x = floor(pos->x) + i;
 			hit.y = pos->y + (hit.x - pos->x) * tan(theta);
 			facing_east = 1;
-			if (c3_check_wall(stat, &hit))
-				break ;
-			if (hit_sprites < C3_MAX_COLLINEAR_SPRITES)
-				hit_sprites += c3_check_sprite(
-					stat, &hit, pos, &result[hit_sprites + 1]);
+			hit_cell = hit;
 		}
 		else
 		{
 			hit.x = floor(pos->x) - i + 1;
 			hit.y = pos->y + (hit.x - pos->x) * tan(theta);
 			facing_east = 0;
-			t_c3_coord hit2 = {hit.x - 1, hit.y};
-			if (c3_check_wall(stat, &hit2))
-				break ;
-			if (hit_sprites < C3_MAX_COLLINEAR_SPRITES)
-				hit_sprites += c3_check_sprite(
-					stat, &hit2, pos, &result[hit_sprites + 1]);
+			hit_cell.x = hit.x - 1;
+			hit_cell.y = hit.y;
 		}
+
+		if (c3_check_wall(stat, &hit_cell))
+			break ;
+		if (hit_sprites < C3_MAX_COLLINEAR_SPRITES
+			&& c3_check_sprite(stat, &hit_cell, pos, &result[hit_sprites + 1]))
+		{
+			result[hit_sprites + 1].position = hit;
+			hit_sprites ++;
+		}
+
 		i++;
 	}
 	result->position = hit;
