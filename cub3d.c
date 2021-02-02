@@ -734,15 +734,51 @@ void	c3_draw_walls(t_c3_state *stat)
 		y = 0;
 		while (y < stat->renderer.resolution_y)
 		{
-			if (y < (stat->renderer.resolution_y - wall_height) / 2)
-				col = mlx_get_color_value(
-					stat->mlx, (ceiling_r << 16) + (ceiling_g << 8) + ceiling_b);
-			else if (y > (stat->renderer.resolution_y + wall_height) / 2)
-				col = mlx_get_color_value(
-					stat->mlx, (floor_r << 16) + (floor_g << 8) + floor_b);
+			int	sprites;
+			int	i;
+			int	found_sprite;
 
-			else
-				col = c3_wall_texel(stat, ray, wall_height, y);
+			found_sprite = 0;
+			sprites = ray->hit_sprite_count;
+			i = 0;
+			while (i < sprites)
+			{
+				int sprite_height =
+					stat->renderer.resolution_y
+					/ (sqrt(ray->hits[i + 1].distance_sqared));
+
+				if (y < (stat->renderer.resolution_y - sprite_height) / 2)
+				{
+					col = mlx_get_color_value(
+						stat->mlx, (ceiling_r << 16) + (ceiling_g << 8) + ceiling_b);
+					break ;
+				}
+				else if (y > (stat->renderer.resolution_y + sprite_height) / 2)
+				{
+					col = mlx_get_color_value(
+						stat->mlx, (floor_r << 16) + (floor_g << 8) + floor_b);
+					break ;
+				}
+
+				if ((x + y + sprite_height) % 5 == 0)
+				{
+					col = 0x0088ccff;
+					found_sprite = 1;
+					break ;
+				}
+				i++;
+			}
+			if (!found_sprite)
+			{
+				if (y < (stat->renderer.resolution_y - wall_height) / 2)
+					col = mlx_get_color_value(
+						stat->mlx, (ceiling_r << 16) + (ceiling_g << 8) + ceiling_b);
+				else if (y > (stat->renderer.resolution_y + wall_height) / 2)
+					col = mlx_get_color_value(
+						stat->mlx, (floor_r << 16) + (floor_g << 8) + floor_b);
+				else
+					col = c3_wall_texel(stat, ray, wall_height, y);
+			}
 
 			screen_y = y * stat->screen_height / stat->renderer.resolution_y;
 			while (screen_y < (y + 1) * stat->screen_height / stat->renderer.resolution_y)
