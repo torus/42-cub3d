@@ -850,6 +850,34 @@ void	c3_texture_cache_init(t_c3_texture_cache *cache)
 	}
 }
 
+int		c3_focusin_hook(void *param)
+{
+	int			tmp;
+	t_c3_state	*stat;
+
+	c3_log("Focus In\n");
+
+	stat = (t_c3_state*)param;
+	tmp = mlx_do_key_autorepeatoff(stat->mlx);
+	C3_CHECK(tmp, "mlx_do_key_autorepeatoff() returned false.");
+
+	return (1);
+}
+
+int		c3_focusout_hook(void *param)
+{
+	int			tmp;
+	t_c3_state	*stat;
+
+	c3_log("Focus Out\n");
+
+	stat = (t_c3_state*)param;
+	tmp = mlx_do_key_autorepeaton(stat->mlx);
+	C3_CHECK(tmp, "mlx_do_key_autorepeatoff() returned false.");
+
+	return (1);
+}
+
 int		c3_init(t_c3_state *stat, t_c3_texture_cache *tex)
 {
 	int			tmp;
@@ -875,6 +903,18 @@ int		c3_init(t_c3_state *stat, t_c3_texture_cache *tex)
 		stat->window, KeyPress,
 		KeyPressMask,
 		c3_key_press_hook, stat);
+	C3_CHECK(tmp, "mlx_hook() returned false.");
+
+	tmp = mlx_hook(
+		stat->window, FocusIn,
+		FocusChangeMask,
+		c3_focusin_hook, stat);
+	C3_CHECK(tmp, "mlx_hook() returned false.");
+
+	tmp = mlx_hook(
+		stat->window, FocusOut,
+		FocusChangeMask,
+		c3_focusout_hook, stat);
 	C3_CHECK(tmp, "mlx_hook() returned false.");
 
 	stat->img = mlx_new_image(
