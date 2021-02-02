@@ -665,6 +665,47 @@ uint32_t	c3_sample_texture(
 	return (texcol);
 }
 
+unsigned int	c3_wall_texel(
+	t_c3_state *stat, t_c3_ray *ray, int wall_height, int y)
+{
+	unsigned int	col;
+	int				v;
+
+	v = c3_texture_size *
+		(y - (stat->renderer.resolution_y - wall_height) / 2) /
+		wall_height;
+
+	if (ray->hits[0].type == C3_OBJTYPE_WALL_N)
+		col = c3_sample_texture(
+			stat,
+			C3_OBJTYPE_WALL_N,
+			(int)(ray->hits[0].position.x * c3_texture_size) % c3_texture_size,
+			v);
+
+	else if (ray->hits[0].type == C3_OBJTYPE_WALL_E)
+		col = c3_sample_texture(
+			stat,
+			C3_OBJTYPE_WALL_E,
+			(int)(ray->hits[0].position.y * c3_texture_size) % c3_texture_size,
+			v);
+
+	else if (ray->hits[0].type == C3_OBJTYPE_WALL_S)
+		col = c3_sample_texture(
+			stat,
+			C3_OBJTYPE_WALL_S,
+			c3_texture_size - (int)(ray->hits[0].position.x * c3_texture_size) % c3_texture_size,
+			v);
+
+	else //(ray->hit.type == C3_OBJTYPE_WALL_W)
+		col = c3_sample_texture(
+			stat,
+			C3_OBJTYPE_WALL_W,
+			c3_texture_size - (int)(ray->hits[0].position.y * c3_texture_size) % c3_texture_size,
+			v);
+
+	return (col);
+}
+
 void	c3_draw_walls(t_c3_state *stat)
 {
 	int				x;
@@ -693,9 +734,6 @@ void	c3_draw_walls(t_c3_state *stat)
 		y = 0;
 		while (y < stat->renderer.resolution_y)
 		{
-			int		v = c3_texture_size *
-				(y - (stat->renderer.resolution_y - wall_height) / 2) /
-				wall_height;
 			if (y < (stat->renderer.resolution_y - wall_height) / 2)
 				col = mlx_get_color_value(
 					stat->mlx, (ceiling_r << 16) + (ceiling_g << 8) + ceiling_b);
@@ -704,36 +742,7 @@ void	c3_draw_walls(t_c3_state *stat)
 					stat->mlx, (floor_r << 16) + (floor_g << 8) + floor_b);
 
 			else
-			{
-				if (ray->hits[0].type == C3_OBJTYPE_WALL_N)
-					col = c3_sample_texture(
-						stat,
-						C3_OBJTYPE_WALL_N,
-						(int)(ray->hits[0].position.x * c3_texture_size) % c3_texture_size,
-						v);
-
-				else if (ray->hits[0].type == C3_OBJTYPE_WALL_E)
-					col = c3_sample_texture(
-						stat,
-						C3_OBJTYPE_WALL_E,
-						(int)(ray->hits[0].position.y * c3_texture_size) % c3_texture_size,
-						v);
-
-				else if (ray->hits[0].type == C3_OBJTYPE_WALL_S)
-					col = c3_sample_texture(
-						stat,
-						C3_OBJTYPE_WALL_S,
-						c3_texture_size - (int)(ray->hits[0].position.x * c3_texture_size) % c3_texture_size,
-						v);
-
-				else //(ray->hit.type == C3_OBJTYPE_WALL_W)
-					col = c3_sample_texture(
-						stat,
-						C3_OBJTYPE_WALL_W,
-						c3_texture_size - (int)(ray->hits[0].position.y * c3_texture_size) % c3_texture_size,
-						v);
-
-			}
+				col = c3_wall_texel(stat, ray, wall_height, y);
 
 			screen_y = y * stat->screen_height / stat->renderer.resolution_y;
 			while (screen_y < (y + 1) * stat->screen_height / stat->renderer.resolution_y)
@@ -758,9 +767,14 @@ void	c3_draw_walls(t_c3_state *stat)
 	}
 }
 
-void	c3_draw(t_c3_state *stat)
+void	c3_render_scene(t_c3_state *stat)
 {
 	c3_draw_walls(stat);
+}
+
+void	c3_draw(t_c3_state *stat)
+{
+	c3_render_scene(stat);
 	c3_draw_map(stat);
 
 	mlx_put_image_to_window(stat->mlx, stat->window, stat->img, 0, 0);
