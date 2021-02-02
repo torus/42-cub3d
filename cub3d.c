@@ -405,20 +405,21 @@ int		c3_check_wall(t_c3_state *stat, t_c3_coord *hit)
 	return (0);
 }
 
-int		c3_check_sprite(t_c3_state *stat, t_c3_coord *hit, t_c3_coord *pos, t_c3_hit_result *result)
+int		c3_check_sprite(t_c3_state *stat, t_c3_coord *center, t_c3_coord *pos, t_c3_hit_result *result)
 {
-	t_c3_coord	center;
-
-	center.x = floor(hit->x) + 0.5;
-	center.y = floor(hit->y) + 0.5;
-	if (c3_query_map(stat, hit->x, hit->y) == C3_MAP_SYMBOL_SPRITE)
+	if (c3_query_map(stat, center->x, center->y) == C3_MAP_SYMBOL_SPRITE)
 	{
 		result->type = C3_MAP_SYMBOL_SPRITE;
-		/* result->position = *hit; */
-		result->distance_sqared = c3_distance_squared(pos, &center);
+		result->distance_sqared = c3_distance_squared(pos, center);
 		return (1);
 	}
 	return (0);
+}
+
+double	c3_dot(t_c3_coord *origin, t_c3_coord *a, t_c3_coord *b)
+{
+	return (a->x - origin->x) * (b->x - origin->x)
+		+ (a->y - origin->y) * (b->y - origin->y);
 }
 
 int		c3_get_horizontal_hit(
@@ -440,15 +441,16 @@ int		c3_get_horizontal_hit(
 			hit.y = floor(pos->y) + index;
 			hit.x = pos->x + (hit.y - pos->y) / tan(theta);
 			facing_north = 0;
-			hit_cell = hit;
+			hit_cell.x = floor(hit.x) + 0.5;
+			hit_cell.y = floor(hit.y) + 0.5;
 		}
 		else
 		{
 			hit.y = floor(pos->y) - index + 1;
 			hit.x = pos->x + (hit.y - pos->y) / tan(theta);
 			facing_north = 1;
-			hit_cell.x = hit.x;
-			hit_cell.y = hit.y - 1;
+			hit_cell.x = floor(hit.x) + 0.5;
+			hit_cell.y = floor(hit.y) - 1 + 0.5;
 		}
 
 		if (c3_check_wall(stat, &hit_cell))
@@ -488,15 +490,16 @@ int		c3_get_vertical_hit(
 			hit.x = floor(pos->x) + i;
 			hit.y = pos->y + (hit.x - pos->x) * tan(theta);
 			facing_east = 1;
-			hit_cell = hit;
+			hit_cell.x = floor(hit.x) + 0.5;
+			hit_cell.y = floor(hit.y) + 0.5;
 		}
 		else
 		{
 			hit.x = floor(pos->x) - i + 1;
 			hit.y = pos->y + (hit.x - pos->x) * tan(theta);
 			facing_east = 0;
-			hit_cell.x = hit.x - 1;
-			hit_cell.y = hit.y;
+			hit_cell.x = floor(hit.x) - 1 + 0.5;
+			hit_cell.y = floor(hit.y) + 0.5;
 		}
 
 		if (c3_check_wall(stat, &hit_cell))
