@@ -395,6 +395,28 @@ char	c3_query_map(t_c3_state *stat, int x, int y)
 	return stat->map.map[y * stat->map.width + x];
 }
 
+int		c3_check_wall(t_c3_state *stat, t_c3_coord *hit)
+{
+	if (hit->x < 0 || hit->x >= stat->map.width
+		|| hit->y < 0 || hit->y >= stat->map.height)
+		return (1);
+	if (c3_query_map(stat, hit->x, hit->y) == C3_MAP_SYMBOL_WALL)
+		return (1);
+	return (0);
+}
+
+int		c3_check_sprite(t_c3_state *stat, t_c3_coord *hit, t_c3_coord *pos, t_c3_hit_result *result)
+{
+	if (c3_query_map(stat, hit->x, hit->y) == C3_MAP_SYMBOL_SPRITE)
+	{
+		result->type = C3_MAP_SYMBOL_SPRITE;
+		result->position = *hit;
+		result->distance_sqared = c3_distance_squared(pos, hit);
+		return (1);
+	}
+	return (0);
+}
+
 int		c3_get_horizontal_hit(
 	t_c3_state *stat, t_c3_coord *pos,
 	double theta, t_c3_hit_result *result)
@@ -413,38 +435,23 @@ int		c3_get_horizontal_hit(
 			hit.y = floor(pos->y) + index;
 			hit.x = pos->x + (hit.y - pos->y) / tan(theta);
 			facing_north = 0;
-			if (hit.x < 0 || hit.x >= stat->map.width
-				|| hit.y < 0 || hit.y >= stat->map.height)
+			if (c3_check_wall(stat, &hit))
 				break ;
-			if (c3_query_map(stat, hit.x, hit.y) == C3_MAP_SYMBOL_WALL)
-				break ;
-			if (c3_query_map(stat, hit.x, hit.y) == C3_MAP_SYMBOL_SPRITE
-				&& hit_sprites < C3_MAX_COLLINEAR_SPRITES)
-			{
-				result[hit_sprites + 1].type = C3_MAP_SYMBOL_SPRITE;
-				result[hit_sprites + 1].position = hit;
-				result[hit_sprites + 1].distance_sqared = c3_distance_squared(pos, &hit);
-				hit_sprites++;
-			}
+			if (hit_sprites < C3_MAX_COLLINEAR_SPRITES)
+				hit_sprites += c3_check_sprite(
+					stat, &hit, pos, &result[hit_sprites + 1]);
 		}
 		else
 		{
 			hit.y = floor(pos->y) - index + 1;
 			hit.x = pos->x + (hit.y - pos->y) / tan(theta);
 			facing_north = 1;
-			if (hit.x < 0 || hit.x >= stat->map.width
-				|| hit.y < 1 || hit.y >= stat->map.height + 1)
+			t_c3_coord hit2 = {hit.x, hit.y - 1};
+			if (c3_check_wall(stat, &hit2))
 				break ;
-			if (c3_query_map(stat, hit.x, hit.y - 1) == C3_MAP_SYMBOL_WALL)
-				break ;
-			if (c3_query_map(stat, hit.x, hit.y - 1) == C3_MAP_SYMBOL_SPRITE
-				&& hit_sprites < C3_MAX_COLLINEAR_SPRITES)
-			{
-				result[hit_sprites + 1].type = C3_MAP_SYMBOL_SPRITE;
-				result[hit_sprites + 1].position = hit;
-				result[hit_sprites + 1].distance_sqared = c3_distance_squared(pos, &hit);
-				hit_sprites++;
-			}
+			if (hit_sprites < C3_MAX_COLLINEAR_SPRITES)
+				hit_sprites += c3_check_sprite(
+					stat, &hit2, pos, &result[hit_sprites + 1]);
 		}
 		index++;
 	}
@@ -473,38 +480,23 @@ int		c3_get_vertical_hit(
 			hit.x = floor(pos->x) + i;
 			hit.y = pos->y + (hit.x - pos->x) * tan(theta);
 			facing_east = 1;
-			if (hit.x < 0 || hit.x >= stat->map.width
-				|| hit.y < 0 || hit.y >= stat->map.height)
+			if (c3_check_wall(stat, &hit))
 				break ;
-			if (c3_query_map(stat, hit.x, hit.y) == C3_MAP_SYMBOL_WALL)
-				break ;
-			if (c3_query_map(stat, hit.x, hit.y) == C3_MAP_SYMBOL_SPRITE
-				&& hit_sprites < C3_MAX_COLLINEAR_SPRITES)
-			{
-				result[hit_sprites + 1].type = C3_MAP_SYMBOL_SPRITE;
-				result[hit_sprites + 1].position = hit;
-				result[hit_sprites + 1].distance_sqared = c3_distance_squared(pos, &hit);
-				hit_sprites++;
-			}
+			if (hit_sprites < C3_MAX_COLLINEAR_SPRITES)
+				hit_sprites += c3_check_sprite(
+					stat, &hit, pos, &result[hit_sprites + 1]);
 		}
 		else
 		{
 			hit.x = floor(pos->x) - i + 1;
 			hit.y = pos->y + (hit.x - pos->x) * tan(theta);
 			facing_east = 0;
-			if (hit.x < 1 || hit.x >= stat->map.width + 1
-				|| hit.y < 0 || hit.y >= stat->map.height)
+			t_c3_coord hit2 = {hit.x - 1, hit.y};
+			if (c3_check_wall(stat, &hit2))
 				break ;
-			if (c3_query_map(stat, hit.x - 1, hit.y) == C3_MAP_SYMBOL_WALL)
-				break ;
-			if (c3_query_map(stat, hit.x - 1, hit.y) == C3_MAP_SYMBOL_SPRITE
-				&& hit_sprites < C3_MAX_COLLINEAR_SPRITES)
-			{
-				result[hit_sprites + 1].type = C3_MAP_SYMBOL_SPRITE;
-				result[hit_sprites + 1].position = hit;
-				result[hit_sprites + 1].distance_sqared = c3_distance_squared(pos, &hit);
-				hit_sprites++;
-			}
+			if (hit_sprites < C3_MAX_COLLINEAR_SPRITES)
+				hit_sprites += c3_check_sprite(
+					stat, &hit2, pos, &result[hit_sprites + 1]);
 		}
 		i++;
 	}
