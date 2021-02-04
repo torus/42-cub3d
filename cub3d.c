@@ -28,6 +28,7 @@
 #define C3_CHECK(val, mesg) c3_check((int64_t)val, mesg)
 
 #define C3_MAX_COLLINEAR_SPRITES 10
+#define C3_TRANSPARENT_COLOR 0x00ffffff
 
 const int	c3_texture_size = 32;
 
@@ -792,9 +793,11 @@ void	c3_draw_walls(t_c3_state *stat)
 						C3_OBJTYPE_SPRITE,
 						u,
 						v);
-
-					found_sprite = 1;
-					break ;
+					if (col != C3_TRANSPARENT_COLOR)
+					{
+						found_sprite = 1;
+						break ;
+					}
 				}
 
 				i++;
