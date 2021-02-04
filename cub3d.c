@@ -90,6 +90,7 @@ typedef struct	s_c3_hit_result
 {
 	t_c3_object_type	type;
 	t_c3_coord			position;
+	double				offset;
 	double				distance_sqared;
 }		t_c3_hit_result;
 
@@ -465,7 +466,16 @@ int		c3_get_horizontal_hit(
 			hit.x = pos->x + ad.x * c;
 			hit.y = pos->y + ad.y * c;
 
+			double	offset = sqrt(c3_distance_squared(&hit, &hit_cell));
+
+			t_c3_coord	ab = {hit_cell.x - pos->x, hit_cell.y - pos->y};
+			double	cross = ab.x * ad.y - ad.x * ab.y;
+
+			if (cross > 0)
+				offset = - offset;
+
 			result[hit_sprites + 1].position = hit;
+			result[hit_sprites + 1].offset = offset;
 			hit_sprites ++;
 		}
 
@@ -520,7 +530,15 @@ int		c3_get_vertical_hit(
 			hit.x = pos->x + ad.x * c;
 			hit.y = pos->y + ad.y * c;
 
+			double	offset = sqrt(c3_distance_squared(&hit, &hit_cell));
+			t_c3_coord	ab = {hit_cell.x - pos->x, hit_cell.y - pos->y};
+			double	cross = ab.x * ad.y - ad.x * ab.y;
+
+			if (cross > 0)
+				offset = - offset;
+
 			result[hit_sprites + 1].position = hit;
+			result[hit_sprites + 1].offset = offset;
 			hit_sprites ++;
 		}
 
@@ -651,6 +669,7 @@ uint32_t	c3_sample_texture(
 		"wall-2.xpm",
 		"wall-3.xpm",
 		"wall-4.xpm",
+		"sprite-1.xpm",
 	};
 
 	cache = stat->texture_cache;
@@ -760,12 +779,24 @@ void	c3_draw_walls(t_c3_state *stat)
 					break ;
 				}
 
-				if ((x + y + sprite_height) % 5 == 0)
+
+				int v = c3_texture_size *
+					(y - (stat->renderer.resolution_y - sprite_height) / 2) /
+					sprite_height;
+
+				int	u = floor(c3_texture_size * (ray->hits[i + 1].offset + 0.5));
+				if (u >= 0 && u < c3_texture_size)
 				{
-					col = 0x0088ccff;
+					col = c3_sample_texture(
+						stat,
+						C3_OBJTYPE_SPRITE,
+						u,
+						v);
+
 					found_sprite = 1;
 					break ;
 				}
+
 				i++;
 			}
 			if (!found_sprite)
