@@ -757,15 +757,18 @@ void	c3_draw_walls(t_c3_state *stat)
 			int	sprites;
 			int	i;
 			int	found_sprite;
+			double	distance;
 
 			found_sprite = 0;
 			sprites = ray->hit_sprite_count;
 			i = 0;
 			while (i < sprites)
 			{
+				distance = sqrt(ray->hits[i + 1].distance_sqared);
+
 				int sprite_height =
 					stat->renderer.resolution_y
-					/ (sqrt(ray->hits[i + 1].distance_sqared));
+					/ distance;
 
 				if (y < (stat->renderer.resolution_y - sprite_height) / 2)
 				{
@@ -785,7 +788,11 @@ void	c3_draw_walls(t_c3_state *stat)
 					(y - (stat->renderer.resolution_y - sprite_height) / 2) /
 					sprite_height;
 
-				int	u = floor(c3_texture_size * (ray->hits[i + 1].offset + 0.5));
+				double	offset = ray->hits[i + 1].offset;
+				if ((int)(distance * 5) % 2)
+					offset = -offset;
+
+				int	u = floor(c3_texture_size * (offset + 0.5));
 				if (u >= 0 && u < c3_texture_size)
 				{
 					col = c3_sample_texture(
