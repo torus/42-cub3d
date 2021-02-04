@@ -776,7 +776,7 @@ void	c3_draw_walls(t_c3_state *stat)
 						stat->mlx, (ceiling_r << 16) + (ceiling_g << 8) + ceiling_b);
 					break ;
 				}
-				else if (y > (stat->renderer.resolution_y + sprite_height) / 2)
+				else if (y >= (stat->renderer.resolution_y + sprite_height) / 2)
 				{
 					col = mlx_get_color_value(
 						stat->mlx, (floor_r << 16) + (floor_g << 8) + floor_b);
@@ -814,7 +814,7 @@ void	c3_draw_walls(t_c3_state *stat)
 				if (y < (stat->renderer.resolution_y - wall_height) / 2)
 					col = mlx_get_color_value(
 						stat->mlx, (ceiling_r << 16) + (ceiling_g << 8) + ceiling_b);
-				else if (y > (stat->renderer.resolution_y + wall_height) / 2)
+				else if (y >= (stat->renderer.resolution_y + wall_height) / 2)
 					col = mlx_get_color_value(
 						stat->mlx, (floor_r << 16) + (floor_g << 8) + floor_b);
 				else
