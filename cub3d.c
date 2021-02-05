@@ -986,15 +986,15 @@ void	c3_update(t_c3_state *stat)
 int		c3_loop_hook(void *param)
 {
 	t_c3_state	*stat;
-	static int	current_frame;
+	/* static int	current_frame; */
 
 	stat = (t_c3_state*)param;
 
-	if (current_frame++ > 1000)
-	{
-		c3_terminate(stat);
-		exit(0);
-	}
+	/* if (current_frame++ > 1000) */
+	/* { */
+	/* 	c3_terminate(stat); */
+	/* 	exit(0); */
+	/* } */
 
 	c3_update(stat);
 	c3_draw(stat);
