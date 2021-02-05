@@ -780,13 +780,13 @@ void	c3_draw_walls(t_c3_state *stat)
 	unsigned int	col;
 	int				screen_y;
 
-	uint32_t	ceiling_r = 0x88;
+	uint32_t	ceiling_r = 0x30;
 	uint32_t	ceiling_g = 0x88;
 	uint32_t	ceiling_b = 0xff;
 
-	uint32_t	floor_r = 0x00;
-	uint32_t	floor_g = 0x88;
-	uint32_t	floor_b = 0x88;
+	uint32_t	floor_r = 0x50;
+	uint32_t	floor_g = 0xc0;
+	uint32_t	floor_b = 0x50;
 
 	x = 0;
 	while (x < stat->renderer.resolution_x)
