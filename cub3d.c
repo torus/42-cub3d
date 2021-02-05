@@ -598,7 +598,7 @@ int		c3_cast_ray(
 		}
 		else if (hori_index < hori_sprites && vert_index >= vert_sprites)
 		{
-			if (hori_hits[vert_index + 1].distance_sqared >= wall_distance)
+			if (hori_hits[hori_index + 1].distance_sqared >= wall_distance)
 				hori_index++;
 			else
 				out[sprites++ + 1] = hori_hits[hori_index++ + 1];
