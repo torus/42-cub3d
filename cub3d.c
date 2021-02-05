@@ -561,15 +561,22 @@ int		c3_cast_ray(
 	int				hori_index;
 	int				vert_index;
 	int				sprites;
+	double			wall_distance;
 
 	hori_sprites = tan(theta) != 0.0 ? c3_get_horizontal_hit(stat, pos, theta, hori_hits) : 0;
 	vert_sprites = c3_get_vertical_hit(stat, pos, theta, vert_hits);
 
 	if (tan(theta) != 0.0 &&
 		hori_hits[0].distance_sqared < vert_hits[0].distance_sqared)
-		*out = *hori_hits;
+	{
+		*out = hori_hits[0];
+		wall_distance = hori_hits[0].distance_sqared;
+	}
 	else
-		*out = *vert_hits;
+	{
+		*out = vert_hits[0];
+		wall_distance = vert_hits[0].distance_sqared;
+	}
 
 	hori_index = 0;
 	vert_index = 0;
@@ -579,20 +586,33 @@ int		c3_cast_ray(
 	{
 		if (hori_index >= hori_sprites && vert_index < vert_sprites)
 		{
-			out[sprites + 1] = vert_hits[vert_index++ + 1];
+			if (vert_hits[vert_index + 1].distance_sqared >= wall_distance)
+				vert_index++;
+			else
+				out[sprites++ + 1] = vert_hits[vert_index++ + 1];
 		}
 		else if (hori_index < hori_sprites && vert_index >= vert_sprites)
 		{
-			out[sprites + 1] = hori_hits[hori_index++ + 1];
+			if (hori_hits[vert_index + 1].distance_sqared >= wall_distance)
+				hori_index++;
+			else
+				out[sprites++ + 1] = hori_hits[hori_index++ + 1];
 		}
 		else if (hori_hits[hori_index + 1].distance_sqared
 				 < vert_hits[vert_index + 1].distance_sqared)
 		{
-			out[sprites + 1] = hori_hits[hori_index++ + 1];
+			if (hori_hits[vert_index + 1].distance_sqared >= wall_distance)
+				hori_index++;
+			else
+				out[sprites++ + 1] = hori_hits[hori_index++ + 1];
 		}
 		else
-			out[sprites + 1] = vert_hits[vert_index++ + 1];
-		sprites++;
+		{
+			if (vert_hits[vert_index + 1].distance_sqared >= wall_distance)
+				vert_index++;
+			else
+				out[sprites++ + 1] = vert_hits[vert_index++ + 1];
+		}
 	}
 	return (sprites);
 }
