@@ -126,7 +126,7 @@ typedef struct	s_c3_sprite
 
 typedef struct	s_c3_map
 {
-	char		*map;
+	char		**map;
 	int			width;
 	int			height;
 }		t_c3_map;
@@ -137,35 +137,37 @@ typedef struct	s_c3_map
 
 void	c3_map_init(t_c3_map *map)
 {
-	static char	mapdata[] = {
-		1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-		1, 0, 0, 0, 1, 0, 1, 0, 0, 1,
-		1, 1, 1, 0, 1, 0, 0, 0, 0, 1,
-		1, 0, 0, 0, 1, 0, 1, 1, 0, 1,
-		1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-		1, 0, 2, 0, 0, 0, 0, 0, 0, 1,
-		1, 0, 2, 0, 0, 0, 0, 0, 0, 1,
-		1, 0, 2, 0, 0, 0, 0, 0, 0, 1,
-		1, 0, 2, 2, 0, 0, 0, 0, 0, 1,
-		1, 0, 2, 0, 0, 0, 2, 2, 2, 1,
-		1, 0, 2, 0, 0, 0, 0, 0, 0, 1,
-		1, 0, 2, 0, 0, 0, 0, 0, 0, 1,
-		1, 0, 2, 0, 0, 0, 0, 0, 0, 1,
-		1, 0, 2, 0, 0, 0, 0, 0, 0, 1,
-		1, 0, 2, 0, 0, 0, 0, 0, 0, 1,
-		1, 0, 2, 0, 0, 0, 0, 0, 0, 1,
-		1, 0, 0, 0, 1, 1, 1, 0, 0, 1,
-		1, 0, 0, 0, 0, 0, 1, 0, 0, 1,
-		1, 0, 0, 0, 1, 0, 1, 0, 0, 1,
-		1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-	};
+	/* static char	mapdata[] = { */
+	/* 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, */
+	/* 	1, 0, 0, 0, 1, 0, 1, 0, 0, 1, */
+	/* 	1, 1, 1, 0, 1, 0, 0, 0, 0, 1, */
+	/* 	1, 0, 0, 0, 1, 0, 1, 1, 0, 1, */
+	/* 	1, 0, 0, 0, 0, 0, 0, 0, 0, 1, */
+	/* 	1, 0, 2, 0, 0, 0, 0, 0, 0, 1, */
+	/* 	1, 0, 2, 0, 0, 0, 0, 0, 0, 1, */
+	/* 	1, 0, 2, 0, 0, 0, 0, 0, 0, 1, */
+	/* 	1, 0, 2, 2, 0, 0, 0, 0, 0, 1, */
+	/* 	1, 0, 2, 0, 0, 0, 2, 2, 2, 1, */
+	/* 	1, 0, 2, 0, 0, 0, 0, 0, 0, 1, */
+	/* 	1, 0, 2, 0, 0, 0, 0, 0, 0, 1, */
+	/* 	1, 0, 2, 0, 0, 0, 0, 0, 0, 1, */
+	/* 	1, 0, 2, 0, 0, 0, 0, 0, 0, 1, */
+	/* 	1, 0, 2, 0, 0, 0, 0, 0, 0, 1, */
+	/* 	1, 0, 2, 0, 0, 0, 0, 0, 0, 1, */
+	/* 	1, 0, 0, 0, 1, 1, 1, 0, 0, 1, */
+	/* 	1, 0, 0, 0, 0, 0, 1, 0, 0, 1, */
+	/* 	1, 0, 0, 0, 1, 0, 1, 0, 0, 1, */
+	/* 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, */
+	/* }; */
 
-	const int width = 10;
-	const int height = 20;
+	/* const int width = 10; */
+	/* const int height = 20; */
 
-	map->map = mapdata;
-	map->width = width;
-	map->height = height;
+#include "map-bench.xpm"
+
+	map->map = map_bench_xpm + 5;
+	map->width = 128;
+	map->height = 128;
 }
 
 typedef struct	s_c3_texture
@@ -201,9 +203,10 @@ typedef struct	s_c3_state
 
 void	c3_player_init(t_c3_player *player, t_c3_map *map)
 {
-	player->position.x = map->width / 2.;
-	player->position.y = map->height / 2.;
-	player->direction = 0.;
+	(void)map;
+	player->position.x = 1.5;
+	player->position.y = 2.5;
+	player->direction = M_PI_4;
 	player->walk_speed = 0.01;
 	player->rotation_speed = 0.01;
 }
@@ -329,6 +332,7 @@ void	c3_draw_player_on_map(t_c3_state *stat)
 	int x = stat->player.position.x * stat->renderer.minimap_width / stat->map.width;
 	int y = stat->player.position.y * stat->renderer.minimap_height / stat->map.height;
 	double angle = stat->player.direction;
+	int max_index = stat->map.height * stat->imgdata.size_line;
 
 	for (int i = -8; i < 9; i++)
 	{
@@ -343,15 +347,36 @@ void	c3_draw_player_on_map(t_c3_state *stat)
 				int index =
 					(i + y) * stat->imgdata.size_line +
 					(j + x) * stat->imgdata.bits_per_pixel / 8;
-				unsigned int col = mlx_get_color_value(
-					stat->mlx, (0 << 24) + (0 << 16) + (0 << 8));
-				stat->imgdata.data[index + 0] = (col >> 24) & 0xff;
-				stat->imgdata.data[index + 1] = (col >> 16) & 0xff;
-				stat->imgdata.data[index + 2] = (col >> 8) & 0xff;
-				stat->imgdata.data[index + 3] = col & 0xff;
+				if (index >= 0 && index <= max_index)
+				{
+					unsigned int col = mlx_get_color_value(
+						stat->mlx, (0 << 24) + (0 << 16) + (0 << 8));
+					stat->imgdata.data[index + 0] = (col >> 24) & 0xff;
+					stat->imgdata.data[index + 1] = (col >> 16) & 0xff;
+					stat->imgdata.data[index + 2] = (col >> 8) & 0xff;
+					stat->imgdata.data[index + 3] = col & 0xff;
+				}
 			}
 		}
 	}
+}
+
+char	c3_query_map(t_c3_state *stat, int x, int y)
+{
+	char ch = stat->map.map[y][x];
+
+	switch (ch)
+	{
+	case '.':
+		return 1;
+	case '+':
+		return 0;
+	case '@':
+		return 2;
+	default:
+		return 0;
+	}
+	/* return stat->map.map[y * stat->map.width + x]; */
 }
 
 void	c3_draw_map(t_c3_state *stat)
@@ -362,7 +387,8 @@ void	c3_draw_map(t_c3_state *stat)
 		for (int j = 0; j < stat->screen_width && j < stat->renderer.minimap_width; j++)
 		{
 			int x = stat->map.width * j / stat->renderer.minimap_width;
-			int cell = stat->map.map[y * stat->map.width + x];
+			/* int cell = stat->map.map[y * stat->map.width + x]; */
+			int cell = c3_query_map(stat, x, y);
 
 			int r = 127 * (1 - cell) + 128;
 			int g = 127 * (1 - cell) + 128;
@@ -390,11 +416,6 @@ double	c3_distance_squared(t_c3_coord *p1, t_c3_coord *p2)
 	dx = p1->x - p2->x;
 	dy = p1->y - p2->y;
 	return (dx * dx + dy * dy);
-}
-
-char	c3_query_map(t_c3_state *stat, int x, int y)
-{
-	return stat->map.map[y * stat->map.width + x];
 }
 
 int		c3_check_wall(t_c3_state *stat, t_c3_coord *hit)
@@ -965,8 +986,16 @@ void	c3_update(t_c3_state *stat)
 int		c3_loop_hook(void *param)
 {
 	t_c3_state	*stat;
+	static int	current_frame;
 
 	stat = (t_c3_state*)param;
+
+	if (current_frame++ > 1000)
+	{
+		c3_terminate(stat);
+		exit(0);
+	}
+
 	c3_update(stat);
 	c3_draw(stat);
 	return (1);
@@ -1022,7 +1051,7 @@ int		c3_init(t_c3_state *stat, t_c3_texture_cache *tex)
 	stat->screen_height = 720;
 	c3_keystate_init(&stat->keystate);
 	c3_player_init(&stat->player, &stat->map);
-	c3_renderer_init(&stat->renderer, stat->map.width * 16, stat->map.height * 16);
+	c3_renderer_init(&stat->renderer, stat->map.width * 2, stat->map.height * 2);
 
 	stat->mlx = mlx_init();
 	C3_CHECK(stat->mlx, "mlx is NULL.");
