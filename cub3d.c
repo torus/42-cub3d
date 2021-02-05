@@ -468,16 +468,18 @@ int		c3_get_horizontal_hit(
 			hit.y = pos->y + ad.y * c;
 
 			double	offset = sqrt(c3_distance_squared(&hit, &hit_cell));
+			if (offset <= 0.5)
+			{
+				t_c3_coord	ab = {hit_cell.x - pos->x, hit_cell.y - pos->y};
+				double	cross = ab.x * ad.y - ad.x * ab.y;
 
-			t_c3_coord	ab = {hit_cell.x - pos->x, hit_cell.y - pos->y};
-			double	cross = ab.x * ad.y - ad.x * ab.y;
+				if (cross > 0)
+					offset = - offset;
 
-			if (cross > 0)
-				offset = - offset;
-
-			result[hit_sprites + 1].position = hit;
-			result[hit_sprites + 1].offset = offset;
-			hit_sprites ++;
+				result[hit_sprites + 1].position = hit;
+				result[hit_sprites + 1].offset = offset;
+				hit_sprites ++;
+			}
 		}
 
 		index++;
@@ -532,15 +534,18 @@ int		c3_get_vertical_hit(
 			hit.y = pos->y + ad.y * c;
 
 			double	offset = sqrt(c3_distance_squared(&hit, &hit_cell));
-			t_c3_coord	ab = {hit_cell.x - pos->x, hit_cell.y - pos->y};
-			double	cross = ab.x * ad.y - ad.x * ab.y;
+			if (offset <= 0.5)
+			{
+				t_c3_coord	ab = {hit_cell.x - pos->x, hit_cell.y - pos->y};
+				double	cross = ab.x * ad.y - ad.x * ab.y;
 
-			if (cross > 0)
-				offset = - offset;
+				if (cross > 0)
+					offset = - offset;
 
-			result[hit_sprites + 1].position = hit;
-			result[hit_sprites + 1].offset = offset;
-			hit_sprites ++;
+				result[hit_sprites + 1].position = hit;
+				result[hit_sprites + 1].offset = offset;
+				hit_sprites ++;
+			}
 		}
 
 		i++;
