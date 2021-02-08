@@ -35,15 +35,15 @@ typedef struct	s_c3_keystate
 	char	right;
 }		t_c3_keystate;
 
-typedef struct	s_c3_coord
+typedef struct	s_c3_vector
 {
 	double	x;
 	double	y;
-}		t_c3_coord;
+}		t_c3_vector;
 
 typedef struct	s_c3_player
 {
-	t_c3_coord	position;
+	t_c3_vector	position;
 	double		direction;
 	double		walk_speed;
 	double		rotation_speed;
@@ -62,7 +62,7 @@ typedef enum	e_c3_object_type
 typedef struct	s_c3_hit_result
 {
 	t_c3_object_type	type;
-	t_c3_coord			position;
+	t_c3_vector			position;
 	double				offset;
 	double				distance_sqared;
 }		t_c3_hit_result;

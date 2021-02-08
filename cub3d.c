@@ -291,7 +291,7 @@ void	c3_draw_map(t_c3_state *stat)
 	c3_draw_player_on_map(stat);
 }
 
-double	c3_distance_squared(t_c3_coord *p1, t_c3_coord *p2)
+double	c3_distance_squared(t_c3_vector *p1, t_c3_vector *p2)
 {
 	double	dx;
 	double	dy;
@@ -301,7 +301,7 @@ double	c3_distance_squared(t_c3_coord *p1, t_c3_coord *p2)
 	return (dx * dx + dy * dy);
 }
 
-int		c3_check_wall(t_c3_state *stat, t_c3_coord *hit)
+int		c3_check_wall(t_c3_state *stat, t_c3_vector *hit)
 {
 	if (hit->x < 0 || hit->x >= stat->map.width
 		|| hit->y < 0 || hit->y >= stat->map.height)
@@ -311,7 +311,7 @@ int		c3_check_wall(t_c3_state *stat, t_c3_coord *hit)
 	return (0);
 }
 
-int		c3_check_sprite(t_c3_state *stat, t_c3_coord *center, t_c3_coord *pos, t_c3_hit_result *result)
+int		c3_check_sprite(t_c3_state *stat, t_c3_vector *center, t_c3_vector *pos, t_c3_hit_result *result)
 {
 	if (c3_query_map(stat, center->x, center->y) == C3_MAP_SYMBOL_SPRITE)
 	{
@@ -322,18 +322,18 @@ int		c3_check_sprite(t_c3_state *stat, t_c3_coord *center, t_c3_coord *pos, t_c3
 	return (0);
 }
 
-double	c3_dot(t_c3_coord *origin, t_c3_coord *a, t_c3_coord *b)
+double	c3_dot(t_c3_vector *origin, t_c3_vector *a, t_c3_vector *b)
 {
 	return (a->x - origin->x) * (b->x - origin->x)
 		+ (a->y - origin->y) * (b->y - origin->y);
 }
 
 int		c3_get_horizontal_hit(
-	t_c3_state *stat, t_c3_coord *pos,
+	t_c3_state *stat, t_c3_vector *pos,
 	double theta, t_c3_hit_result *result)
 {
-	t_c3_coord	hit;
-	t_c3_coord	hit_cell;
+	t_c3_vector	hit;
+	t_c3_vector	hit_cell;
 	int			facing_north;
 	int			index;
 	int			hit_sprites;
@@ -366,7 +366,7 @@ int		c3_get_horizontal_hit(
 		{
 
 			double dot = c3_dot(pos, &hit_cell, &hit);
-			t_c3_coord	ad = {hit.x - pos->x, hit.y - pos->y};
+			t_c3_vector	ad = {hit.x - pos->x, hit.y - pos->y};
 			double	c = result[hit_sprites + 1].distance_sqared / dot;
 			hit.x = pos->x + ad.x * c;
 			hit.y = pos->y + ad.y * c;
@@ -374,7 +374,7 @@ int		c3_get_horizontal_hit(
 			double	offset = sqrt(c3_distance_squared(&hit, &hit_cell));
 			if (offset <= 0.5)
 			{
-				t_c3_coord	ab = {hit_cell.x - pos->x, hit_cell.y - pos->y};
+				t_c3_vector	ab = {hit_cell.x - pos->x, hit_cell.y - pos->y};
 				double	cross = ab.x * ad.y - ad.x * ab.y;
 
 				if (cross > 0)
@@ -396,11 +396,11 @@ int		c3_get_horizontal_hit(
 }
 
 int		c3_get_vertical_hit(
-	t_c3_state *stat, t_c3_coord *pos,
+	t_c3_state *stat, t_c3_vector *pos,
 	double theta, t_c3_hit_result *result)
 {
-	t_c3_coord	hit;
-	t_c3_coord	hit_cell;
+	t_c3_vector	hit;
+	t_c3_vector	hit_cell;
 	int			facing_east;
 	int			i;
 	int			hit_sprites;
@@ -432,7 +432,7 @@ int		c3_get_vertical_hit(
 			&& c3_check_sprite(stat, &hit_cell, pos, &result[hit_sprites + 1]))
 		{
 			double dot = c3_dot(pos, &hit_cell, &hit);
-			t_c3_coord	ad = {hit.x - pos->x, hit.y - pos->y};
+			t_c3_vector	ad = {hit.x - pos->x, hit.y - pos->y};
 			double	c = result[hit_sprites + 1].distance_sqared / dot;
 			hit.x = pos->x + ad.x * c;
 			hit.y = pos->y + ad.y * c;
@@ -440,7 +440,7 @@ int		c3_get_vertical_hit(
 			double	offset = sqrt(c3_distance_squared(&hit, &hit_cell));
 			if (offset <= 0.5)
 			{
-				t_c3_coord	ab = {hit_cell.x - pos->x, hit_cell.y - pos->y};
+				t_c3_vector	ab = {hit_cell.x - pos->x, hit_cell.y - pos->y};
 				double	cross = ab.x * ad.y - ad.x * ab.y;
 
 				if (cross > 0)
@@ -461,7 +461,7 @@ int		c3_get_vertical_hit(
 }
 
 int		c3_cast_ray(
-	t_c3_state *stat, t_c3_coord *pos, double theta, t_c3_hit_result *out)
+	t_c3_state *stat, t_c3_vector *pos, double theta, t_c3_hit_result *out)
 {
 	t_c3_hit_result	hori_hits[1 + C3_MAX_COLLINEAR_SPRITES];
 	t_c3_hit_result	vert_hits[1 + C3_MAX_COLLINEAR_SPRITES];
