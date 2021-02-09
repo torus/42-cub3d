@@ -112,7 +112,22 @@ int			c3_scene_get_int(t_c3_scene_buffer *buf)
 
 const char*	c3_scene_get_string(t_c3_scene_buffer *buf)
 {
-	return "ahoaho";
+	char	ch;
+	int		index;
+
+	ch = buf->getc(buf->container);
+	while (ch == ' ' || ch == '\t')
+		ch = buf->getc(buf->container);
+
+	index = 0;
+	while (ch > 0 && ch != '\n' && index < C3_STRING_BUFFER_SIZE - 1)
+	{
+		buf->string_value[index++] = ch;
+		ch = buf->getc(buf->container);
+	}
+	buf->ungetc(buf->container);
+	buf->string_value[index] = '\0';
+	return (buf->string_value);
 }
 
 void	c3_strbuf_ungetc(t_c3_scene_container cont)
