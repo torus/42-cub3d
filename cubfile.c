@@ -99,6 +99,9 @@ t_c3_token c3_scene_get_token(t_c3_scene_buffer *buf)
 		return (C3_SCENE_TOKEN_NUM);
 	}
 
+	if (ch == ',')
+		return (C3_SCENE_TOKEN_COMMA);
+
 	return (-1);
 }
 
