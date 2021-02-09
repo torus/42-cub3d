@@ -32,6 +32,12 @@ typedef enum	e_c3_token
 	C3_SCENE_TOKEN_POSSIBLY_MAP,
 }		t_c3_token;
 
+typedef enum	e_c3_parse_result
+{
+	C3_PARSE_FAIL,
+	C3_PARSE_SUCCESS,
+}		t_c3_parse_result;
+
 typedef struct	s_c3_strbuf
 {
 	const char	*str;
@@ -61,9 +67,13 @@ typedef struct	s_c3_scene_buffer
 	void					(*ungetc)(t_c3_scene_container);
 }		t_c3_scene_buffer;
 
-int		c3_scene_parse_resolution_str(t_c3_scene *scene, const char *str);
-int		c3_scene_parse_no_str(t_c3_scene *scene, const char *str);
-int		c3_scene_parse(t_c3_scene *scene, const char *path);
+t_c3_parse_result	c3_scene_parse_resolution(t_c3_scene *scene, t_c3_scene_buffer *buf);
+t_c3_parse_result	c3_scene_parse_texture(
+	t_c3_scene *scene, t_c3_object_type typ, t_c3_scene_buffer *buf);
+t_c3_parse_result	c3_scene_parse_color(
+	t_c3_scene *scene, t_c3_scene_buffer *buf);
+
+t_c3_parse_result	c3_scene_parse(t_c3_scene *scene, const char *path);
 void	c3_scene_cleanup(t_c3_scene *scene);
 
 

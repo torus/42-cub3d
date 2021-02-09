@@ -74,6 +74,27 @@ int main()
 	CHECK(c3_scene_get_token(&buf) == C3_SCENE_TOKEN_EA);
 	CHECK(!strcmp(c3_scene_get_string(&buf), "./path_to_the_east_texture"));
 
+	set_strbuf(
+		&buf, &strbuf,
+		"R 1920 1080\n"
+		"F 220,100,0\n"
+		"EA ./path_to_the_east_texture");
+	CHECK(c3_scene_get_token(&buf) == C3_SCENE_TOKEN_R);
+	CHECK(c3_scene_get_token(&buf) == C3_SCENE_TOKEN_NUM);
+	CHECK(c3_scene_get_int(&buf) == 1920);
+	CHECK(c3_scene_get_token(&buf) == C3_SCENE_TOKEN_NUM);
+	CHECK(c3_scene_get_int(&buf) == 1080);
+	CHECK(c3_scene_get_token(&buf) == C3_SCENE_TOKEN_F);
+	CHECK(c3_scene_get_token(&buf) == C3_SCENE_TOKEN_NUM);
+	CHECK(c3_scene_get_int(&buf) == 220);
+	CHECK(c3_scene_get_token(&buf) == C3_SCENE_TOKEN_COMMA);
+	CHECK(c3_scene_get_token(&buf) == C3_SCENE_TOKEN_NUM);
+	CHECK(c3_scene_get_int(&buf) == 100);
+	CHECK(c3_scene_get_token(&buf) == C3_SCENE_TOKEN_COMMA);
+	CHECK(c3_scene_get_token(&buf) == C3_SCENE_TOKEN_NUM);
+	CHECK(c3_scene_get_int(&buf) == 0);
+	CHECK(c3_scene_get_token(&buf) == C3_SCENE_TOKEN_EA);
+	CHECK(!strcmp(c3_scene_get_string(&buf), "./path_to_the_east_texture"));
 
 
 
@@ -81,19 +102,27 @@ int main()
 
 
 
-
-	CHECK(c3_scene_parse_resolution_str(&scene, "R 1920 1080"));
+	set_strbuf(&buf, &strbuf, " 1920 1080");
+	buf.is_beginning_of_line = 0;
+	CHECK(c3_scene_parse_resolution(&scene, &buf) == C3_PARSE_SUCCESS);
 	CHECK(scene.resolution.x == 1920);
 	CHECK(scene.resolution.y == 1080);
 
-	CHECK(c3_scene_parse_resolution_str(&scene, "R 192 108"));
+	set_strbuf(&buf, &strbuf, " 192 108");
+	buf.is_beginning_of_line = 0;
+	CHECK(c3_scene_parse_resolution(&scene, &buf) == C3_PARSE_SUCCESS);
 	CHECK(scene.resolution.x == 192);
 	CHECK(scene.resolution.y == 108);
 
-	CHECK(c3_scene_parse_resolution_str(&scene, "R 192") < 0);
+	set_strbuf(&buf, &strbuf, " 192");
+	buf.is_beginning_of_line = 0;
+	CHECK(c3_scene_parse_resolution(&scene, &buf) == C3_PARSE_FAIL);
 
-	c3_scene_parse_no_str(&scene, "NO ./path_to_the_north_texture");
-
+	set_strbuf(&buf, &strbuf, " ./path_to_the_east_texture");
+	buf.is_beginning_of_line = 0;
+	c3_scene_parse_texture(&scene, C3_OBJTYPE_WALL_N, &buf);
+	CHECK(!strcmp(scene.tex_path[C3_OBJTYPE_WALL_N],
+				  "./path_to_the_north_texture"));
 
 	c3_scene_parse(&scene, "sample.cub");
 

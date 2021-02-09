@@ -154,43 +154,31 @@ int		c3_strbuf_getc(t_c3_scene_container cont)
 	return (-1);
 }
 
-int		c3_scene_parse_resolution(t_c3_scene *scene, t_c3_scene_buffer *buf)
+t_c3_parse_result	c3_scene_parse_resolution(t_c3_scene *scene, t_c3_scene_buffer *buf)
 {
-	return (-1);
+	int			width;
+	int			height;
+
+	if (c3_scene_get_token(buf) != C3_SCENE_TOKEN_NUM)
+		return (C3_PARSE_FAIL);
+	width = c3_scene_get_int(buf);
+
+	if (c3_scene_get_token(buf) != C3_SCENE_TOKEN_NUM)
+		return (C3_PARSE_FAIL);
+	height = c3_scene_get_int(buf);
+
+	scene->resolution.x = width;
+	scene->resolution.y = height;
+	return (C3_PARSE_SUCCESS);
 }
 
-int		c3_scene_parse_resolution_str(t_c3_scene *scene, const char *str)
-{
-/* 	(void)scene; */
-/* 	t_c3_scene_buffer	buf; */
-/* 	t_c3_strbuf			strbuf; */
-
-/* 	strbuf.str = str; */
-/* 	strbuf.index = 0; */
-/* 	buf.getc = c3_strbuf_getc; */
-/* 	buf.container.strbuf = &strbuf; */
-/* 	buf.is_beginning_of_line = 1; */
-
-/* 	int	id; */
-
-/* 	id = c3_scene_parse_identifier(&buf); */
-/* 	if (id == C3_SCENE_PARSE_ERROR) */
-/* 		return (id); */
-/* 	if (id != C3_SCENE_ID_R) */
-/* 	{ */
-
-/* 		return (C3_SCENE_PARSE_FAIL); */
-/* 	} */
-
-	return (0);
-}
-
-int		c3_scene_parse_no_str(t_c3_scene *scene, const char *str)
+t_c3_parse_result	c3_scene_parse_texture(
+	t_c3_scene *scene, t_c3_object_type typ, t_c3_scene_buffer *buf)
 {
 	return (0);
 }
 
-int		c3_scene_parse(t_c3_scene *scene, const char *path)
+t_c3_parse_result	c3_scene_parse(t_c3_scene *scene, const char *path)
 {
 	return (0);
 }

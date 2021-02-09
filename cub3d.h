@@ -136,11 +136,12 @@ typedef struct	s_c3_state
 typedef struct	s_c3_scene
 {
 	t_c3_vector	resolution;
-	const char	*tex_path_north;
-	const char	*tex_path_south;
-	const char	*tex_path_west;
-	const char	*tex_path_east;
-	const char	*tex_path_sprite;
+	const char		*tex_path[C3_OBJTYPE_NUM];
+	/* const char	*tex_path_north; */
+	/* const char	*tex_path_south; */
+	/* const char	*tex_path_west; */
+	/* const char	*tex_path_east; */
+	/* const char	*tex_path_sprite; */
 	unsigned int	color_floor;
 	unsigned int	color_ceiling;
 
