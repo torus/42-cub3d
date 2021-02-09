@@ -13,6 +13,23 @@
 #include "cub3d.h"
 #include "cubfile.h"
 
+int	c3_scene_read_int(t_c3_scene_buffer *buf)
+{
+	int		result;
+	char	ch;
+
+	ch = buf->getc(buf->container);
+
+	result = 0;
+	while (ch >= '0' && ch <= '9')
+	{
+		result = result * 10 + (ch - '0');
+		ch = buf->getc(buf->container);
+	}
+	buf->ungetc(buf->container);
+	return (result);
+}
+
 t_c3_token c3_scene_get_token(t_c3_scene_buffer *buf)
 {
 	int	ch;
@@ -77,11 +94,8 @@ t_c3_token c3_scene_get_token(t_c3_scene_buffer *buf)
 
 	if (ch >= '0' && ch <= '9')
 	{
-		while (ch >= '0' && ch <= '9')
-		{
-			ch = buf->getc(buf->container);
-		}
 		buf->ungetc(buf->container);
+		buf->int_value = c3_scene_read_int(buf);
 		return (C3_SCENE_TOKEN_NUM);
 	}
 
@@ -90,7 +104,7 @@ t_c3_token c3_scene_get_token(t_c3_scene_buffer *buf)
 
 int			c3_scene_get_int(t_c3_scene_buffer *buf)
 {
-	return (1234);
+	return (buf->int_value);
 }
 
 const char*	c3_scene_get_string(t_c3_scene_buffer *buf)
