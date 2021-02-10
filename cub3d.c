@@ -6,7 +6,7 @@
 /*   By: thisai <thisai@student.42tokyo.jp>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/01/13 16:23:13 by thisai            #+#    #+#             */
-/*   Updated: 2021/01/30 19:44:28 by thisai           ###   ########.fr       */
+/*   Updated: 2021/02/10 19:20:46 by thisai           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -572,7 +572,7 @@ void		c3_texture_cache_load(
 	stat->texture_cache->cache[type].data = mlx_get_data_addr(
 		image, &tex->bits_per_pixel, &tex->size_line, &tex->endian);
 
-	printf("texture loaded: %s\n", path);
+	c3_log("texture loaded: %s\n", path);
 }
 
 uint32_t	c3_sample_texture(
