@@ -67,6 +67,20 @@ typedef struct	s_c3_scene_buffer
 	void					(*ungetc)(t_c3_scene_container);
 }		t_c3_scene_buffer;
 
+
+typedef struct	s_c3_scene
+{
+	t_c3_vector	resolution;
+	char		*tex_path[C3_OBJTYPE_NUM];
+	unsigned int	color_floor;
+	unsigned int	color_ceiling;
+
+	int			map_width;
+	int			map_height;
+	const char	*map;
+}		t_c3_scene;
+
+
 t_c3_parse_result	c3_scene_parse_resolution(t_c3_scene *scene, t_c3_scene_buffer *buf);
 t_c3_parse_result	c3_scene_parse_texture(
 	t_c3_scene *scene, t_c3_object_type typ, t_c3_scene_buffer *buf);
@@ -74,6 +88,8 @@ t_c3_parse_result	c3_scene_parse_color(
 	t_c3_scene *scene, t_c3_scene_buffer *buf);
 
 t_c3_parse_result	c3_scene_parse(t_c3_scene *scene, const char *path);
+
+void	c3_scene_init(t_c3_scene *scene);
 void	c3_scene_cleanup(t_c3_scene *scene);
 
 

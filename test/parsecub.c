@@ -47,7 +47,6 @@ void	set_strbuf(t_c3_scene_buffer *buf, t_c3_strbuf *strbuf, const char *str)
 
 int main()
 {
-	t_c3_scene	scene;
 	t_c3_scene_buffer	buf;
 	t_c3_strbuf			strbuf;
 
@@ -100,7 +99,8 @@ int main()
 
 
 
-
+	t_c3_scene	scene;
+	c3_scene_init(&scene);
 
 	set_strbuf(&buf, &strbuf, " 1920 1080");
 	buf.is_beginning_of_line = 0;
@@ -118,7 +118,7 @@ int main()
 	buf.is_beginning_of_line = 0;
 	CHECK(c3_scene_parse_resolution(&scene, &buf) == C3_PARSE_FAIL);
 
-	set_strbuf(&buf, &strbuf, " ./path_to_the_east_texture");
+	set_strbuf(&buf, &strbuf, " ./path_to_the_north_texture");
 	buf.is_beginning_of_line = 0;
 	c3_scene_parse_texture(&scene, C3_OBJTYPE_WALL_N, &buf);
 	CHECK(!strcmp(scene.tex_path[C3_OBJTYPE_WALL_N],

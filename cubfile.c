@@ -10,6 +10,9 @@
 /*                                                                            */
 /* ************************************************************************** */
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <libft.h>
 #include "cub3d.h"
 #include "cubfile.h"
 
@@ -176,7 +179,16 @@ t_c3_parse_result	c3_scene_parse_resolution(t_c3_scene *scene, t_c3_scene_buffer
 t_c3_parse_result	c3_scene_parse_texture(
 	t_c3_scene *scene, t_c3_object_type typ, t_c3_scene_buffer *buf)
 {
-	return (0);
+	const char	*path;
+
+	path = c3_scene_get_string(buf);
+	scene->tex_path[typ] = ft_strdup(path);
+	if (!scene->tex_path[typ])
+	{
+		perror("ft_strdup failed");
+		return (C3_PARSE_FAIL);
+	}
+	return (C3_PARSE_SUCCESS);
 }
 
 t_c3_parse_result	c3_scene_parse(t_c3_scene *scene, const char *path)
@@ -184,7 +196,24 @@ t_c3_parse_result	c3_scene_parse(t_c3_scene *scene, const char *path)
 	return (0);
 }
 
+void	c3_scene_init(t_c3_scene *scene)
+{
+	int	i;
+
+	i = 0;
+	while (i < C3_OBJTYPE_NUM)
+		scene->tex_path[i++] = NULL;
+}
+
 void	c3_scene_cleanup(t_c3_scene *scene)
 {
-	return ;
+	int	i;
+
+	i = 0;
+	while (i < C3_OBJTYPE_NUM)
+	{
+		free(scene->tex_path[i]);
+		scene->tex_path[i] = NULL;
+		i++;
+	}
 }
