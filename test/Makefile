@@ -4,9 +4,10 @@ OBJS = $(SRCS:%.c=%.o)
 
 MLX_INC = ../../minilibx-linux
 MLX_LIB = ../../minilibx-linux
+LIBFT_DIR = ../../libft/libft
 
-CFLAGS = -g -fsanitize=address -I $(MLX_INC) -Wall -Wextra -Wno-unused-parameter
-LDFLAGS = -fsanitize=address -L $(MLX_LIB) -lmlx -lXext -lX11 -lm -lbsd
+CFLAGS = -g -fsanitize=address -I $(MLX_INC) -I $(LIBFT_DIR) -Wall -Wextra -Wno-unused-parameter
+LDFLAGS = -fsanitize=address -L $(MLX_LIB) -lmlx -lXext -lX11 -lm -lbsd -L $(LIBFT_DIR) -lft
 
 do-test: $(NAME)
 	./$(NAME)
