@@ -26,7 +26,8 @@ int	c3_scene_read_int(t_c3_scene_buffer *buf)
 		result = result * 10 + (ch - '0');
 		ch = buf->getc(buf->container);
 	}
-	buf->ungetc(buf->container);
+	if (ch >= 0)
+		buf->ungetc(buf->container);
 	return (result);
 }
 
