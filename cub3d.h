@@ -150,4 +150,6 @@ typedef struct	s_c3_scene
 	const char	*map;
 }		t_c3_scene;
 
+void	c3_log(const char *format, ...);
+
 #endif

@@ -1,5 +1,5 @@
 NAME = test
-SRCS = $(wildcard *.c) ../cubfile.c
+SRCS = $(wildcard *.c) ../cubfile.c ../utils.c
 OBJS = $(SRCS:%.c=%.o)
 
 MLX_INC = ../../minilibx-linux

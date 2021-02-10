@@ -13,7 +13,7 @@
 MLX_INC = ../minilibx-linux
 MLX_LIB = ../minilibx-linux
 
-SRCS = cub3d.c
+SRCS = cub3d.c utils.c
 OBJS = $(SRCS:%.c=%.o)
 
 NAME = cub3d

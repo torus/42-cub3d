@@ -10,10 +10,6 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <assert.h>
-#include <stdio.h>
-
-#include <stdarg.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <math.h>
@@ -113,14 +109,6 @@ void	c3_keystate_init(t_c3_keystate *keystat)
 	keystat->d = 0;
 	keystat->left = 0;
 	keystat->right = 0;
-}
-
-void	c3_log(const char *format, ...)
-{
-	va_list	args;
-	va_start(args, format);
-	vprintf(format, args);
-	va_end(args);
 }
 
 void	c3_check(int64_t val, const char *message)
