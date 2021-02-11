@@ -95,7 +95,10 @@ int main()
 	CHECK(c3_scene_get_token(&buf) == C3_SCENE_TOKEN_EA);
 	CHECK(!strcmp(c3_scene_get_string(&buf), "./path_to_the_east_texture"));
 
-
+	set_strbuf(&buf, &strbuf, "        1000000000110000000000001");
+	CHECK(c3_scene_get_token(&buf) == C3_SCENE_TOKEN_POSSIBLY_MAP);
+	const char *str = c3_scene_get_rest_of_line(&buf);
+	CHECK(!strcmp(str, "        1000000000110000000000001"));
 
 
 
