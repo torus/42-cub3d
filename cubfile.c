@@ -192,7 +192,7 @@ t_c3_parse_result	c3_scene_parse_texture(
 }
 
 static
-t_c3_parse_result	parse_color(t_c3_scene_buffer *buf, unsigned int *result)
+t_c3_parse_result	parse_color(unsigned int *result, t_c3_scene_buffer *buf)
 {
 	unsigned int	r;
 	unsigned int	g;
@@ -220,13 +220,13 @@ t_c3_parse_result	parse_color(t_c3_scene_buffer *buf, unsigned int *result)
 t_c3_parse_result	c3_scene_parse_floor(
 	t_c3_scene *scene, t_c3_scene_buffer *buf)
 {
-	return (parse_color(buf, &scene->color_floor));
+	return (parse_color(&scene->color_floor, buf));
 }
 
 t_c3_parse_result	c3_scene_parse_ceiling(
 	t_c3_scene *scene, t_c3_scene_buffer *buf)
 {
-	return (parse_color(buf, &scene->color_ceiling));
+	return (parse_color(&scene->color_ceiling, buf));
 }
 
 t_c3_parse_result	c3_scene_parse(t_c3_scene *scene, const char *path)
