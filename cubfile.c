@@ -92,6 +92,8 @@ t_c3_token c3_scene_get_token(t_c3_scene_buffer *buf)
 			return (C3_SCENE_TOKEN_C);
 		if (ch >= 0)
 			buf->ungetc(buf->container);
+		else
+			return (C3_SCENE_TOKEN_EOF);
 		return (C3_SCENE_TOKEN_POSSIBLY_MAP);
 	}
 
@@ -108,7 +110,10 @@ t_c3_token c3_scene_get_token(t_c3_scene_buffer *buf)
 	if (ch == ',')
 		return (C3_SCENE_TOKEN_COMMA);
 
-	return (-1);
+	if (ch < 0)
+		return (C3_SCENE_TOKEN_EOF);
+
+	return (C3_SCENE_TOKEN_UNKNOWN);
 }
 
 int			c3_scene_get_int(t_c3_scene_buffer *buf)
@@ -148,7 +153,8 @@ const char*	c3_scene_get_rest_of_line(t_c3_scene_buffer *buf)
 		buf->string_value[index++] = ch;
 		ch = buf->getc(buf->container);
 	}
-	buf->ungetc(buf->container);
+	if (ch >= 0)
+		buf->ungetc(buf->container);
 	buf->string_value[index] = '\0';
 	return (buf->string_value);
 }
@@ -160,6 +166,8 @@ void	c3_strbuf_ungetc(t_c3_scene_container cont)
 	buf = cont.strbuf;
 	if (buf->index > 0)
 		buf->index--;
+
+	/* c3_log("ungetc: index -> %d\n", buf->index); */
 }
 
 int		c3_strbuf_getc(t_c3_scene_container cont)
@@ -172,8 +180,11 @@ int		c3_strbuf_getc(t_c3_scene_container cont)
 	if (ch)
 	{
 		buf->index++;
+
+		/* c3_log("getc: index -> %d: %c\n", buf->index, ch); */
 		return (ch);
 	}
+	/* c3_log("getc: index -> %d: EOF\n", buf->index); */
 	return (-1);
 }
 

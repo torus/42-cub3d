@@ -30,6 +30,7 @@ typedef enum	e_c3_token
 	C3_SCENE_TOKEN_NUM,
 	C3_SCENE_TOKEN_COMMA,
 	C3_SCENE_TOKEN_POSSIBLY_MAP,
+	C3_SCENE_TOKEN_EOF,
 }		t_c3_token;
 
 typedef enum	e_c3_parse_result
