@@ -84,7 +84,9 @@ typedef struct	s_c3_scene
 t_c3_parse_result	c3_scene_parse_resolution(t_c3_scene *scene, t_c3_scene_buffer *buf);
 t_c3_parse_result	c3_scene_parse_texture(
 	t_c3_scene *scene, t_c3_object_type typ, t_c3_scene_buffer *buf);
-t_c3_parse_result	c3_scene_parse_color(
+t_c3_parse_result	c3_scene_parse_floor(
+	t_c3_scene *scene, t_c3_scene_buffer *buf);
+t_c3_parse_result	c3_scene_parse_ceiling(
 	t_c3_scene *scene, t_c3_scene_buffer *buf);
 
 t_c3_parse_result	c3_scene_parse(t_c3_scene *scene, const char *path);

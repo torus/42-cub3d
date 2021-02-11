@@ -191,6 +191,44 @@ t_c3_parse_result	c3_scene_parse_texture(
 	return (C3_PARSE_SUCCESS);
 }
 
+static
+t_c3_parse_result	parse_color(t_c3_scene_buffer *buf, unsigned int *result)
+{
+	unsigned int	r;
+	unsigned int	g;
+	unsigned int	b;
+
+	if (c3_scene_get_token(buf) == C3_SCENE_TOKEN_NUM)
+	{
+		r = c3_scene_get_int(buf);
+		if (c3_scene_get_token(buf) == C3_SCENE_TOKEN_COMMA
+			&& c3_scene_get_token(buf) == C3_SCENE_TOKEN_NUM)
+		{
+			g = c3_scene_get_int(buf);
+			if (c3_scene_get_token(buf) == C3_SCENE_TOKEN_COMMA
+				&& c3_scene_get_token(buf) == C3_SCENE_TOKEN_NUM)
+			{
+				b = c3_scene_get_int(buf);
+				*result = ((r & 0xff) << 16) + ((g & 0xff) << 8) + (b & 0xff);
+				return (C3_PARSE_SUCCESS);
+			}
+		}
+	}
+	return (C3_PARSE_FAIL);
+}
+
+t_c3_parse_result	c3_scene_parse_floor(
+	t_c3_scene *scene, t_c3_scene_buffer *buf)
+{
+	return (parse_color(buf, &scene->color_floor));
+}
+
+t_c3_parse_result	c3_scene_parse_ceiling(
+	t_c3_scene *scene, t_c3_scene_buffer *buf)
+{
+	return (parse_color(buf, &scene->color_ceiling));
+}
+
 t_c3_parse_result	c3_scene_parse(t_c3_scene *scene, const char *path)
 {
 	return (0);

@@ -124,6 +124,17 @@ int main()
 	CHECK(!strcmp(scene.tex_path[C3_OBJTYPE_WALL_N],
 				  "./path_to_the_north_texture"));
 
+	set_strbuf(&buf, &strbuf, " 220,100,0");
+	buf.is_beginning_of_line = 0;
+	CHECK(c3_scene_parse_floor(&scene, &buf) == C3_PARSE_SUCCESS);
+	CHECK(scene.color_floor == 0x00dc6400);
+
+	set_strbuf(&buf, &strbuf, " 100,200,300");
+	buf.is_beginning_of_line = 0;
+	CHECK(c3_scene_parse_ceiling(&scene, &buf) == C3_PARSE_SUCCESS);
+	CHECK(scene.color_ceiling == 0x0064c82c);
+
+
 	c3_scene_parse(&scene, "sample.cub");
 
 	c3_scene_cleanup(&scene);
