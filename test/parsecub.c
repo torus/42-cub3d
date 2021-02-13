@@ -6,7 +6,7 @@
 /*   By: thisai <thisai@student.42tokyo.jp>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/02/08 14:21:11 by thisai            #+#    #+#             */
-/*   Updated: 2021/02/13 13:06:28 by thisai           ###   ########.fr       */
+/*   Updated: 2021/02/13 19:48:33 by thisai           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -230,15 +230,8 @@ int main()
 		t_c3_scene_buffer	buf;
 		t_c3_file			file;
 
-		file.fd = open("sample.cub", O_RDONLY);
-		if (file.fd < 0)
-			perror("open failed");
-		file.is_ungotten = 0;
-
-		buf.getc = c3_file_getc;
-		buf.ungetc = c3_file_ungetc;
 		buf.container.file = &file;
-		buf.is_beginning_of_line = 1;
+		CHECK(c3_scene_buffer_init_with_file(&buf, "sample.cub"));
 
 		t_c3_scene	scene;
 		c3_scene_init(&scene);

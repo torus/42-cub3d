@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <fcntl.h>
 
 #include <libft.h>
 #include "cub3d.h"
@@ -465,4 +466,22 @@ void	c3_scene_cleanup(t_c3_scene *scene)
 		i++;
 	}
 	free(scene->map);
+}
+
+int		c3_scene_buffer_init_with_file(t_c3_scene_buffer *buf, const char *path)
+{
+	int	fd;
+
+	fd = open(path, O_RDONLY);
+	if (fd < 0)
+	{
+		perror("open failed");
+		return (0);
+	}
+	buf->container.file->fd = fd;
+	buf->container.file->is_ungotten = 0;
+	buf->getc = c3_file_getc;
+	buf->ungetc = c3_file_ungetc;
+	buf->is_beginning_of_line = 1;
+	return (1);
 }

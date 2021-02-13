@@ -111,5 +111,7 @@ t_c3_token	c3_scene_get_token(t_c3_scene_buffer *buf);
 int			c3_scene_get_int(t_c3_scene_buffer *buf);
 const char*	c3_scene_get_string(t_c3_scene_buffer *buf);
 const char*	c3_scene_get_rest_of_line(t_c3_scene_buffer *buf);
+int			c3_scene_buffer_init_with_file(
+	t_c3_scene_buffer *buf, const char *path);
 
 #endif

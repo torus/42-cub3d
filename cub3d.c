@@ -22,6 +22,7 @@
 #include <mlx.h>
 
 #include "cub3d.h"
+#include "cubfile.h"
 
 
 const int	c3_texture_size = 32;
@@ -45,39 +46,11 @@ void	c3_renderer_cleanup(t_c3_renderer *rend)
 	free(rend->rays);
 }
 
-void	c3_map_init(t_c3_map *map)
+void	c3_map_init(t_c3_map *map, t_c3_scene *scene)
 {
-	/* static char	mapdata[] = { */
-	/* 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, */
-	/* 	1, 0, 0, 0, 1, 0, 1, 0, 0, 1, */
-	/* 	1, 1, 1, 0, 1, 0, 0, 0, 0, 1, */
-	/* 	1, 0, 0, 0, 1, 0, 1, 1, 0, 1, */
-	/* 	1, 0, 0, 0, 0, 0, 0, 0, 0, 1, */
-	/* 	1, 0, 2, 0, 0, 0, 0, 0, 0, 1, */
-	/* 	1, 0, 2, 0, 0, 0, 0, 0, 0, 1, */
-	/* 	1, 0, 2, 0, 0, 0, 0, 0, 0, 1, */
-	/* 	1, 0, 2, 2, 0, 0, 0, 0, 0, 1, */
-	/* 	1, 0, 2, 0, 0, 0, 2, 2, 2, 1, */
-	/* 	1, 0, 2, 0, 0, 0, 0, 0, 0, 1, */
-	/* 	1, 0, 2, 0, 0, 0, 0, 0, 0, 1, */
-	/* 	1, 0, 2, 0, 0, 0, 0, 0, 0, 1, */
-	/* 	1, 0, 2, 0, 0, 0, 0, 0, 0, 1, */
-	/* 	1, 0, 2, 0, 0, 0, 0, 0, 0, 1, */
-	/* 	1, 0, 2, 0, 0, 0, 0, 0, 0, 1, */
-	/* 	1, 0, 0, 0, 1, 1, 1, 0, 0, 1, */
-	/* 	1, 0, 0, 0, 0, 0, 1, 0, 0, 1, */
-	/* 	1, 0, 0, 0, 1, 0, 1, 0, 0, 1, */
-	/* 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, */
-	/* }; */
-
-	/* const int width = 10; */
-	/* const int height = 20; */
-
-#include "map-bench.xpm"
-
-	map->map = map_bench_xpm + 5;
-	map->width = 128;
-	map->height = 128;
+	map->map = scene->map;
+	map->width = scene->map_width;
+	map->height = scene->map_height;
 }
 
 void	c3_player_init(t_c3_player *player, t_c3_map *map)
@@ -234,15 +207,15 @@ void	c3_draw_player_on_map(t_c3_state *stat)
 
 char	c3_query_map(t_c3_state *stat, int x, int y)
 {
-	char ch = stat->map.map[y][x];
+	char ch = stat->map.map[y * stat->map.width + x];
 
 	switch (ch)
 	{
-	case '.':
+	case '1':
 		return 1;
-	case '+':
+	case '0':
 		return 0;
-	case '@':
+	case '2':
 		return 2;
 	default:
 		return 0;
@@ -912,11 +885,11 @@ int		c3_focusout_hook(void *param)
 	return (1);
 }
 
-int		c3_init(t_c3_state *stat, t_c3_texture_cache *tex)
+int		c3_init(t_c3_state *stat, t_c3_texture_cache *tex, t_c3_scene *scene)
 {
 	int			tmp;
 
-	c3_map_init(&stat->map);
+	c3_map_init(&stat->map, scene);
 
 	stat->screen_width = 1280;
 	stat->screen_height = 720;
@@ -977,12 +950,45 @@ int		c3_init(t_c3_state *stat, t_c3_texture_cache *tex)
 	return (1);
 }
 
-int		main(void)
+int		main(int argc, char **argv)
 {
 	t_c3_state			stat;
 	t_c3_texture_cache	tex;
+	t_c3_scene			scene;
 
-	c3_init(&stat, &tex);
+	if (argc < 2 || argc > 3)
+	{
+		c3_log("Error\nusage: cub3d scene.cub [--save]\n");
+		return (1);
+	}
+
+	t_c3_scene_buffer	buf;
+	int					result;
+	t_c3_file			file;
+
+	buf.container.file = &file;
+	result = c3_scene_buffer_init_with_file(&buf, argv[1]);
+	if (!result)
+	{
+		c3_log("Error\n");
+		return (1);
+	}
+
+	c3_scene_init(&scene);
+	if (c3_scene_parse(&scene, &buf) != C3_PARSE_SUCCESS)
+	{
+		c3_log("Error\n");
+		return (1);
+	}
+
+	c3_init(&stat, &tex, &scene);
+
+	if (argc == 3)
+	{
+
+		return (0);
+	}
 
 	mlx_loop(stat.mlx);
+	return (0);
 }

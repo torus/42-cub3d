@@ -14,7 +14,7 @@ MLX_INC = ../minilibx-linux
 MLX_LIB = ../minilibx-linux
 LIBFT_DIR = ../libft/libft
 
-SRCS = cub3d.c utils.c
+SRCS = cub3d.c utils.c cubfile.c
 OBJS = $(SRCS:%.c=%.o)
 
 NAME = cub3d
@@ -22,11 +22,11 @@ NAME = cub3d
 CFLAGS = -g -fsanitize=address -I $(MLX_INC) -I $(LIBFT_DIR) -Wall -Wextra -Werror
 LDFLAGS = -fsanitize=address -L $(MLX_LIB) -lmlx -lXext -lX11 -lm -lbsd -L $(LIBFT_DIR) -lft
 
-run-test:
-	make -C test/
+# run-test:
+# 	make -C test/
 
 run: $(NAME)
-	./$(NAME)
+	./$(NAME) test/sample.cub
 
 $(NAME)	:$(OBJS)
 	$(CC) -o $(NAME) $^ $(LDFLAGS)
