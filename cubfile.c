@@ -49,7 +49,7 @@ t_c3_token c3_scene_get_token(t_c3_scene_buffer *buf)
 	{
 		buf->is_beginning_of_line = 0;
 		if (ch < 0)
-			return (C3_SCENE_TOKEN_UNKNOWN);
+			return (C3_SCENE_TOKEN_EOF);
 		if (ch == 'R')
 			return (C3_SCENE_TOKEN_R);
 		if (ch == 'N')
@@ -259,9 +259,147 @@ t_c3_parse_result	c3_scene_parse_ceiling(
 	return (parse_color(&scene->color_ceiling, buf));
 }
 
-t_c3_parse_result	c3_scene_parse(t_c3_scene *scene, const char *path)
+
+t_c3_parse_result	c3_scene_parse_map(t_c3_scene *scene, t_c3_scene_buffer *buf)
 {
-	return (0);
+	t_c3_token		tok;
+	t_c3_map_rows	*rows;
+	t_c3_map_rows	*new_row;
+	const char		*str;
+	int				num_rows;
+	int				max_width;
+	int				width;
+
+	/* tok = c3_scene_get_token(buf); */
+	tok = C3_SCENE_TOKEN_POSSIBLY_MAP;
+
+	rows = NULL;
+	num_rows = 0;
+	max_width = 0;
+	/* c3_log("token: %d\n", tok); */
+	while (tok == C3_SCENE_TOKEN_POSSIBLY_MAP)
+	{
+		num_rows++;
+		str = c3_scene_get_rest_of_line(buf);
+		new_row = malloc(sizeof(t_c3_map_rows));
+		if (!new_row)
+		{
+			// error report
+			return (C3_PARSE_FAIL);
+		}
+		new_row->next = rows;
+		new_row->row = ft_strdup(str);
+		width = ft_strlen(new_row->row);
+		if (max_width < width)
+			max_width = width;
+
+		rows = new_row;
+		tok = c3_scene_get_token(buf);
+		/* c3_log("token: %d\n", tok); */
+	}
+	if (tok != C3_SCENE_TOKEN_EOF)
+	{
+		// report error
+		return (C3_PARSE_FAIL);
+	}
+
+	scene->map_width = max_width;
+	scene->map_height = num_rows;
+	scene->map = malloc(max_width * num_rows);
+	if (!scene->map)
+	{
+		// report error
+		return (C3_PARSE_FAIL);
+	}
+	while (num_rows > 0)
+	{
+		/* ft_strlcpy(&scene->map[(num_rows - 1) * max_width], rows->row, max_width + 1); */
+		width = ft_strlen(rows->row);
+		ft_memcpy(&scene->map[(num_rows - 1) * max_width], rows->row, width);
+
+		free(rows->row);
+		new_row = rows->next;
+		free(rows);
+		rows = new_row;
+		num_rows--;
+	}
+
+	return (C3_PARSE_SUCCESS);
+}
+
+t_c3_parse_result	c3_scene_parse(t_c3_scene *scene, t_c3_scene_buffer *buf)
+{
+	int					is_specified[C3_SCENE_TOKEN_NUM];
+	unsigned int		i;
+	t_c3_token			tok;
+	t_c3_parse_result	result;
+
+	i = 0;
+	while (i < C3_SCENE_TOKEN_NUM)
+		is_specified[i++] = 0;
+
+	tok = c3_scene_get_token(buf);
+
+	while (tok != C3_SCENE_TOKEN_POSSIBLY_MAP)
+	{
+		if (tok == C3_SCENE_TOKEN_EOF)
+			return (C3_PARSE_FAIL);
+		if (tok == C3_SCENE_TOKEN_R)
+		{
+			if (is_specified[C3_SCENE_TOKEN_R]) {
+				// error report
+				return (C3_PARSE_FAIL);
+			}
+			is_specified[C3_SCENE_TOKEN_R] = 1;
+			result = c3_scene_parse_resolution(scene, buf);
+			if (result != C3_PARSE_SUCCESS)
+				return (result);
+		}
+		i = C3_SCENE_TOKEN_NO;
+		while (i < C3_SCENE_TOKEN_NO + 5)
+		{
+			if (tok == i)
+			{
+				if (is_specified[i]) {
+					return (C3_PARSE_FAIL);
+				}
+				is_specified[i] = 1;
+				result = c3_scene_parse_texture(
+					scene, i - (C3_SCENE_TOKEN_NO - C3_OBJTYPE_WALL_N), buf);
+				if (result != C3_PARSE_SUCCESS)
+					return (result);
+			}
+			i++;
+		}
+		if (tok == C3_SCENE_TOKEN_C)
+		{
+			if (is_specified[C3_SCENE_TOKEN_C])
+			{
+				// error report
+				return (C3_PARSE_FAIL);
+			}
+			is_specified[C3_SCENE_TOKEN_C] = 1;
+			result = c3_scene_parse_ceiling(scene, buf);
+			if (result != C3_PARSE_SUCCESS)
+				return (result);
+		}
+		if (tok == C3_SCENE_TOKEN_F)
+		{
+			if (is_specified[C3_SCENE_TOKEN_F])
+			{
+				// error report
+				return (C3_PARSE_FAIL);
+			}
+			is_specified[C3_SCENE_TOKEN_F] = 1;
+			result = c3_scene_parse_floor(scene, buf);
+			if (result != C3_PARSE_SUCCESS)
+				return (result);
+		}
+		tok = c3_scene_get_token(buf);
+		/* c3_log("token: %d\n", tok); */
+	}
+	result = c3_scene_parse_map(scene, buf);
+	return (result);
 }
 
 void	c3_scene_init(t_c3_scene *scene)
@@ -271,11 +409,12 @@ void	c3_scene_init(t_c3_scene *scene)
 	i = 0;
 	while (i < C3_OBJTYPE_NUM)
 		scene->tex_path[i++] = NULL;
+	scene->map = NULL;
 }
 
 void	c3_scene_cleanup(t_c3_scene *scene)
 {
-	int	i;
+	int				i;
 
 	i = 0;
 	while (i < C3_OBJTYPE_NUM)
@@ -284,4 +423,5 @@ void	c3_scene_cleanup(t_c3_scene *scene)
 		scene->tex_path[i] = NULL;
 		i++;
 	}
+	free(scene->map);
 }

@@ -18,8 +18,7 @@
 
 typedef enum	e_c3_token
 {
-	C3_SCENE_TOKEN_UNKNOWN,
-	C3_SCENE_TOKEN_R,
+	C3_SCENE_TOKEN_R,			/* 0 */
 	C3_SCENE_TOKEN_NO,
 	C3_SCENE_TOKEN_SO,
 	C3_SCENE_TOKEN_EA,
@@ -29,8 +28,9 @@ typedef enum	e_c3_token
 	C3_SCENE_TOKEN_F,
 	C3_SCENE_TOKEN_NUM,
 	C3_SCENE_TOKEN_COMMA,
-	C3_SCENE_TOKEN_POSSIBLY_MAP,
+	C3_SCENE_TOKEN_POSSIBLY_MAP, /* 10 */
 	C3_SCENE_TOKEN_EOF,
+	C3_SCENE_TOKEN_UNKNOWN,
 }		t_c3_token;
 
 typedef enum	e_c3_parse_result
@@ -78,19 +78,27 @@ typedef struct	s_c3_scene
 
 	int			map_width;
 	int			map_height;
-	const char	*map;
+	char		*map;
 }		t_c3_scene;
 
+typedef struct	s_c3_map_rows
+{
+	char	*row;
+	struct	s_c3_map_rows	*next;
+}		t_c3_map_rows;
 
-t_c3_parse_result	c3_scene_parse_resolution(t_c3_scene *scene, t_c3_scene_buffer *buf);
+t_c3_parse_result	c3_scene_parse_resolution(
+	t_c3_scene *scene, t_c3_scene_buffer *buf);
 t_c3_parse_result	c3_scene_parse_texture(
 	t_c3_scene *scene, t_c3_object_type typ, t_c3_scene_buffer *buf);
 t_c3_parse_result	c3_scene_parse_floor(
 	t_c3_scene *scene, t_c3_scene_buffer *buf);
 t_c3_parse_result	c3_scene_parse_ceiling(
 	t_c3_scene *scene, t_c3_scene_buffer *buf);
+t_c3_parse_result	c3_scene_parse_map(
+	t_c3_scene *scene, t_c3_scene_buffer *buf);
 
-t_c3_parse_result	c3_scene_parse(t_c3_scene *scene, const char *path);
+t_c3_parse_result	c3_scene_parse(t_c3_scene *scene, t_c3_scene_buffer *buf);
 
 void	c3_scene_init(t_c3_scene *scene);
 void	c3_scene_cleanup(t_c3_scene *scene);

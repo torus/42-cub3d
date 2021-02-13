@@ -52,8 +52,8 @@ typedef struct	s_c3_player
 typedef enum	e_c3_object_type
 {
 	C3_OBJTYPE_WALL_N,
-	C3_OBJTYPE_WALL_E,
 	C3_OBJTYPE_WALL_S,
+	C3_OBJTYPE_WALL_E,
 	C3_OBJTYPE_WALL_W,
 	C3_OBJTYPE_SPRITE,
 	C3_OBJTYPE_NUM

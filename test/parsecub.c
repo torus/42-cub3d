@@ -6,7 +6,7 @@
 /*   By: thisai <thisai@student.42tokyo.jp>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/02/08 14:21:11 by thisai            #+#    #+#             */
-/*   Updated: 2021/02/08 14:21:11 by thisai           ###   ########.fr       */
+/*   Updated: 2021/02/13 11:56:07 by thisai           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -102,6 +102,9 @@ int main()
 
 
 
+
+
+
 	t_c3_scene	scene;
 	c3_scene_init(&scene);
 
@@ -127,6 +130,12 @@ int main()
 	CHECK(!strcmp(scene.tex_path[C3_OBJTYPE_WALL_N],
 				  "./path_to_the_north_texture"));
 
+	set_strbuf(&buf, &strbuf, " ./path_to_the_south_texture");
+	buf.is_beginning_of_line = 0;
+	c3_scene_parse_texture(&scene, C3_OBJTYPE_WALL_S, &buf);
+	CHECK(!strcmp(scene.tex_path[C3_OBJTYPE_WALL_S],
+				  "./path_to_the_south_texture"));
+
 	set_strbuf(&buf, &strbuf, " 220,100,0");
 	buf.is_beginning_of_line = 0;
 	CHECK(c3_scene_parse_floor(&scene, &buf) == C3_PARSE_SUCCESS);
@@ -137,8 +146,80 @@ int main()
 	CHECK(c3_scene_parse_ceiling(&scene, &buf) == C3_PARSE_SUCCESS);
 	CHECK(scene.color_ceiling == 0x0064c82c);
 
-
-	c3_scene_parse(&scene, "sample.cub");
+	set_strbuf(
+		&buf, &strbuf,
+		"        1001000000000000000000001\n"
+		"111111111011000001110000000000001\n"
+		"100000000011000001110111111111111\n"
+		"11110111111111011100000010001\n");
+	buf.is_beginning_of_line = 0;
+	CHECK(c3_scene_parse_map(&scene, &buf) == C3_PARSE_SUCCESS);
+	CHECK(scene.map_width == 33);
+	CHECK(scene.map_height == 4);
+	CHECK(scene.map[33 * 1 + 9] == '0');
 
 	c3_scene_cleanup(&scene);
+
+	{
+		t_c3_scene	scene;
+		c3_scene_init(&scene);
+
+
+
+
+		set_strbuf(
+			&buf, &strbuf,
+			"R 1920 1080\n"
+			"NO ./path_to_the_north_texture\n"
+			"SO ./path_to_the_south_texture\n"
+			"WE ./path_to_the_west_texture\n"
+			"EA ./path_to_the_east_texture\n"
+			"\n"
+			"S ./path_to_the_sprite_texture\n"
+			"F 220,100,0\n"
+			"C 225,30,0\n"
+			"\n"
+			"        1111111111111111111111111\n"
+			"        1000000000110000000000001\n"
+			"        1011000001110000002000001\n"
+			"        1001000000000000000000001\n"
+			"111111111011000001110000000000001\n"
+			"100000000011000001110111111111111\n"
+			"11110111111111011100000010001\n"
+			"11110111111111011101010010001\n"
+			"11000000110101011100000010001\n"
+			"10002000000000001100000010001\n"
+			"10000000000000001101010010001\n"
+			"11000001110101011111011110N0111\n"
+			"11110111 1110101 101111010001\n"
+			"11111111 1111111 111111111111\n"
+			);
+
+		CHECK(c3_scene_parse(&scene, &buf) == C3_PARSE_SUCCESS);
+
+		CHECK(scene.resolution.x == 1920);
+		CHECK(scene.resolution.y == 1080);
+		CHECK(!strcmp(scene.tex_path[C3_OBJTYPE_WALL_N],
+					  "./path_to_the_north_texture"));
+		CHECK(!strcmp(scene.tex_path[C3_OBJTYPE_WALL_S],
+					  "./path_to_the_south_texture"));
+		CHECK(!strcmp(scene.tex_path[C3_OBJTYPE_WALL_E],
+					  "./path_to_the_east_texture"));
+		CHECK(!strcmp(scene.tex_path[C3_OBJTYPE_WALL_W],
+					  "./path_to_the_west_texture"));
+		CHECK(scene.color_floor == 0x00dc6400);
+		CHECK(scene.color_ceiling == 0x00e11e00);
+
+		CHECK(scene.map[33 *  0 +  0] == ' ');
+		CHECK(scene.map[33 *  2 + 26] == '2');
+		CHECK(scene.map[33 *  1 +  0] == ' ');
+		CHECK(scene.map[33 *  2 +  0] == ' ');
+		CHECK(scene.map[33 *  3 +  0] == ' ');
+		CHECK(scene.map[33 *  3 +  8] == '1');
+		CHECK(scene.map[33 * 11 + 26] == 'N');
+		CHECK(scene.map[33 * 12 +  8] == ' ');
+		CHECK(scene.map[33 * 13 + 28] == '1');
+
+		c3_scene_cleanup(&scene);
+	}
 }
