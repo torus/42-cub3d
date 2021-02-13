@@ -61,7 +61,7 @@ typedef union	u_c3_scene_container
 
 #define C3_STRING_BUFFER_SIZE 1024
 
-typedef struct	s_c3_scene_buffer
+typedef struct	s_c3_scene_parser
 {
 	t_c3_scene_container	container;
 	int						is_beginning_of_line;
@@ -69,7 +69,7 @@ typedef struct	s_c3_scene_buffer
 	char					string_value[C3_STRING_BUFFER_SIZE];
 	int						(*getc)(t_c3_scene_container);
 	void					(*ungetc)(t_c3_scene_container);
-}		t_c3_scene_buffer;
+}		t_c3_scene_parser;
 
 
 typedef struct	s_c3_scene
@@ -91,27 +91,27 @@ typedef struct	s_c3_map_rows
 }		t_c3_map_rows;
 
 t_c3_parse_result	c3_scene_parse_resolution(
-	t_c3_scene *scene, t_c3_scene_buffer *buf);
+	t_c3_scene *scene, t_c3_scene_parser *buf);
 t_c3_parse_result	c3_scene_parse_texture(
-	t_c3_scene *scene, t_c3_object_type typ, t_c3_scene_buffer *buf);
+	t_c3_scene *scene, t_c3_object_type typ, t_c3_scene_parser *buf);
 t_c3_parse_result	c3_scene_parse_floor(
-	t_c3_scene *scene, t_c3_scene_buffer *buf);
+	t_c3_scene *scene, t_c3_scene_parser *buf);
 t_c3_parse_result	c3_scene_parse_ceiling(
-	t_c3_scene *scene, t_c3_scene_buffer *buf);
+	t_c3_scene *scene, t_c3_scene_parser *buf);
 t_c3_parse_result	c3_scene_parse_map(
-	t_c3_scene *scene, t_c3_scene_buffer *buf);
+	t_c3_scene *scene, t_c3_scene_parser *buf);
 
-t_c3_parse_result	c3_scene_parse(t_c3_scene *scene, t_c3_scene_buffer *buf);
+t_c3_parse_result	c3_scene_parse(t_c3_scene *scene, t_c3_scene_parser *buf);
 
 void	c3_scene_init(t_c3_scene *scene);
 void	c3_scene_cleanup(t_c3_scene *scene);
 
 
-t_c3_token	c3_scene_get_token(t_c3_scene_buffer *buf);
-int			c3_scene_get_int(t_c3_scene_buffer *buf);
-const char*	c3_scene_get_string(t_c3_scene_buffer *buf);
-const char*	c3_scene_get_rest_of_line(t_c3_scene_buffer *buf);
-int			c3_scene_buffer_init_with_file(
-	t_c3_scene_buffer *buf, const char *path);
+t_c3_token	c3_scene_get_token(t_c3_scene_parser *buf);
+int			c3_scene_get_int(t_c3_scene_parser *buf);
+const char*	c3_scene_get_string(t_c3_scene_parser *buf);
+const char*	c3_scene_get_rest_of_line(t_c3_scene_parser *buf);
+int			c3_scene_parser_init_with_file(
+	t_c3_scene_parser *buf, const char *path);
 
 #endif

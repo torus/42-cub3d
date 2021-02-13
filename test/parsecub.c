@@ -6,7 +6,7 @@
 /*   By: thisai <thisai@student.42tokyo.jp>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/02/08 14:21:11 by thisai            #+#    #+#             */
-/*   Updated: 2021/02/13 19:48:33 by thisai           ###   ########.fr       */
+/*   Updated: 2021/02/13 19:56:09 by thisai           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,7 @@ void	c3_strbuf_ungetc(t_c3_scene_container cont);
 int		c3_file_getc(t_c3_scene_container cont);
 void	c3_file_ungetc(t_c3_scene_container cont);
 
-void	set_strbuf(t_c3_scene_buffer *buf, t_c3_strbuf *strbuf, const char *str)
+void	set_strbuf(t_c3_scene_parser *buf, t_c3_strbuf *strbuf, const char *str)
 {
 	strbuf->str = str;
 	strbuf->index = 0;
@@ -50,7 +50,7 @@ void	set_strbuf(t_c3_scene_buffer *buf, t_c3_strbuf *strbuf, const char *str)
 
 int main()
 {
-	t_c3_scene_buffer	buf;
+	t_c3_scene_parser	buf;
 	t_c3_strbuf			strbuf;
 
 	set_strbuf(&buf, &strbuf, "R 1920 1080");
@@ -227,11 +227,11 @@ int main()
 	}
 
 	{
-		t_c3_scene_buffer	buf;
+		t_c3_scene_parser	buf;
 		t_c3_file			file;
 
 		buf.container.file = &file;
-		CHECK(c3_scene_buffer_init_with_file(&buf, "sample.cub"));
+		CHECK(c3_scene_parser_init_with_file(&buf, "sample.cub"));
 
 		t_c3_scene	scene;
 		c3_scene_init(&scene);

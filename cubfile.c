@@ -19,7 +19,7 @@
 #include "cub3d.h"
 #include "cubfile.h"
 
-int	c3_scene_read_int(t_c3_scene_buffer *buf)
+int	c3_scene_read_int(t_c3_scene_parser *buf)
 {
 	int		result;
 	char	ch;
@@ -37,7 +37,7 @@ int	c3_scene_read_int(t_c3_scene_buffer *buf)
 	return (result);
 }
 
-t_c3_token c3_scene_get_token(t_c3_scene_buffer *buf)
+t_c3_token c3_scene_get_token(t_c3_scene_parser *buf)
 {
 	int	ch;
 
@@ -119,12 +119,12 @@ t_c3_token c3_scene_get_token(t_c3_scene_buffer *buf)
 	return (C3_SCENE_TOKEN_UNKNOWN);
 }
 
-int			c3_scene_get_int(t_c3_scene_buffer *buf)
+int			c3_scene_get_int(t_c3_scene_parser *buf)
 {
 	return (buf->int_value);
 }
 
-const char*	c3_scene_get_string(t_c3_scene_buffer *buf)
+const char*	c3_scene_get_string(t_c3_scene_parser *buf)
 {
 	char	ch;
 	int		index;
@@ -144,7 +144,7 @@ const char*	c3_scene_get_string(t_c3_scene_buffer *buf)
 	return (buf->string_value);
 }
 
-const char*	c3_scene_get_rest_of_line(t_c3_scene_buffer *buf)
+const char*	c3_scene_get_rest_of_line(t_c3_scene_parser *buf)
 {
 	char	ch;
 	int		index;
@@ -230,7 +230,7 @@ int		c3_file_getc(t_c3_scene_container cont)
 	return (buf[0]);
 }
 
-t_c3_parse_result	c3_scene_parse_resolution(t_c3_scene *scene, t_c3_scene_buffer *buf)
+t_c3_parse_result	c3_scene_parse_resolution(t_c3_scene *scene, t_c3_scene_parser *buf)
 {
 	int			width;
 	int			height;
@@ -249,7 +249,7 @@ t_c3_parse_result	c3_scene_parse_resolution(t_c3_scene *scene, t_c3_scene_buffer
 }
 
 t_c3_parse_result	c3_scene_parse_texture(
-	t_c3_scene *scene, t_c3_object_type typ, t_c3_scene_buffer *buf)
+	t_c3_scene *scene, t_c3_object_type typ, t_c3_scene_parser *buf)
 {
 	const char	*path;
 
@@ -264,7 +264,7 @@ t_c3_parse_result	c3_scene_parse_texture(
 }
 
 static
-t_c3_parse_result	parse_color(unsigned int *result, t_c3_scene_buffer *buf)
+t_c3_parse_result	parse_color(unsigned int *result, t_c3_scene_parser *buf)
 {
 	unsigned int	r;
 	unsigned int	g;
@@ -290,19 +290,19 @@ t_c3_parse_result	parse_color(unsigned int *result, t_c3_scene_buffer *buf)
 }
 
 t_c3_parse_result	c3_scene_parse_floor(
-	t_c3_scene *scene, t_c3_scene_buffer *buf)
+	t_c3_scene *scene, t_c3_scene_parser *buf)
 {
 	return (parse_color(&scene->color_floor, buf));
 }
 
 t_c3_parse_result	c3_scene_parse_ceiling(
-	t_c3_scene *scene, t_c3_scene_buffer *buf)
+	t_c3_scene *scene, t_c3_scene_parser *buf)
 {
 	return (parse_color(&scene->color_ceiling, buf));
 }
 
 
-t_c3_parse_result	c3_scene_parse_map(t_c3_scene *scene, t_c3_scene_buffer *buf)
+t_c3_parse_result	c3_scene_parse_map(t_c3_scene *scene, t_c3_scene_parser *buf)
 {
 	t_c3_token		tok;
 	t_c3_map_rows	*rows;
@@ -369,7 +369,7 @@ t_c3_parse_result	c3_scene_parse_map(t_c3_scene *scene, t_c3_scene_buffer *buf)
 	return (C3_PARSE_SUCCESS);
 }
 
-t_c3_parse_result	c3_scene_parse(t_c3_scene *scene, t_c3_scene_buffer *buf)
+t_c3_parse_result	c3_scene_parse(t_c3_scene *scene, t_c3_scene_parser *buf)
 {
 	int					is_specified[C3_SCENE_TOKEN_NUM];
 	unsigned int		i;
@@ -468,7 +468,7 @@ void	c3_scene_cleanup(t_c3_scene *scene)
 	free(scene->map);
 }
 
-int		c3_scene_buffer_init_with_file(t_c3_scene_buffer *buf, const char *path)
+int		c3_scene_parser_init_with_file(t_c3_scene_parser *buf, const char *path)
 {
 	int	fd;
 
