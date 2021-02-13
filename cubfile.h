@@ -47,7 +47,10 @@ typedef struct	s_c3_strbuf
 
 typedef struct	s_c3_file
 {
-	int	fd;
+	int		fd;
+	int		is_ungotten;
+	char	ungotten;
+	char	last_char;
 }		t_c3_file;
 
 typedef union	u_c3_scene_container

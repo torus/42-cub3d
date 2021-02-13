@@ -6,7 +6,7 @@
 /*   By: thisai <thisai@student.42tokyo.jp>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/02/08 14:21:11 by thisai            #+#    #+#             */
-/*   Updated: 2021/02/13 11:56:07 by thisai           ###   ########.fr       */
+/*   Updated: 2021/02/13 13:06:28 by thisai           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <fcntl.h>
 
 #include "../cub3d.h"
 #include "../cubfile.h"
@@ -34,6 +35,8 @@ void	check(int64_t val, const char *msg)
 
 int		c3_strbuf_getc(t_c3_scene_container cont);
 void	c3_strbuf_ungetc(t_c3_scene_container cont);
+int		c3_file_getc(t_c3_scene_container cont);
+void	c3_file_ungetc(t_c3_scene_container cont);
 
 void	set_strbuf(t_c3_scene_buffer *buf, t_c3_strbuf *strbuf, const char *str)
 {
@@ -195,6 +198,50 @@ int main()
 			"11111111 1111111 111111111111\n"
 			);
 
+		CHECK(c3_scene_parse(&scene, &buf) == C3_PARSE_SUCCESS);
+
+		CHECK(scene.resolution.x == 1920);
+		CHECK(scene.resolution.y == 1080);
+		CHECK(!strcmp(scene.tex_path[C3_OBJTYPE_WALL_N],
+					  "./path_to_the_north_texture"));
+		CHECK(!strcmp(scene.tex_path[C3_OBJTYPE_WALL_S],
+					  "./path_to_the_south_texture"));
+		CHECK(!strcmp(scene.tex_path[C3_OBJTYPE_WALL_E],
+					  "./path_to_the_east_texture"));
+		CHECK(!strcmp(scene.tex_path[C3_OBJTYPE_WALL_W],
+					  "./path_to_the_west_texture"));
+		CHECK(scene.color_floor == 0x00dc6400);
+		CHECK(scene.color_ceiling == 0x00e11e00);
+
+		CHECK(scene.map[33 *  0 +  0] == ' ');
+		CHECK(scene.map[33 *  2 + 26] == '2');
+		CHECK(scene.map[33 *  1 +  0] == ' ');
+		CHECK(scene.map[33 *  2 +  0] == ' ');
+		CHECK(scene.map[33 *  3 +  0] == ' ');
+		CHECK(scene.map[33 *  3 +  8] == '1');
+		CHECK(scene.map[33 * 11 + 26] == 'N');
+		CHECK(scene.map[33 * 12 +  8] == ' ');
+		CHECK(scene.map[33 * 13 + 28] == '1');
+
+		c3_scene_cleanup(&scene);
+	}
+
+	{
+		t_c3_scene_buffer	buf;
+		t_c3_file			file;
+
+		file.fd = open("sample.cub", O_RDONLY);
+		if (file.fd < 0)
+			perror("open failed");
+		file.is_ungotten = 0;
+
+		buf.getc = c3_file_getc;
+		buf.ungetc = c3_file_ungetc;
+		buf.container.file = &file;
+		buf.is_beginning_of_line = 1;
+
+		t_c3_scene	scene;
+		c3_scene_init(&scene);
 		CHECK(c3_scene_parse(&scene, &buf) == C3_PARSE_SUCCESS);
 
 		CHECK(scene.resolution.x == 1920);
