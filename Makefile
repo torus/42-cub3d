@@ -14,7 +14,7 @@ MLX_INC = ../minilibx-linux
 MLX_LIB = ../minilibx-linux
 LIBFT_DIR = ../libft/libft
 
-SRCS = cub3d.c utils.c cubfile.c
+SRCS = cub3d.c utils.c scene.c
 OBJS = $(SRCS:%.c=%.o)
 
 NAME = cub3d

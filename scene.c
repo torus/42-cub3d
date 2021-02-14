@@ -19,7 +19,7 @@
 
 #include <libft.h>
 #include "cub3d.h"
-#include "cubfile.h"
+#include "scene.h"
 
 int	c3_scene_read_int(t_c3_scene_parser *buf)
 {

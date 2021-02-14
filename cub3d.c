@@ -22,7 +22,7 @@
 #include <mlx.h>
 
 #include "cub3d.h"
-#include "cubfile.h"
+#include "scene.h"
 
 
 const int	c3_texture_size = 32;
@@ -962,12 +962,12 @@ int		main(int argc, char **argv)
 		return (1);
 	}
 
-	t_c3_scene_buffer	buf;
+	t_c3_scene_parser	buf;
 	int					result;
 	t_c3_file			file;
 
 	buf.container.file = &file;
-	result = c3_scene_buffer_init_with_file(&buf, argv[1]);
+	result = c3_scene_parser_init_with_file(&buf, argv[1]);
 	if (!result)
 	{
 		c3_log("Error\n");

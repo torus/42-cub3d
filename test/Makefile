@@ -1,5 +1,5 @@
 NAME = test
-SRCS = $(wildcard *.c) ../cubfile.c ../utils.c
+SRCS = $(wildcard *.c) ../scene.c ../utils.c
 OBJS = $(SRCS:%.c=%.o)
 HEADERS = $(wildcard ../*.h)
 
