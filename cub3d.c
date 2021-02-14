@@ -177,7 +177,7 @@ void	c3_draw_player_on_map(t_c3_state *stat)
 	int x = stat->player.position.x * stat->renderer.minimap_width / stat->map.width;
 	int y = stat->player.position.y * stat->renderer.minimap_height / stat->map.height;
 	double angle = stat->player.direction;
-	int max_index = stat->map.height * stat->imgdata.size_line;
+	int max_index = stat->renderer.resolution_x * stat->imgdata.size_line;
 
 	for (int i = -8; i < 9; i++)
 	{
@@ -192,10 +192,10 @@ void	c3_draw_player_on_map(t_c3_state *stat)
 				int index =
 					(i + y) * stat->imgdata.size_line +
 					(j + x) * stat->imgdata.bits_per_pixel / 8;
-				if (index >= 0 && index <= max_index)
+				if (index >= 0 && index < max_index)
 				{
 					unsigned int col = mlx_get_color_value(
-						stat->mlx, (0 << 24) + (0 << 16) + (0 << 8));
+						stat->mlx, (0 << 24) + (0 << 16) + (255 << 8));
 					stat->imgdata.data[index + 0] = (col >> 24) & 0xff;
 					stat->imgdata.data[index + 1] = (col >> 16) & 0xff;
 					stat->imgdata.data[index + 2] = (col >> 8) & 0xff;
@@ -896,7 +896,7 @@ int		c3_init(t_c3_state *stat, t_c3_texture_cache *tex, t_c3_scene *scene)
 	stat->screen_height = 720;
 	c3_keystate_init(&stat->keystate);
 	c3_player_init(&stat->player, &stat->map);
-	c3_renderer_init(&stat->renderer, stat->map.width * 2, stat->map.height * 2);
+	c3_renderer_init(&stat->renderer, stat->map.width * 8, stat->map.height * 8);
 
 	stat->mlx = mlx_init();
 	C3_CHECK(stat->mlx, "mlx is NULL.");
