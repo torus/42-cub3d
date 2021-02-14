@@ -10,6 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <math.h>
@@ -22,7 +23,7 @@
 #include <mlx.h>
 
 #include "cub3d.h"
-#include "cubfile.h"
+#include "scene.h"
 
 
 const int	c3_texture_size = 32;
@@ -88,7 +89,7 @@ void	c3_check(int64_t val, const char *message)
 {
 	if (!val)
 	{
-		c3_log("Check failed: %s\n", message);
+		c3_log("Error\nCheck failed: %s\n", message);
 		exit(1);
 	}
 }
@@ -962,22 +963,22 @@ int		main(int argc, char **argv)
 		return (1);
 	}
 
-	t_c3_scene_buffer	buf;
+	t_c3_scene_parser	buf;
 	int					result;
 	t_c3_file			file;
 
 	buf.container.file = &file;
-	result = c3_scene_buffer_init_with_file(&buf, argv[1]);
+	result = c3_scene_parser_init_with_file(&buf, argv[1]);
 	if (!result)
 	{
-		c3_log("Error\n");
+		c3_log("Error\n%s\n", buf.error);
 		return (1);
 	}
 
 	c3_scene_init(&scene);
 	if (c3_scene_parse(&scene, &buf) != C3_PARSE_SUCCESS)
 	{
-		c3_log("Error\n");
+		c3_log("Error\n%s\n", buf.error);
 		return (1);
 	}
 
