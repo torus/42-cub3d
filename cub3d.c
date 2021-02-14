@@ -56,10 +56,41 @@ void	c3_map_init(t_c3_map *map, t_c3_scene *scene)
 
 void	c3_player_init(t_c3_player *player, t_c3_map *map)
 {
-	(void)map;
-	player->position.x = 1.5;
-	player->position.y = 2.5;
-	player->direction = M_PI_4;
+	int		i;
+	int		init_pos_found;
+	char	ch;
+
+	init_pos_found = 0;
+	i = 0;
+	while(i < map->width * map->height)
+	{
+		ch = map->map[i];
+		if (ch == 'N' || ch == 'S' || ch == 'E' || ch == 'W')
+		{
+			if (init_pos_found)
+			{
+				c3_log("Error\nMultiple start position contained in the map\n");
+				exit(1);
+			}
+			init_pos_found = 1;
+			if (ch == 'N')
+				player->direction = -M_PI_2;
+			else if (ch == 'E')
+				player->direction = 0;
+			else if (ch == 'S')
+				player->direction = M_PI_2;
+			else
+				player->direction = M_PI;
+			player->position.x = i % map->width;
+			player->position.y = i / map->width;
+		}
+		i++;
+	}
+	if (!init_pos_found)
+	{
+		c3_log("Error\nStart position not found in the map\n");
+		exit(1);
+	}
 	player->walk_speed = 0.01;
 	player->rotation_speed = 0.01;
 }
