@@ -56,10 +56,41 @@ void	c3_map_init(t_c3_map *map, t_c3_scene *scene)
 
 void	c3_player_init(t_c3_player *player, t_c3_map *map)
 {
-	(void)map;
-	player->position.x = 1.5;
-	player->position.y = 2.5;
-	player->direction = M_PI_4;
+	int		i;
+	int		init_pos_found;
+	char	ch;
+
+	init_pos_found = 0;
+	i = 0;
+	while(i < map->width * map->height)
+	{
+		ch = map->map[i];
+		if (ch == 'N' || ch == 'S' || ch == 'E' || ch == 'W')
+		{
+			if (init_pos_found)
+			{
+				c3_log("Error\nMultiple start position contained in the map\n");
+				exit(1);
+			}
+			init_pos_found = 1;
+			if (ch == 'N')
+				player->direction = -M_PI_2;
+			else if (ch == 'E')
+				player->direction = 0;
+			else if (ch == 'S')
+				player->direction = M_PI_2;
+			else
+				player->direction = M_PI;
+			player->position.x = i % map->width;
+			player->position.y = i / map->width;
+		}
+		i++;
+	}
+	if (!init_pos_found)
+	{
+		c3_log("Error\nStart position not found in the map\n");
+		exit(1);
+	}
 	player->walk_speed = 0.01;
 	player->rotation_speed = 0.01;
 }
@@ -177,7 +208,7 @@ void	c3_draw_player_on_map(t_c3_state *stat)
 	int x = stat->player.position.x * stat->renderer.minimap_width / stat->map.width;
 	int y = stat->player.position.y * stat->renderer.minimap_height / stat->map.height;
 	double angle = stat->player.direction;
-	int max_index = stat->map.height * stat->imgdata.size_line;
+	int max_index = stat->renderer.resolution_x * stat->imgdata.size_line;
 
 	for (int i = -8; i < 9; i++)
 	{
@@ -192,10 +223,10 @@ void	c3_draw_player_on_map(t_c3_state *stat)
 				int index =
 					(i + y) * stat->imgdata.size_line +
 					(j + x) * stat->imgdata.bits_per_pixel / 8;
-				if (index >= 0 && index <= max_index)
+				if (index >= 0 && index < max_index)
 				{
 					unsigned int col = mlx_get_color_value(
-						stat->mlx, (0 << 24) + (0 << 16) + (0 << 8));
+						stat->mlx, (0 << 24) + (0 << 16) + (255 << 8));
 					stat->imgdata.data[index + 0] = (col >> 24) & 0xff;
 					stat->imgdata.data[index + 1] = (col >> 16) & 0xff;
 					stat->imgdata.data[index + 2] = (col >> 8) & 0xff;
@@ -896,7 +927,7 @@ int		c3_init(t_c3_state *stat, t_c3_texture_cache *tex, t_c3_scene *scene)
 	stat->screen_height = 720;
 	c3_keystate_init(&stat->keystate);
 	c3_player_init(&stat->player, &stat->map);
-	c3_renderer_init(&stat->renderer, stat->map.width * 2, stat->map.height * 2);
+	c3_renderer_init(&stat->renderer, stat->map.width * 8, stat->map.height * 8);
 
 	stat->mlx = mlx_init();
 	C3_CHECK(stat->mlx, "mlx is NULL.");
