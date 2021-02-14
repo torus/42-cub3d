@@ -17,6 +17,8 @@
 # define C3_MAX_COLLINEAR_SPRITES 10
 # define C3_TRANSPARENT_COLOR 0x00ffffff
 
+# define c3_log printf
+
 typedef struct	s_c3_imgdata
 {
 	char	*data;
@@ -132,7 +134,5 @@ typedef struct	s_c3_state
 	t_c3_map			map;
 	t_c3_texture_cache	*texture_cache;
 }		t_c3_state;
-
-void	c3_log(const char *format, ...);
 
 #endif

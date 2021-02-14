@@ -15,6 +15,7 @@ MLX_LIB = ../minilibx-linux
 LIBFT_DIR = ../libft/libft
 
 SRCS = cub3d.c utils.c scene.c
+HEADERS = cub3d.h scene.h
 OBJS = $(SRCS:%.c=%.o)
 
 NAME = cub3d
@@ -27,6 +28,8 @@ LDFLAGS = -fsanitize=address -L $(MLX_LIB) -lmlx -lXext -lX11 -lm -lbsd -L $(LIB
 
 run: $(NAME)
 	./$(NAME) test/sample.cub
+
+$(OBJS): $(HEADERS)
 
 $(NAME)	:$(OBJS)
 	$(CC) -o $(NAME) $^ $(LDFLAGS)
