@@ -126,6 +126,7 @@ int main()
 	set_strbuf(&buf, &strbuf, " 192");
 	buf.is_beginning_of_line = 0;
 	CHECK(c3_scene_parse_resolution(&scene, &buf) == C3_PARSE_FAIL);
+	printf("Error: %s\n", buf.error);
 
 	set_strbuf(&buf, &strbuf, " ./path_to_the_north_texture");
 	buf.is_beginning_of_line = 0;

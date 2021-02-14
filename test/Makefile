@@ -1,6 +1,7 @@
 NAME = test
 SRCS = $(wildcard *.c) ../cubfile.c ../utils.c
 OBJS = $(SRCS:%.c=%.o)
+HEADERS = $(wildcard ../*.h)
 
 MLX_INC = ../../minilibx-linux
 MLX_LIB = ../../minilibx-linux
@@ -11,6 +12,8 @@ LDFLAGS = -fsanitize=address -L $(MLX_LIB) -lmlx -lXext -lX11 -lm -lbsd -L $(LIB
 
 do-test: $(NAME)
 	./$(NAME)
+
+$(OBJS): $(HEADERS)
 
 $(NAME): $(OBJS)
 	$(CC) -o $@ $(OBJS) $(LDFLAGS)

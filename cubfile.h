@@ -69,8 +69,8 @@ typedef struct	s_c3_scene_parser
 	char					string_value[C3_STRING_BUFFER_SIZE];
 	int						(*getc)(t_c3_scene_container);
 	void					(*ungetc)(t_c3_scene_container);
+	const char				*error;
 }		t_c3_scene_parser;
-
 
 typedef struct	s_c3_scene
 {

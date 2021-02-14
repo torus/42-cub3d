@@ -10,10 +10,12 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <unistd.h>
+#include <errno.h>
 #include <fcntl.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 
 #include <libft.h>
 #include "cub3d.h"
@@ -235,17 +237,19 @@ t_c3_parse_result	c3_scene_parse_resolution(t_c3_scene *scene, t_c3_scene_parser
 	int			width;
 	int			height;
 
-	if (c3_scene_get_token(buf) != C3_SCENE_TOKEN_NUM)
-		return (C3_PARSE_FAIL);
-	width = c3_scene_get_int(buf);
-
-	if (c3_scene_get_token(buf) != C3_SCENE_TOKEN_NUM)
-		return (C3_PARSE_FAIL);
-	height = c3_scene_get_int(buf);
-
-	scene->resolution.x = width;
-	scene->resolution.y = height;
-	return (C3_PARSE_SUCCESS);
+	if (c3_scene_get_token(buf) == C3_SCENE_TOKEN_NUM)
+	{
+		width = c3_scene_get_int(buf);
+		if (c3_scene_get_token(buf) == C3_SCENE_TOKEN_NUM)
+		{
+			height = c3_scene_get_int(buf);
+			scene->resolution.x = width;
+			scene->resolution.y = height;
+			return (C3_PARSE_SUCCESS);
+		}
+	}
+	buf->error = "Invalid resolution format";
+	return (C3_PARSE_FAIL);
 }
 
 t_c3_parse_result	c3_scene_parse_texture(
@@ -257,7 +261,7 @@ t_c3_parse_result	c3_scene_parse_texture(
 	scene->tex_path[typ] = ft_strdup(path);
 	if (!scene->tex_path[typ])
 	{
-		perror("ft_strdup failed");
+		buf->error = strerror(errno);
 		return (C3_PARSE_FAIL);
 	}
 	return (C3_PARSE_SUCCESS);
@@ -286,6 +290,7 @@ t_c3_parse_result	parse_color(unsigned int *result, t_c3_scene_parser *buf)
 			}
 		}
 	}
+	buf->error = "Invalid color format";
 	return (C3_PARSE_FAIL);
 }
 
@@ -326,7 +331,7 @@ t_c3_parse_result	c3_scene_parse_map(t_c3_scene *scene, t_c3_scene_parser *buf)
 		new_row = malloc(sizeof(t_c3_map_rows));
 		if (!new_row)
 		{
-			// error report
+			buf->error = strerror(errno);
 			return (C3_PARSE_FAIL);
 		}
 		new_row->next = rows;
@@ -341,7 +346,7 @@ t_c3_parse_result	c3_scene_parse_map(t_c3_scene *scene, t_c3_scene_parser *buf)
 	}
 	if (tok != C3_SCENE_TOKEN_EOF)
 	{
-		// report error
+		buf->error = "Invalid map format";
 		return (C3_PARSE_FAIL);
 	}
 
@@ -350,12 +355,11 @@ t_c3_parse_result	c3_scene_parse_map(t_c3_scene *scene, t_c3_scene_parser *buf)
 	scene->map = malloc(max_width * num_rows);
 	if (!scene->map)
 	{
-		// report error
+		buf->error = strerror(errno);
 		return (C3_PARSE_FAIL);
 	}
 	while (num_rows > 0)
 	{
-		/* ft_strlcpy(&scene->map[(num_rows - 1) * max_width], rows->row, max_width + 1); */
 		width = ft_strlen(rows->row);
 		ft_memcpy(&scene->map[(num_rows - 1) * max_width], rows->row, width);
 
@@ -385,11 +389,14 @@ t_c3_parse_result	c3_scene_parse(t_c3_scene *scene, t_c3_scene_parser *buf)
 	while (tok != C3_SCENE_TOKEN_POSSIBLY_MAP)
 	{
 		if (tok == C3_SCENE_TOKEN_EOF)
+		{
+			buf->error = "Map not included";
 			return (C3_PARSE_FAIL);
+		}
 		if (tok == C3_SCENE_TOKEN_R)
 		{
 			if (is_specified[C3_SCENE_TOKEN_R]) {
-				// error report
+				buf->error = "R specified multiple times";
 				return (C3_PARSE_FAIL);
 			}
 			is_specified[C3_SCENE_TOKEN_R] = 1;
@@ -403,6 +410,7 @@ t_c3_parse_result	c3_scene_parse(t_c3_scene *scene, t_c3_scene_parser *buf)
 			if (tok == i)
 			{
 				if (is_specified[i]) {
+					buf->error = "some textures specified multiple times";
 					return (C3_PARSE_FAIL);
 				}
 				is_specified[i] = 1;
@@ -417,7 +425,7 @@ t_c3_parse_result	c3_scene_parse(t_c3_scene *scene, t_c3_scene_parser *buf)
 		{
 			if (is_specified[C3_SCENE_TOKEN_C])
 			{
-				// error report
+				buf->error = "C specified multiple times";
 				return (C3_PARSE_FAIL);
 			}
 			is_specified[C3_SCENE_TOKEN_C] = 1;
@@ -429,7 +437,7 @@ t_c3_parse_result	c3_scene_parse(t_c3_scene *scene, t_c3_scene_parser *buf)
 		{
 			if (is_specified[C3_SCENE_TOKEN_F])
 			{
-				// error report
+				buf->error = "F specified multiple times";
 				return (C3_PARSE_FAIL);
 			}
 			is_specified[C3_SCENE_TOKEN_F] = 1;
@@ -438,7 +446,6 @@ t_c3_parse_result	c3_scene_parse(t_c3_scene *scene, t_c3_scene_parser *buf)
 				return (result);
 		}
 		tok = c3_scene_get_token(buf);
-		/* c3_log("token: %d\n", tok); */
 	}
 	result = c3_scene_parse_map(scene, buf);
 	return (result);
@@ -483,5 +490,6 @@ int		c3_scene_parser_init_with_file(t_c3_scene_parser *buf, const char *path)
 	buf->getc = c3_file_getc;
 	buf->ungetc = c3_file_ungetc;
 	buf->is_beginning_of_line = 1;
+	buf->error = NULL;
 	return (1);
 }
