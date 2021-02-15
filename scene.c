@@ -482,7 +482,7 @@ int		c3_scene_parser_init_with_file(t_c3_scene_parser *buf, const char *path)
 	fd = open(path, O_RDONLY);
 	if (fd < 0)
 	{
-		perror("open failed");
+		buf->error = strerror(errno);
 		return (0);
 	}
 	buf->container.file->fd = fd;

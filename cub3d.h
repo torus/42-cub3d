@@ -117,6 +117,7 @@ typedef struct	s_c3_texture
 
 typedef struct	s_c3_texture_cache
 {
+	char			**path;
 	t_c3_texture	cache[C3_OBJTYPE_NUM];
 }		t_c3_texture_cache;
 

@@ -6,7 +6,7 @@
 /*   By: thisai <thisai@student.42tokyo.jp>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/01/13 16:23:13 by thisai            #+#    #+#             */
-/*   Updated: 2021/02/15 12:53:01 by thisai           ###   ########.fr       */
+/*   Updated: 2021/02/15 15:16:18 by thisai           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -95,7 +95,9 @@ void	c3_player_init(t_c3_player *player, t_c3_map *map)
 	player->rotation_speed = 0.01;
 }
 
-void	c3_renderer_init(t_c3_renderer *rend, int minimap_width, int minimap_height)
+void	c3_renderer_init(
+	t_c3_renderer *rend,
+	int minimap_width, int minimap_height)
 {
 	rend->plane_distance = 1.;
 	rend->fov = M_PI / 6.;
@@ -560,16 +562,24 @@ void	c3_draw_rays_on_map(t_c3_state *stat)
 }
 
 void		c3_texture_cache_load(
-	t_c3_state *stat, t_c3_object_type type, char *path)
+	t_c3_state *stat, t_c3_object_type type)
 {
 	int				width;
 	int				height;
 	void			*image;
 	t_c3_texture	*tex;
+	char			*path;
 
 	tex = &stat->texture_cache->cache[type];
-
+	path = stat->texture_cache->path[type];
 	image = mlx_xpm_file_to_image(stat->mlx, path, &width, &height);
+
+	if (!image)
+	{
+		c3_log("Error\ntexture not found.\n");
+		c3_terminate(stat);
+		exit(1);
+	}
 	tex->image = image;
 	stat->texture_cache->cache[type].data = mlx_get_data_addr(
 		image, &tex->bits_per_pixel, &tex->size_line, &tex->endian);
@@ -582,18 +592,10 @@ uint32_t	c3_sample_texture(
 	t_c3_texture_cache	*cache;
 	t_c3_texture		*tex;
 
-	char	*path[] = {
-		"wall-1.xpm",
-		"wall-2.xpm",
-		"wall-3.xpm",
-		"wall-4.xpm",
-		"sprite-1.xpm",
-	};
-
 	cache = stat->texture_cache;
 	tex = &cache->cache[type];
 	if (!tex->image)
-		c3_texture_cache_load(stat, type, path[type]);
+		c3_texture_cache_load(stat, type);
 
 	int	index = v * tex->size_line + u * tex->bits_per_pixel / 8;
 
@@ -872,10 +874,11 @@ int		c3_loop_hook(void *param)
 	return (1);
 }
 
-void	c3_texture_cache_init(t_c3_texture_cache *cache)
+void	c3_texture_cache_init(t_c3_texture_cache *cache, t_c3_scene *scene)
 {
 	int	i;
 
+	cache->path = scene->tex_path;
 	i = 0;
 	while (i < C3_OBJTYPE_NUM)
 	{
@@ -974,7 +977,7 @@ int		c3_init(t_c3_state *stat, t_c3_texture_cache *tex, t_c3_scene *scene)
 	tmp = mlx_loop_hook(stat->mlx, c3_loop_hook, stat);
 	C3_CHECK(tmp, "mlx_loop_hook() returned false.");
 
-	c3_texture_cache_init(tex);
+	c3_texture_cache_init(tex, scene);
 	stat->texture_cache = tex;
 
 	tmp = mlx_do_key_autorepeatoff(stat->mlx);
