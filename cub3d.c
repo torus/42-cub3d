@@ -6,7 +6,7 @@
 /*   By: thisai <thisai@student.42tokyo.jp>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/01/13 16:23:13 by thisai            #+#    #+#             */
-/*   Updated: 2021/02/15 16:32:37 by thisai           ###   ########.fr       */
+/*   Updated: 2021/02/15 17:30:38 by thisai           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,9 +49,25 @@ void	c3_renderer_cleanup(t_c3_renderer *rend)
 
 void	c3_map_init(t_c3_map *map, t_c3_scene *scene)
 {
+	int		i;
+	char	ch;
+
 	map->map = scene->map;
 	map->width = scene->map_width;
 	map->height = scene->map_height;
+
+	i = 0;
+	while(i < map->width * map->height)
+	{
+		ch = map->map[i];
+		if (ch != ' ' && ch != '0' && ch != '1' && ch != '2' &&
+			ch != 'N' && ch != 'E' && ch != 'S' && ch != 'W')
+		{
+			c3_log("Error\nInvalid map.\n");
+			exit(1);
+		}
+		i++;
+	}
 }
 
 void	c3_player_init(t_c3_player *player, t_c3_map *map)

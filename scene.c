@@ -362,6 +362,7 @@ t_c3_parse_result	c3_scene_parse_map(t_c3_scene *scene, t_c3_scene_parser *buf)
 	{
 		width = ft_strlen(rows->row);
 		ft_memcpy(&scene->map[(num_rows - 1) * max_width], rows->row, width);
+		ft_memset(&scene->map[(num_rows - 1) * max_width] + width, ' ', max_width - width);
 
 		free(rows->row);
 		new_row = rows->next;
