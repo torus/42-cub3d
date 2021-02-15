@@ -6,7 +6,7 @@
 /*   By: thisai <thisai@student.42tokyo.jp>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/01/13 16:23:13 by thisai            #+#    #+#             */
-/*   Updated: 2021/02/10 19:20:46 by thisai           ###   ########.fr       */
+/*   Updated: 2021/02/15 11:36:48 by thisai           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -917,6 +917,15 @@ int		c3_focusout_hook(void *param)
 	return (1);
 }
 
+int		c3_client_hook(void *param)
+{
+	t_c3_state	*stat;
+
+	stat = (t_c3_state*)param;
+	c3_terminate(stat);
+	exit(0);
+}
+
 int		c3_init(t_c3_state *stat, t_c3_texture_cache *tex, t_c3_scene *scene)
 {
 	int			tmp;
@@ -954,6 +963,12 @@ int		c3_init(t_c3_state *stat, t_c3_texture_cache *tex, t_c3_scene *scene)
 		stat->window, FocusOut,
 		FocusChangeMask,
 		c3_focusout_hook, stat);
+	C3_CHECK(tmp, "mlx_hook() returned false.");
+
+	tmp = mlx_hook(
+		stat->window, ClientMessage,
+		NoEventMask,
+		c3_client_hook, stat);
 	C3_CHECK(tmp, "mlx_hook() returned false.");
 
 	stat->img = mlx_new_image(
