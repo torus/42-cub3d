@@ -6,7 +6,7 @@
 /*   By: thisai <thisai@student.42tokyo.jp>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/01/13 16:23:13 by thisai            #+#    #+#             */
-/*   Updated: 2021/02/15 11:36:48 by thisai           ###   ########.fr       */
+/*   Updated: 2021/02/15 12:01:35 by thisai           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -129,7 +129,6 @@ void	c3_terminate(t_c3_state *stat)
 {
 	int	tmp;
 
-	c3_log("%s: %p\n", __FUNCTION__, stat);
 	tmp = mlx_do_key_autorepeaton(stat->mlx);
 	C3_CHECK(tmp, "mlx_do_key_autorepeaton() returned false.");
 
@@ -158,7 +157,6 @@ int		c3_key_press_hook(int key, void *param)
 	t_c3_state	*stat;
 
 	stat = (t_c3_state*)param;
-	c3_log("%s: %02x : %p\n", __FUNCTION__, key, param);
 
 	if (key == XK_W || key == XK_w)
 		stat->keystate.w = 1;
@@ -180,7 +178,6 @@ int		c3_key_release_hook(int key, void *param)
 {
 	t_c3_state	*stat;
 
-	c3_log("%s: %02x : %p\n", __FUNCTION__, key, param);
 	stat = (t_c3_state*)param;
 	if (key == XK_Escape)
 	{
@@ -576,8 +573,6 @@ void		c3_texture_cache_load(
 	tex->image = image;
 	stat->texture_cache->cache[type].data = mlx_get_data_addr(
 		image, &tex->bits_per_pixel, &tex->size_line, &tex->endian);
-
-	c3_log("texture loaded: %s\n", path);
 }
 
 uint32_t	c3_sample_texture(
@@ -894,8 +889,6 @@ int		c3_focusin_hook(void *param)
 	int			tmp;
 	t_c3_state	*stat;
 
-	c3_log("Focus In\n");
-
 	stat = (t_c3_state*)param;
 	tmp = mlx_do_key_autorepeatoff(stat->mlx);
 	C3_CHECK(tmp, "mlx_do_key_autorepeatoff() returned false.");
@@ -907,8 +900,6 @@ int		c3_focusout_hook(void *param)
 {
 	int			tmp;
 	t_c3_state	*stat;
-
-	c3_log("Focus Out\n");
 
 	stat = (t_c3_state*)param;
 	tmp = mlx_do_key_autorepeaton(stat->mlx);
@@ -979,11 +970,6 @@ int		c3_init(t_c3_state *stat, t_c3_texture_cache *tex, t_c3_scene *scene)
 		&stat->imgdata.bits_per_pixel,
 		&stat->imgdata.size_line,
 		&stat->imgdata.endian);
-
-	c3_log(
-		"bpp: %d, linesize: %d, endian: %d\n",
-		stat->imgdata.bits_per_pixel,
-		stat->imgdata.size_line, stat->imgdata.endian);
 
 	tmp = mlx_loop_hook(stat->mlx, c3_loop_hook, stat);
 	C3_CHECK(tmp, "mlx_loop_hook() returned false.");
