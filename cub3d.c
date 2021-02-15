@@ -6,7 +6,7 @@
 /*   By: thisai <thisai@student.42tokyo.jp>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/01/13 16:23:13 by thisai            #+#    #+#             */
-/*   Updated: 2021/02/15 12:01:35 by thisai           ###   ########.fr       */
+/*   Updated: 2021/02/15 12:53:01 by thisai           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -923,8 +923,8 @@ int		c3_init(t_c3_state *stat, t_c3_texture_cache *tex, t_c3_scene *scene)
 
 	c3_map_init(&stat->map, scene);
 
-	stat->screen_width = 1280;
-	stat->screen_height = 720;
+	stat->screen_width = scene->resolution.x;
+	stat->screen_height = scene->resolution.y;
 	c3_keystate_init(&stat->keystate);
 	c3_player_init(&stat->player, &stat->map);
 	c3_renderer_init(&stat->renderer, stat->map.width * 8, stat->map.height * 8);
