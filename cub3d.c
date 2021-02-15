@@ -6,7 +6,7 @@
 /*   By: thisai <thisai@student.42tokyo.jp>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/01/13 16:23:13 by thisai            #+#    #+#             */
-/*   Updated: 2021/02/15 15:16:18 by thisai           ###   ########.fr       */
+/*   Updated: 2021/02/15 15:25:14 by thisai           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -96,7 +96,7 @@ void	c3_player_init(t_c3_player *player, t_c3_map *map)
 }
 
 void	c3_renderer_init(
-	t_c3_renderer *rend,
+	t_c3_renderer *rend, t_c3_scene *scene,
 	int minimap_width, int minimap_height)
 {
 	rend->plane_distance = 1.;
@@ -106,6 +106,8 @@ void	c3_renderer_init(
 	rend->rays = malloc(sizeof(t_c3_ray) * rend->resolution_x);
 	rend->minimap_width = minimap_width;
 	rend->minimap_height = minimap_height;
+	rend->ceiling_color = scene->color_ceiling;
+	rend->floor_color = scene->color_floor;
 }
 
 void	c3_keystate_init(t_c3_keystate *keystat)
@@ -653,14 +655,6 @@ void	c3_draw_walls(t_c3_state *stat)
 	unsigned int	col;
 	int				screen_y;
 
-	uint32_t	ceiling_r = 0x30;
-	uint32_t	ceiling_g = 0x88;
-	uint32_t	ceiling_b = 0xff;
-
-	uint32_t	floor_r = 0x50;
-	uint32_t	floor_g = 0xc0;
-	uint32_t	floor_b = 0x50;
-
 	x = 0;
 	while (x < stat->renderer.resolution_x)
 	{
@@ -692,13 +686,13 @@ void	c3_draw_walls(t_c3_state *stat)
 				if (y < (stat->renderer.resolution_y - sprite_height) / 2)
 				{
 					col = mlx_get_color_value(
-						stat->mlx, (ceiling_r << 16) + (ceiling_g << 8) + ceiling_b);
+						stat->mlx, stat->renderer.ceiling_color);
 					break ;
 				}
 				else if (y >= (stat->renderer.resolution_y + sprite_height) / 2)
 				{
 					col = mlx_get_color_value(
-						stat->mlx, (floor_r << 16) + (floor_g << 8) + floor_b);
+						stat->mlx, stat->renderer.ceiling_color);
 					break ;
 				}
 
@@ -732,10 +726,10 @@ void	c3_draw_walls(t_c3_state *stat)
 			{
 				if (y < (stat->renderer.resolution_y - wall_height) / 2)
 					col = mlx_get_color_value(
-						stat->mlx, (ceiling_r << 16) + (ceiling_g << 8) + ceiling_b);
+						stat->mlx, stat->renderer.ceiling_color);
 				else if (y >= (stat->renderer.resolution_y + wall_height) / 2)
 					col = mlx_get_color_value(
-						stat->mlx, (floor_r << 16) + (floor_g << 8) + floor_b);
+						stat->mlx, stat->renderer.floor_color);
 				else
 					col = c3_wall_texel(stat, ray, wall_height, y);
 			}
@@ -930,7 +924,7 @@ int		c3_init(t_c3_state *stat, t_c3_texture_cache *tex, t_c3_scene *scene)
 	stat->screen_height = scene->resolution.y;
 	c3_keystate_init(&stat->keystate);
 	c3_player_init(&stat->player, &stat->map);
-	c3_renderer_init(&stat->renderer, stat->map.width * 8, stat->map.height * 8);
+	c3_renderer_init(&stat->renderer, scene, stat->map.width * 8, stat->map.height * 8);
 
 	stat->mlx = mlx_init();
 	C3_CHECK(stat->mlx, "mlx is NULL.");

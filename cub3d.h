@@ -78,13 +78,15 @@ typedef struct	s_c3_ray
 
 typedef struct	s_c3_renderer
 {
-	double		plane_distance;
-	double		fov;
-	int			resolution_x;
-	int			resolution_y;
-	int			minimap_width;
-	int			minimap_height;
-	t_c3_ray	*rays;
+	double			plane_distance;
+	double			fov;
+	unsigned int	ceiling_color;
+	unsigned int	floor_color;
+	int				resolution_x;
+	int				resolution_y;
+	int				minimap_width;
+	int				minimap_height;
+	t_c3_ray		*rays;
 }		t_c3_renderer;
 
 typedef struct	s_c3_sprite
