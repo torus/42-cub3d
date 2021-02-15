@@ -6,7 +6,7 @@
 /*   By: thisai <thisai@student.42tokyo.jp>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/01/13 16:23:13 by thisai            #+#    #+#             */
-/*   Updated: 2021/02/15 15:25:14 by thisai           ###   ########.fr       */
+/*   Updated: 2021/02/15 16:32:37 by thisai           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -634,14 +634,14 @@ unsigned int	c3_wall_texel(
 		col = c3_sample_texture(
 			stat,
 			C3_OBJTYPE_WALL_S,
-			c3_texture_size - (int)(ray->hits[0].position.x * c3_texture_size) % c3_texture_size,
+			c3_texture_size - 1 - (int)(ray->hits[0].position.x * c3_texture_size) % c3_texture_size,
 			v);
 
 	else //(ray->hit.type == C3_OBJTYPE_WALL_W)
 		col = c3_sample_texture(
 			stat,
 			C3_OBJTYPE_WALL_W,
-			c3_texture_size - (int)(ray->hits[0].position.y * c3_texture_size) % c3_texture_size,
+			c3_texture_size - 1 - (int)(ray->hits[0].position.y * c3_texture_size) % c3_texture_size,
 			v);
 
 	return (col);
