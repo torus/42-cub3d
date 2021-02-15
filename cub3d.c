@@ -6,7 +6,7 @@
 /*   By: thisai <thisai@student.42tokyo.jp>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/01/13 16:23:13 by thisai            #+#    #+#             */
-/*   Updated: 2021/02/15 17:30:38 by thisai           ###   ########.fr       */
+/*   Updated: 2021/02/15 20:21:25 by thisai           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,6 +75,8 @@ void	c3_player_init(t_c3_player *player, t_c3_map *map)
 	int		i;
 	int		init_pos_found;
 	char	ch;
+	int		x;
+	int		y;
 
 	init_pos_found = 0;
 	i = 0;
@@ -97,8 +99,8 @@ void	c3_player_init(t_c3_player *player, t_c3_map *map)
 				player->direction = M_PI_2;
 			else
 				player->direction = M_PI;
-			player->position.x = i % map->width;
-			player->position.y = i / map->width;
+			x = i % map->width;
+			y = i / map->width;
 		}
 		i++;
 	}
@@ -107,6 +109,8 @@ void	c3_player_init(t_c3_player *player, t_c3_map *map)
 		c3_log("Error\nStart position not found in the map\n");
 		exit(1);
 	}
+	player->position.x = x;
+	player->position.y = y;
 	player->walk_speed = 0.01;
 	player->rotation_speed = 0.01;
 }
@@ -930,6 +934,47 @@ int		c3_client_hook(void *param)
 	exit(0);
 }
 
+void	c3_check_map_closed_iter(t_c3_state *stat, int x, int y)
+{
+	char	ch;
+
+	if (x >= 0 && x < stat->map.width && y >= 0 && y < stat->map.height)
+	{
+		ch = stat->map.map[y * stat->map.width + x];
+		if (ch != '1' && ch != 'x')
+		{
+			stat->map.map[y * stat->map.width + x] = 'x';
+			c3_check_map_closed_iter(stat, x    , y - 1);
+			c3_check_map_closed_iter(stat, x + 1, y    );
+			c3_check_map_closed_iter(stat, x    , y + 1);
+			c3_check_map_closed_iter(stat, x - 1, y    );
+		}
+		return ;
+	}
+	c3_log("Error\nThe map is not closed.\n");
+	exit(1);
+}
+
+void	c3_check_map_closed(t_c3_state *stat, int x, int y)
+{
+	char	ch;
+
+	c3_check_map_closed_iter(stat, x, y);
+	y = 0;
+	while (y < stat->map.height)
+	{
+		x = 0;
+		while (x < stat->map.width)
+		{
+			ch = stat->map.map[y * stat->map.width + x];
+			if (ch == 'x')
+				stat->map.map[y * stat->map.width + x] = '0';
+			x++;
+		}
+		y++;
+	}
+}
+
 int		c3_init(t_c3_state *stat, t_c3_texture_cache *tex, t_c3_scene *scene)
 {
 	int			tmp;
@@ -940,6 +985,9 @@ int		c3_init(t_c3_state *stat, t_c3_texture_cache *tex, t_c3_scene *scene)
 	stat->screen_height = scene->resolution.y;
 	c3_keystate_init(&stat->keystate);
 	c3_player_init(&stat->player, &stat->map);
+
+	c3_check_map_closed(stat, stat->player.position.x, stat->player.position.y);
+
 	c3_renderer_init(&stat->renderer, scene, stat->map.width * 8, stat->map.height * 8);
 
 	stat->mlx = mlx_init();
