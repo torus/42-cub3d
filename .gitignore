@@ -1,3 +1,5 @@
 cub3d
 *.xcf
 test/test
+test/bmptest
+test/*.bmp
