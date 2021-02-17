@@ -6,7 +6,7 @@
 /*   By: thisai <thisai@student.42tokyo.jp>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/01/13 16:23:13 by thisai            #+#    #+#             */
-/*   Updated: 2021/02/15 20:21:25 by thisai           ###   ########.fr       */
+/*   Updated: 2021/02/17 11:29:24 by thisai           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -109,8 +109,8 @@ void	c3_player_init(t_c3_player *player, t_c3_map *map)
 		c3_log("Error\nStart position not found in the map\n");
 		exit(1);
 	}
-	player->position.x = x;
-	player->position.y = y;
+	player->position.x = x + 0.5;
+	player->position.y = y + 0.5;
 	player->walk_speed = 0.01;
 	player->rotation_speed = 0.01;
 }
@@ -977,24 +977,30 @@ void	c3_check_map_closed(t_c3_state *stat, int x, int y)
 
 int		c3_init(t_c3_state *stat, t_c3_texture_cache *tex, t_c3_scene *scene)
 {
-	int			tmp;
+	int		tmp;
+	int		width;
+	int		height;
 
 	c3_map_init(&stat->map, scene);
 
-	stat->screen_width = scene->resolution.x;
-	stat->screen_height = scene->resolution.y;
 	c3_keystate_init(&stat->keystate);
 	c3_player_init(&stat->player, &stat->map);
 
 	c3_check_map_closed(stat, stat->player.position.x, stat->player.position.y);
 
-	c3_renderer_init(&stat->renderer, scene, stat->map.width * 8, stat->map.height * 8);
-
 	stat->mlx = mlx_init();
 	C3_CHECK(stat->mlx, "mlx is NULL.");
+
+	mlx_get_screen_size(stat->mlx, &width, &height);
+	stat->screen_width = width > scene->resolution.x ? scene->resolution.x : width;
+	stat->screen_height = height > scene->resolution.y ? scene->resolution.y : height;
+
+	c3_renderer_init(&stat->renderer, scene, stat->map.width * 8, stat->map.height * 8);
+
 	stat->window = mlx_new_window(
 		stat->mlx, stat->screen_width, stat->screen_height, "Cub3D!");
 	C3_CHECK(stat->window, "window is NULL.");
+
 
 	tmp = mlx_key_hook(stat->window, c3_key_release_hook, stat);
 	C3_CHECK(tmp, "mlx_key_hook() returned false.");
