@@ -946,9 +946,12 @@ void	c3_check_map_closed_iter(t_c3_state *stat, int x, int y)
 	if (x >= 0 && x < stat->map.width && y >= 0 && y < stat->map.height)
 	{
 		ch = stat->map.map[y * stat->map.width + x];
-		if (ch != '1' && ch != 'x')
+		if (ch != '1' && ch != 'x' && ch != 'o')
 		{
-			stat->map.map[y * stat->map.width + x] = 'x';
+			if (ch == '2')
+				stat->map.map[y * stat->map.width + x] = 'o';
+			else
+				stat->map.map[y * stat->map.width + x] = 'x';
 			c3_check_map_closed_iter(stat, x    , y - 1);
 			c3_check_map_closed_iter(stat, x + 1, y    );
 			c3_check_map_closed_iter(stat, x    , y + 1);
@@ -974,6 +977,8 @@ void	c3_check_map_closed(t_c3_state *stat, int x, int y)
 			ch = stat->map.map[y * stat->map.width + x];
 			if (ch == 'x')
 				stat->map.map[y * stat->map.width + x] = '0';
+			else if (ch == 'o')
+				stat->map.map[y * stat->map.width + x] = '2';
 			x++;
 		}
 		y++;
