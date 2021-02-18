@@ -790,14 +790,14 @@ void	c3_render_scene(t_c3_state *stat)
 void	c3_draw(t_c3_state *stat)
 {
 	c3_render_scene(stat);
-	c3_draw_map(stat);
+	/* c3_draw_map(stat); */
 
 	mlx_put_image_to_window(stat->mlx, stat->window, stat->img, 0, 0);
 
-	c3_draw_rays_on_map(stat);
+	/* c3_draw_rays_on_map(stat); */
 
-	mlx_string_put(
-		stat->mlx, stat->window, 10, 10, mlx_get_color_value(stat->mlx, 0xffffff), "CUB3D");
+	/* mlx_string_put( */
+	/* 	stat->mlx, stat->window, 10, 10, mlx_get_color_value(stat->mlx, 0xffffff), "CUB3D"); */
 }
 
 void	c3_scan(t_c3_state *stat)
