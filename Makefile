@@ -23,8 +23,8 @@ NAME = cub3d
 CFLAGS = -g -fsanitize=address -I $(MLX_INC) -I $(LIBFT_DIR) -Wall -Wextra -Werror
 LDFLAGS = -fsanitize=address -L $(MLX_LIB) -lmlx -lXext -lX11 -lm -lbsd -L $(LIBFT_DIR) -lft
 
-# run-test:
-# 	make -C test/
+run-test:
+	make -C test/
 
 run: $(NAME)
 	./$(NAME) test/valid.cub --save
