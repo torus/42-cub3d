@@ -296,6 +296,33 @@ t_c3_parse_result	c3_scene_parse_ceiling(
 	return (parse_color(&scene->color_ceiling, buf));
 }
 
+void	c3_map_rows_cleanup(t_c3_map_rows *rows)
+{
+	if (rows)
+	{
+		free(rows->row);
+		c3_map_rows_cleanup(rows->next);
+		free(rows);
+	}
+}
+
+t_c3_map_rows	*t_c3_map_rows_create(
+	t_c3_scene_parser *buf, t_c3_map_rows *rows, const char *str)
+{
+	t_c3_map_rows	*new_row;
+
+	new_row = malloc(sizeof(t_c3_map_rows));
+	if (!new_row)
+	{
+		buf->error = strerror(errno);
+		c3_map_rows_cleanup(rows);
+		return (NULL);
+	}
+	new_row->next = rows;
+	new_row->row = ft_strdup(str);
+	return (new_row);
+}
+
 t_c3_map_rows	*c3_scene_parse_read_rows(
 	t_c3_scene_parser *buf, int *num_rows_out, int *max_width_out)
 {
@@ -304,7 +331,6 @@ t_c3_map_rows	*c3_scene_parse_read_rows(
 	int				num_rows;
 	int				max_width;
 	const char		*str;
-	t_c3_map_rows	*new_row;
 	int				width;
 
 	rows = NULL;
@@ -315,37 +341,17 @@ t_c3_map_rows	*c3_scene_parse_read_rows(
 	{
 		num_rows++;
 		str = c3_scene_get_rest_of_line(buf);
-		new_row = malloc(sizeof(t_c3_map_rows));
-		if (!new_row)
-		{
-			buf->error = strerror(errno);
-			while (rows)
-			{
-				free(rows->row);
-				new_row = rows->next;
-				free(rows);
-				rows = new_row;
-			}
+		if (!(rows = t_c3_map_rows_create(buf, rows, str)))
 			return (NULL);
-		}
-		new_row->next = rows;
-		new_row->row = ft_strdup(str);
-		width = ft_strlen(new_row->row);
+		width = ft_strlen(rows->row);
 		if (max_width < width)
 			max_width = width;
-		rows = new_row;
 		tok = c3_scene_get_token(buf);
 	}
 	if (tok != C3_SCENE_TOKEN_EOF)
 	{
 		buf->error = "Invalid map format";
-		while (rows)
-		{
-			free(rows->row);
-			new_row = rows->next;
-			free(rows);
-			rows = new_row;
-		}
+		c3_map_rows_cleanup(rows);
 		return (NULL);
 	}
 	*num_rows_out = num_rows;
