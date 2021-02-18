@@ -17,7 +17,7 @@
 #include <fcntl.h>
 
 #include "../cub3d.h"
-#include "../cubfile.h"
+#include "../scene.h"
 
 void	check(int64_t val, const char *msg)
 {

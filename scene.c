@@ -27,7 +27,6 @@ int	c3_scene_read_int(t_c3_scene_parser *buf)
 	char	ch;
 
 	ch = buf->getc(buf->container);
-
 	result = 0;
 	while (ch >= '0' && ch <= '9')
 	{
@@ -39,7 +38,58 @@ int	c3_scene_read_int(t_c3_scene_parser *buf)
 	return (result);
 }
 
-t_c3_token c3_scene_get_token(t_c3_scene_parser *buf)
+t_c3_token	c3_scene_get_token_expect(
+	t_c3_scene_parser *buf, char next_char, t_c3_token token)
+{
+	int	ch;
+
+	ch = buf->getc(buf->container);
+	if (ch == next_char)
+		return (token);
+	buf->ungetc(buf->container);
+	return (C3_SCENE_TOKEN_UNKNOWN);
+}
+
+t_c3_token	c3_scene_get_token_s(t_c3_scene_parser *buf)
+{
+	int	ch;
+
+	ch = buf->getc(buf->container);
+	if (ch == 'O')
+		return (C3_SCENE_TOKEN_SO);
+	buf->ungetc(buf->container);
+	if (ch == ' ')
+		return (C3_SCENE_TOKEN_S);
+	return (C3_SCENE_TOKEN_UNKNOWN);
+}
+
+t_c3_token	c3_scene_get_token_head(t_c3_scene_parser *buf, int ch)
+{
+	buf->is_beginning_of_line = 0;
+	if (ch < 0)
+		return (C3_SCENE_TOKEN_EOF);
+	if (ch == 'R')
+		return (C3_SCENE_TOKEN_R);
+	if (ch == 'N')
+		return c3_scene_get_token_expect(buf, 'O', C3_SCENE_TOKEN_NO);
+	if (ch == 'S')
+		return c3_scene_get_token_s(buf);
+	if (ch == 'W')
+		return c3_scene_get_token_expect(buf, 'E', C3_SCENE_TOKEN_WE);
+	if (ch == 'E')
+		return c3_scene_get_token_expect(buf, 'A', C3_SCENE_TOKEN_EA);
+	if (ch == 'F')
+		return (C3_SCENE_TOKEN_F);
+	if (ch == 'C')
+		return (C3_SCENE_TOKEN_C);
+	if (ch >= 0)
+		buf->ungetc(buf->container);
+	else
+		return (C3_SCENE_TOKEN_EOF);
+	return (C3_SCENE_TOKEN_POSSIBLY_MAP);
+}
+
+t_c3_token	c3_scene_get_token(t_c3_scene_parser *buf)
 {
 	int	ch;
 
@@ -49,75 +99,20 @@ t_c3_token c3_scene_get_token(t_c3_scene_parser *buf)
 		buf->is_beginning_of_line = 1;
 		ch = buf->getc(buf->container);
 	}
-
 	if (buf->is_beginning_of_line)
-	{
-		buf->is_beginning_of_line = 0;
-		if (ch < 0)
-			return (C3_SCENE_TOKEN_EOF);
-		if (ch == 'R')
-			return (C3_SCENE_TOKEN_R);
-		if (ch == 'N')
-		{
-			ch = buf->getc(buf->container);
-			if (ch == 'O')
-				return (C3_SCENE_TOKEN_NO);
-			buf->ungetc(buf->container);
-			return (C3_SCENE_TOKEN_UNKNOWN);
-		}
-		if (ch == 'S')
-		{
-			ch = buf->getc(buf->container);
-			if (ch == 'O')
-				return (C3_SCENE_TOKEN_SO);
-			buf->ungetc(buf->container);
-			if (ch == ' ')
-				return (C3_SCENE_TOKEN_S);
-			return (C3_SCENE_TOKEN_UNKNOWN);
-		}
-		if (ch == 'W')
-		{
-			ch = buf->getc(buf->container);
-			if (ch == 'E')
-				return (C3_SCENE_TOKEN_WE);
-			buf->ungetc(buf->container);
-			return (C3_SCENE_TOKEN_UNKNOWN);
-		}
-		if (ch == 'E')
-		{
-			ch = buf->getc(buf->container);
-			if (ch == 'A')
-				return (C3_SCENE_TOKEN_EA);
-			buf->ungetc(buf->container);
-			return (C3_SCENE_TOKEN_UNKNOWN);
-		}
-		if (ch == 'F')
-			return (C3_SCENE_TOKEN_F);
-		if (ch == 'C')
-			return (C3_SCENE_TOKEN_C);
-		if (ch >= 0)
-			buf->ungetc(buf->container);
-		else
-			return (C3_SCENE_TOKEN_EOF);
-		return (C3_SCENE_TOKEN_POSSIBLY_MAP);
-	}
-
+		return c3_scene_get_token_head(buf, ch);
 	while (ch == ' ' || ch == '\t')
 		ch = buf->getc(buf->container);
-
 	if (ch >= '0' && ch <= '9')
 	{
 		buf->ungetc(buf->container);
 		buf->int_value = c3_scene_read_int(buf);
 		return (C3_SCENE_TOKEN_NUM);
 	}
-
 	if (ch == ',')
 		return (C3_SCENE_TOKEN_COMMA);
-
 	if (ch < 0)
 		return (C3_SCENE_TOKEN_EOF);
-
 	return (C3_SCENE_TOKEN_UNKNOWN);
 }
 
@@ -134,7 +129,6 @@ const char*	c3_scene_get_string(t_c3_scene_parser *buf)
 	ch = buf->getc(buf->container);
 	while (ch == ' ' || ch == '\t')
 		ch = buf->getc(buf->container);
-
 	index = 0;
 	while (ch > 0 && ch != '\n' && index < C3_STRING_BUFFER_SIZE - 1)
 	{
@@ -171,8 +165,6 @@ void	c3_strbuf_ungetc(t_c3_scene_container cont)
 	buf = cont.strbuf;
 	if (buf->index > 0)
 		buf->index--;
-
-	/* c3_log("ungetc: index -> %d\n", buf->index); */
 }
 
 int		c3_strbuf_getc(t_c3_scene_container cont)
@@ -185,11 +177,8 @@ int		c3_strbuf_getc(t_c3_scene_container cont)
 	if (ch)
 	{
 		buf->index++;
-
-		/* c3_log("getc: index -> %d: %c\n", buf->index, ch); */
 		return (ch);
 	}
-	/* c3_log("getc: index -> %d: EOF\n", buf->index); */
 	return (-1);
 }
 
