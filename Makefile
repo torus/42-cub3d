@@ -14,7 +14,7 @@ MLX_INC = ../minilibx-linux
 MLX_LIB = ../minilibx-linux
 LIBFT_DIR = ../libft/libft
 
-SRCS = cub3d.c utils.c scene.c
+SRCS = cub3d.c utils.c scene.c bmp.c
 HEADERS = cub3d.h scene.h
 OBJS = $(SRCS:%.c=%.o)
 
@@ -27,7 +27,7 @@ LDFLAGS = -fsanitize=address -L $(MLX_LIB) -lmlx -lXext -lX11 -lm -lbsd -L $(LIB
 # 	make -C test/
 
 run: $(NAME)
-	./$(NAME) test/valid.cub
+	./$(NAME) test/valid.cub --save
 
 $(OBJS): $(HEADERS)
 

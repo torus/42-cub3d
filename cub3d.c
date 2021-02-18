@@ -6,7 +6,7 @@
 /*   By: thisai <thisai@student.42tokyo.jp>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/01/13 16:23:13 by thisai            #+#    #+#             */
-/*   Updated: 2021/02/17 11:29:24 by thisai           ###   ########.fr       */
+/*   Updated: 2021/02/17 20:39:53 by thisai           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,10 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <math.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <errno.h>
+#include <string.h>
 
 #define XK_MISCELLANY
 #define XK_LATIN1
@@ -24,6 +28,7 @@
 
 #include "cub3d.h"
 #include "scene.h"
+#include "bmp.h"
 
 
 const int	c3_texture_size = 32;
@@ -1050,6 +1055,55 @@ int		c3_init(t_c3_state *stat, t_c3_texture_cache *tex, t_c3_scene *scene)
 	return (1);
 }
 
+void	c3_generate_bmp(t_c3_state *stat)
+{
+	t_bitmap_file_header	file_header;
+	t_bitmap_info_header	info_header;
+	size_t					data_size;
+
+	c3_update(stat);
+	c3_draw(stat);
+
+	data_size = stat->screen_height * stat->imgdata.size_line;
+
+	file_header.file_type[0] = 'B';
+	file_header.file_type[1] = 'M';
+
+	c3_bmp_put_int32(
+		&file_header.file_size,
+		sizeof(file_header) + sizeof(info_header) + data_size);
+	c3_bmp_put_int16(&file_header.reserved1, 0);
+	c3_bmp_put_int16(&file_header.reserved2, 0);
+	c3_bmp_put_int32(&file_header.offset, sizeof(file_header) + sizeof(info_header));
+
+	c3_bmp_put_int32(&info_header.header_size, sizeof(info_header));
+
+
+	c3_bmp_put_int32(&info_header.image_width, stat->screen_width);
+	c3_bmp_put_int32(&info_header.image_height, -stat->screen_height);
+
+	c3_bmp_put_int16(&info_header.planes, 1);
+
+	c3_bmp_put_int16(&info_header.bpp, 32);
+	c3_bmp_put_int32(&info_header.compression, 0);
+	c3_bmp_put_int32(&info_header.image_size, data_size);
+	c3_bmp_put_int32(&info_header.resolution_x, 3780);
+	c3_bmp_put_int32(&info_header.resolution_y, 3780);
+	c3_bmp_put_int32(&info_header.num_colors, 0);
+	c3_bmp_put_int32(&info_header.num_important_colors, 0);
+
+	int		fd;
+	fd = open("out.bmp", O_WRONLY | O_CREAT | O_TRUNC, 0644);
+	if (fd < 0)
+	{
+		c3_log("Error\n%s\n", strerror(errno));
+		exit (1);
+	}
+	write(fd, &file_header, sizeof(file_header));
+	write(fd, &info_header, sizeof(info_header));
+	write(fd, stat->imgdata.data, data_size);
+}
+
 int		main(int argc, char **argv)
 {
 	t_c3_state			stat;
@@ -1085,7 +1139,8 @@ int		main(int argc, char **argv)
 
 	if (argc == 3)
 	{
-
+		c3_generate_bmp(&stat);
+		c3_terminate(&stat);
 		return (0);
 	}
 

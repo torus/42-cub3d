@@ -3,3 +3,5 @@ cub3d
 test/test
 test/bmptest
 test/*.bmp
+
+*.bmp

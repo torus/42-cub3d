@@ -6,7 +6,7 @@
 /*   By: thisai <thisai@student.42tokyo.jp>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/02/17 15:35:25 by thisai            #+#    #+#             */
-/*   Updated: 2021/02/17 15:35:25 by thisai           ###   ########.fr       */
+/*   Updated: 2021/02/18 10:59:11 by thisai           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@
 #include "../bmp.h"
 
 #define IMAGE_WIDTH 640
-#define IMAGE_HEIGHT 320
+#define IMAGE_HEIGHT 480
 #define BPP 32
 
 int	main()
@@ -61,7 +61,7 @@ int	main()
 
 	c3_bmp_put_int16(&info_header.bpp, BPP);
 	c3_bmp_put_int32(&info_header.compression, 0);
-	c3_bmp_put_int32(&info_header.image_size, sizeof(image_data));
+	c3_bmp_put_int32(&info_header.image_size, 0);
 	c3_bmp_put_int32(&info_header.resolution_x, 3780);
 	c3_bmp_put_int32(&info_header.resolution_y, 3780);
 	c3_bmp_put_int32(&info_header.num_colors, 0);
