@@ -56,6 +56,10 @@ void	set_strbuf(t_c3_scene_parser *buf, t_c3_strbuf *strbuf, const char *str)
 	buf->ungetc = c3_strbuf_ungetc;
 	buf->container.strbuf = strbuf;
 	buf->is_beginning_of_line = 1;
+
+	int i = 0;
+	while (i < C3_SCENE_TOKEN_NUM)
+		buf->is_specified[i++] = 0;
 }
 
 int main()

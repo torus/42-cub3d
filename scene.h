@@ -70,6 +70,7 @@ typedef struct	s_c3_scene_parser
 	int						(*getc)(t_c3_scene_container);
 	void					(*ungetc)(t_c3_scene_container);
 	const char				*error;
+	int						is_specified[C3_SCENE_TOKEN_NUM];
 }		t_c3_scene_parser;
 
 typedef struct	s_c3_scene

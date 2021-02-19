@@ -351,7 +351,7 @@ t_c3_map_rows	*c3_scene_parse_read_rows(
 }
 
 void				c3_scene_populate_map(
-	t_c3_scene *scene, t_c3_map_rows	*rows)
+	t_c3_scene *scene, t_c3_map_rows *rows)
 {
 	t_c3_map_rows	*new_row;
 	int				num_rows;
@@ -389,19 +389,100 @@ t_c3_parse_result	c3_scene_parse_map(
 	return (C3_PARSE_SUCCESS);
 }
 
+int					c3_scene_try_wall(
+	t_c3_scene *scene, t_c3_scene_parser *buf,
+	t_c3_token tok, t_c3_parse_result *result)
+{
+	unsigned int		i;
+
+	i = C3_SCENE_TOKEN_NO;
+	while (i < C3_SCENE_TOKEN_NO + 5)
+	{
+		if (tok == i)
+		{
+			if (buf->is_specified[i])
+			{
+				buf->error = "some textures specified multiple times";
+				*result = C3_PARSE_FAIL;
+				return (0);
+			}
+			buf->is_specified[i] = 1;
+			*result = c3_scene_parse_texture(
+				scene, i - (C3_SCENE_TOKEN_NO - C3_OBJTYPE_WALL_N), buf);
+			if (*result != C3_PARSE_SUCCESS)
+				return (0);
+		}
+		i++;
+	}
+	return (1);
+}
+
+int					c3_scene_try_ceiling(
+	t_c3_scene *scene, t_c3_scene_parser *buf,
+	t_c3_token tok, t_c3_parse_result *result)
+{
+	if (tok == C3_SCENE_TOKEN_C)
+	{
+		if (buf->is_specified[C3_SCENE_TOKEN_C])
+		{
+			buf->error = "C specified multiple times";
+			*result = C3_PARSE_FAIL;
+			return (0);
+		}
+		buf->is_specified[C3_SCENE_TOKEN_C] = 1;
+		*result = c3_scene_parse_ceiling(scene, buf);
+		if (*result != C3_PARSE_SUCCESS)
+			return (0);
+	}
+	return (1);
+}
+
+int					c3_scene_try_floor(
+	t_c3_scene *scene, t_c3_scene_parser *buf,
+	t_c3_token tok, t_c3_parse_result *result)
+{
+	if (tok == C3_SCENE_TOKEN_F)
+	{
+		if (buf->is_specified[C3_SCENE_TOKEN_F])
+		{
+			buf->error = "F specified multiple times";
+			*result = C3_PARSE_FAIL;
+			return (0);
+		}
+		buf->is_specified[C3_SCENE_TOKEN_F] = 1;
+		*result = c3_scene_parse_floor(scene, buf);
+		if (*result != C3_PARSE_SUCCESS)
+			return (0);
+	}
+	return (1);
+}
+
+int					c3_scene_try_resolution(
+	t_c3_scene *scene, t_c3_scene_parser *buf,
+	t_c3_token tok, t_c3_parse_result *result)
+{
+	if (tok == C3_SCENE_TOKEN_R)
+	{
+		if (buf->is_specified[C3_SCENE_TOKEN_R])
+		{
+			buf->error = "R specified multiple times";
+			*result = C3_PARSE_FAIL;
+			return (0);
+		}
+		buf->is_specified[C3_SCENE_TOKEN_R] = 1;
+		*result = c3_scene_parse_resolution(scene, buf);
+		if (*result != C3_PARSE_SUCCESS)
+			return (0);
+	}
+	return (1);
+}
+
 t_c3_parse_result	c3_scene_parse(t_c3_scene *scene, t_c3_scene_parser *buf)
 {
-	int					is_specified[C3_SCENE_TOKEN_NUM];
-	unsigned int		i;
 	t_c3_token			tok;
 	t_c3_parse_result	result;
 
-	i = 0;
-	while (i < C3_SCENE_TOKEN_NUM)
-		is_specified[i++] = 0;
-
 	tok = c3_scene_get_token(buf);
-
 	while (tok != C3_SCENE_TOKEN_POSSIBLY_MAP)
 	{
 		if (tok == C3_SCENE_TOKEN_EOF)
@@ -409,58 +490,14 @@ t_c3_parse_result	c3_scene_parse(t_c3_scene *scene, t_c3_scene_parser *buf)
 			buf->error = "Map not included";
 			return (C3_PARSE_FAIL);
 		}
-		if (tok == C3_SCENE_TOKEN_R)
-		{
-			if (is_specified[C3_SCENE_TOKEN_R]) {
-				buf->error = "R specified multiple times";
-				return (C3_PARSE_FAIL);
-			}
-			is_specified[C3_SCENE_TOKEN_R] = 1;
-			result = c3_scene_parse_resolution(scene, buf);
-			if (result != C3_PARSE_SUCCESS)
-				return (result);
-		}
-		i = C3_SCENE_TOKEN_NO;
-		while (i < C3_SCENE_TOKEN_NO + 5)
-		{
-			if (tok == i)
-			{
-				if (is_specified[i]) {
-					buf->error = "some textures specified multiple times";
-					return (C3_PARSE_FAIL);
-				}
-				is_specified[i] = 1;
-				result = c3_scene_parse_texture(
-					scene, i - (C3_SCENE_TOKEN_NO - C3_OBJTYPE_WALL_N), buf);
-				if (result != C3_PARSE_SUCCESS)
-					return (result);
-			}
-			i++;
-		}
-		if (tok == C3_SCENE_TOKEN_C)
-		{
-			if (is_specified[C3_SCENE_TOKEN_C])
-			{
-				buf->error = "C specified multiple times";
-				return (C3_PARSE_FAIL);
-			}
-			is_specified[C3_SCENE_TOKEN_C] = 1;
-			result = c3_scene_parse_ceiling(scene, buf);
-			if (result != C3_PARSE_SUCCESS)
-				return (result);
-		}
-		if (tok == C3_SCENE_TOKEN_F)
-		{
-			if (is_specified[C3_SCENE_TOKEN_F])
-			{
-				buf->error = "F specified multiple times";
-				return (C3_PARSE_FAIL);
-			}
-			is_specified[C3_SCENE_TOKEN_F] = 1;
-			result = c3_scene_parse_floor(scene, buf);
-			if (result != C3_PARSE_SUCCESS)
-				return (result);
-		}
+		if (!c3_scene_try_resolution(scene, buf, tok, &result))
+			return (result);
+		if (!c3_scene_try_wall(scene, buf, tok, &result))
+			return (result);
+		if (!c3_scene_try_ceiling(scene, buf, tok, &result))
+			return (result);
+		if (!c3_scene_try_floor(scene, buf, tok, &result))
+			return (result);
 		tok = c3_scene_get_token(buf);
 	}
 	result = c3_scene_parse_map(scene, buf);
@@ -496,6 +533,7 @@ void	c3_scene_cleanup(t_c3_scene *scene)
 int		c3_scene_parser_init_with_file(t_c3_scene_parser *buf, const char *path)
 {
 	int	fd;
+	int	i;
 
 	fd = open(path, O_RDONLY);
 	if (fd < 0)
@@ -509,5 +547,8 @@ int		c3_scene_parser_init_with_file(t_c3_scene_parser *buf, const char *path)
 	buf->ungetc = c3_file_ungetc;
 	buf->is_beginning_of_line = 1;
 	buf->error = NULL;
+	i = 0;
+	while (i < C3_SCENE_TOKEN_NUM)
+		buf->is_specified[i++] = 0;
 	return (1);
 }
