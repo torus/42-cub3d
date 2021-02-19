@@ -18,6 +18,7 @@
 
 #include "../cub3d.h"
 #include "../scene.h"
+#include "../scene_int.h"
 
 int		success_count = 0;
 int		fail_count = 0;
@@ -42,11 +43,6 @@ void	print_result()
 }
 
 #define CHECK(val) check((int64_t)val, #val)
-
-int		c3_strbuf_getc(t_c3_scene_container cont);
-void	c3_strbuf_ungetc(t_c3_scene_container cont);
-int		c3_file_getc(t_c3_scene_container cont);
-void	c3_file_ungetc(t_c3_scene_container cont);
 
 void	set_strbuf(t_c3_scene_parser *buf, t_c3_strbuf *strbuf, const char *str)
 {
