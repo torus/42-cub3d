@@ -140,7 +140,7 @@ const char	*c3_scene_get_string(t_c3_scene_parser *buf)
 	return (buf->string_value);
 }
 
-const char	*c3_scene_get_rest_of_line(t_c3_scene_parser *buf)
+const char	*c3_scene_get_rest(t_c3_scene_parser *buf)
 {
 	char	ch;
 	int		index;
@@ -324,29 +324,22 @@ t_c3_map_rows	*t_c3_map_rows_create(
 }
 
 t_c3_map_rows	*c3_scene_parse_read_rows(
-	t_c3_scene_parser *buf, int *num_rows_out, int *max_width_out)
+	t_c3_scene *scene, t_c3_scene_parser *buf)
 {
 	t_c3_token		tok;
 	t_c3_map_rows	*rows;
-	int				num_rows;
-	int				max_width;
-	const char		*str;
 	int				width;
 
 	rows = NULL;
-	num_rows = 0;
-	max_width = 0;
 	tok = C3_SCENE_TOKEN_POSSIBLY_MAP;
 	while (tok == C3_SCENE_TOKEN_POSSIBLY_MAP)
 	{
-		num_rows++;
-		str = c3_scene_get_rest_of_line(buf);
-		if (!(rows = t_c3_map_rows_create(buf, rows, str)))
+		if (!(rows = t_c3_map_rows_create(buf, rows, c3_scene_get_rest(buf))))
 			return (NULL);
 		width = ft_strlen(rows->row);
-		if (max_width < width)
-			max_width = width;
 		tok = c3_scene_get_token(buf);
+		scene->map_width = scene->map_width < width ? width : scene->map_width;
+		scene->map_height++;
 	}
 	if (tok != C3_SCENE_TOKEN_EOF)
 	{
@@ -354,41 +347,45 @@ t_c3_map_rows	*c3_scene_parse_read_rows(
 		c3_map_rows_cleanup(rows);
 		return (NULL);
 	}
-	*num_rows_out = num_rows;
-	*max_width_out = max_width;
 	return (rows);
 }
 
-t_c3_parse_result	c3_scene_parse_map(t_c3_scene *scene, t_c3_scene_parser *buf)
+void				c3_scene_populate_map(
+	t_c3_scene *scene, t_c3_map_rows	*rows)
 {
-	t_c3_map_rows	*rows;
 	t_c3_map_rows	*new_row;
 	int				num_rows;
-	int				max_width;
 	int				width;
+	char			*dest;
 
-	rows = c3_scene_parse_read_rows(buf, &num_rows, &max_width);
-	if (!rows)
-		return (C3_PARSE_FAIL);
-	scene->map_width = max_width;
-	scene->map_height = num_rows;
-	scene->map = malloc(max_width * num_rows);
-	if (!scene->map)
-	{
-		buf->error = strerror(errno);
-		return (C3_PARSE_FAIL);
-	}
+	num_rows = scene->map_height;
 	while (num_rows > 0)
 	{
+		dest = &scene->map[(num_rows - 1) * scene->map_width];
 		width = ft_strlen(rows->row);
-		ft_memcpy(&scene->map[(num_rows - 1) * max_width], rows->row, width);
-		ft_memset(&scene->map[(num_rows - 1) * max_width] + width, ' ', max_width - width);
+		ft_memcpy(dest, rows->row, width);
+		ft_memset(dest + width, ' ', scene->map_width - width);
 		free(rows->row);
 		new_row = rows->next;
 		free(rows);
 		rows = new_row;
 		num_rows--;
 	}
+}
+
+t_c3_parse_result	c3_scene_parse_map(
+	t_c3_scene *scene, t_c3_scene_parser *buf)
+{
+	t_c3_map_rows	*rows;
+
+	if (!(rows = c3_scene_parse_read_rows(scene, buf)))
+		return (C3_PARSE_FAIL);
+	if (!(scene->map = malloc(scene->map_width * scene->map_height)))
+	{
+		buf->error = strerror(errno);
+		return (C3_PARSE_FAIL);
+	}
+	c3_scene_populate_map(scene, rows);
 	return (C3_PARSE_SUCCESS);
 }
 
@@ -474,6 +471,8 @@ void	c3_scene_init(t_c3_scene *scene)
 {
 	int	i;
 
+	scene->map_width = 0;
+	scene->map_height = 0;
 	i = 0;
 	while (i < C3_OBJTYPE_NUM)
 		scene->tex_path[i++] = NULL;
