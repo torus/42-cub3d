@@ -5,3 +5,7 @@ test/bmptest
 test/*.bmp
 
 *.bmp
+
+*.png
+
+*.dot

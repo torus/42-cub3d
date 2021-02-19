@@ -17,26 +17,32 @@
 #include <fcntl.h>
 
 #include "../cub3d.h"
-#include "../cubfile.h"
+#include "../scene.h"
+#include "../scene_int.h"
+
+int		success_count = 0;
+int		fail_count = 0;
 
 void	check(int64_t val, const char *msg)
 {
 	if (val)
 	{
+		success_count++;
 		printf("✔ %s\n", msg);
 	}
 	else
 	{
+		fail_count++;
 		printf("✖ %s\n", msg);
 	}
 }
 
-#define CHECK(val) check((int64_t)val, #val)
+void	print_result()
+{
+	printf("✔: %d ✖: %d\n", success_count, fail_count);
+}
 
-int		c3_strbuf_getc(t_c3_scene_container cont);
-void	c3_strbuf_ungetc(t_c3_scene_container cont);
-int		c3_file_getc(t_c3_scene_container cont);
-void	c3_file_ungetc(t_c3_scene_container cont);
+#define CHECK(val) check((int64_t)val, #val)
 
 void	set_strbuf(t_c3_scene_parser *buf, t_c3_strbuf *strbuf, const char *str)
 {
@@ -46,6 +52,10 @@ void	set_strbuf(t_c3_scene_parser *buf, t_c3_strbuf *strbuf, const char *str)
 	buf->ungetc = c3_strbuf_ungetc;
 	buf->container.strbuf = strbuf;
 	buf->is_beginning_of_line = 1;
+
+	int i = 0;
+	while (i < C3_SCENE_TOKEN_NUM)
+		buf->is_specified[i++] = 0;
 }
 
 int main()
@@ -100,7 +110,7 @@ int main()
 
 	set_strbuf(&buf, &strbuf, "        1000000000110000000000001");
 	CHECK(c3_scene_get_token(&buf) == C3_SCENE_TOKEN_POSSIBLY_MAP);
-	const char *str = c3_scene_get_rest_of_line(&buf);
+	const char *str = c3_scene_get_rest(&buf);
 	CHECK(!strcmp(str, "        1000000000110000000000001"));
 
 
@@ -126,7 +136,7 @@ int main()
 	set_strbuf(&buf, &strbuf, " 192");
 	buf.is_beginning_of_line = 0;
 	CHECK(c3_scene_parse_resolution(&scene, &buf) == C3_PARSE_FAIL);
-	printf("Error: %s\n", buf.error);
+	CHECK(!strcmp(buf.error, "Invalid resolution format"));
 
 	set_strbuf(&buf, &strbuf, " ./path_to_the_north_texture");
 	buf.is_beginning_of_line = 0;
@@ -263,4 +273,9 @@ int main()
 
 		c3_scene_cleanup(&scene);
 	}
+
+	print_result();
+	if (fail_count)
+		return (1);
+	return (0);
 }
