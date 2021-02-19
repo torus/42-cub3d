@@ -19,16 +19,26 @@
 #include "../cub3d.h"
 #include "../scene.h"
 
+int		success_count = 0;
+int		fail_count = 0;
+
 void	check(int64_t val, const char *msg)
 {
 	if (val)
 	{
+		success_count++;
 		printf("✔ %s\n", msg);
 	}
 	else
 	{
+		fail_count++;
 		printf("✖ %s\n", msg);
 	}
+}
+
+void	print_result()
+{
+	printf("✔: %d ✖: %d\n", success_count, fail_count);
 }
 
 #define CHECK(val) check((int64_t)val, #val)
@@ -100,7 +110,7 @@ int main()
 
 	set_strbuf(&buf, &strbuf, "        1000000000110000000000001");
 	CHECK(c3_scene_get_token(&buf) == C3_SCENE_TOKEN_POSSIBLY_MAP);
-	const char *str = c3_scene_get_rest_of_line(&buf);
+	const char *str = c3_scene_get_rest(&buf);
 	CHECK(!strcmp(str, "        1000000000110000000000001"));
 
 
@@ -126,7 +136,7 @@ int main()
 	set_strbuf(&buf, &strbuf, " 192");
 	buf.is_beginning_of_line = 0;
 	CHECK(c3_scene_parse_resolution(&scene, &buf) == C3_PARSE_FAIL);
-	printf("Error: %s\n", buf.error);
+	CHECK(!strcmp(buf.error, "Invalid resolution format"));
 
 	set_strbuf(&buf, &strbuf, " ./path_to_the_north_texture");
 	buf.is_beginning_of_line = 0;
@@ -263,4 +273,9 @@ int main()
 
 		c3_scene_cleanup(&scene);
 	}
+
+	print_result();
+	if (fail_count)
+		return (1);
+	return (0);
 }
