@@ -136,6 +136,7 @@ typedef struct	s_c3_state
 	t_c3_renderer		renderer;
 	t_c3_map			map;
 	t_c3_texture_cache	*texture_cache;
+	void				*scene;
 }		t_c3_state;
 
 #endif

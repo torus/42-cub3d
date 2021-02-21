@@ -6,7 +6,7 @@
 /*   By: thisai <thisai@student.42tokyo.jp>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/01/13 16:23:13 by thisai            #+#    #+#             */
-/*   Updated: 2021/02/17 20:39:53 by thisai           ###   ########.fr       */
+/*   Updated: 2021/02/21 15:47:30 by thisai           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -165,6 +165,8 @@ void	c3_terminate(t_c3_state *stat)
 	}
 
 	mlx_destroy_display(stat->mlx);
+	free(stat->mlx);
+	c3_scene_cleanup(stat->scene);
 }
 
 int		c3_key_press_hook(int key, void *param)
@@ -990,6 +992,7 @@ int		c3_init(t_c3_state *stat, t_c3_texture_cache *tex, t_c3_scene *scene)
 	int		width;
 	int		height;
 
+	stat->scene = scene;
 	c3_map_init(&stat->map, scene);
 
 	c3_keystate_init(&stat->keystate);
@@ -1145,9 +1148,8 @@ int		main(int argc, char **argv)
 	{
 		c3_generate_bmp(&stat);
 		c3_terminate(&stat);
-		return (0);
 	}
-
-	mlx_loop(stat.mlx);
+	else
+		mlx_loop(stat.mlx);
 	return (0);
 }
