@@ -24,6 +24,9 @@ OBJS = $(SRCS:%.c=%.o)
 
 NAME = cub3d
 
+# CFLAGS = -I $(MLX_INC) -I $(LIBFT_DIR) -Wall -Wextra -Werror
+# LDFLAGS = -L $(MLX_LIB) -lmlx -lXext -lX11 -lm -lbsd -L $(LIBFT_DIR) -lft
+
 CFLAGS = -g -fsanitize=address -I $(MLX_INC) -I $(LIBFT_DIR) -Wall -Wextra -Werror
 LDFLAGS = -fsanitize=address -L $(MLX_LIB) -lmlx -lXext -lX11 -lm -lbsd -L $(LIBFT_DIR) -lft
 
@@ -40,3 +43,11 @@ $(OBJS): $(HEADERS)
 
 $(NAME)	:$(OBJS)
 	$(CC) -o $(NAME) $^ $(LDFLAGS)
+
+clean:
+	$(RM) $(OBJS)
+
+fclean: clean
+	$(RM) $(NAME)
+
+re: fclean $(NAME)
