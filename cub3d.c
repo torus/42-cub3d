@@ -6,7 +6,7 @@
 /*   By: thisai <thisai@student.42tokyo.jp>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/01/13 16:23:13 by thisai            #+#    #+#             */
-/*   Updated: 2021/02/21 18:53:25 by thisai           ###   ########.fr       */
+/*   Updated: 2021/02/21 19:31:40 by thisai           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -305,6 +305,42 @@ int		c3_add_sprite(
 	return (0);
 }
 
+t_c3_vector	c3_get_horizontal_hit_for_index(
+	double theta, int index, t_c3_vector *pos)
+{
+	t_c3_vector	hit;
+
+	if (theta >= 0 && theta < M_PI)
+	{
+		hit.y = floor(pos->y) + index;
+		hit.x = pos->x + (hit.y - pos->y) / tan(theta);
+	}
+	else
+	{
+		hit.y = floor(pos->y) - index + 1;
+		hit.x = pos->x + (hit.y - pos->y) / tan(theta);
+	}
+	return (hit);
+}
+
+t_c3_vector	c3_get_horizontal_hit_cell_for_index(
+	double theta, t_c3_vector *hit)
+{
+	t_c3_vector	hit_cell;
+
+	if (theta >= 0 && theta < M_PI)
+	{
+		hit_cell.x = floor(hit->x) + 0.5;
+		hit_cell.y = floor(hit->y) + 0.5;
+	}
+	else
+	{
+		hit_cell.x = floor(hit->x) + 0.5;
+		hit_cell.y = floor(hit->y) - 1 + 0.5;
+	}
+	return (hit_cell);
+}
+
 int		c3_get_horizontal_hit(
 	t_c3_state *stat, t_c3_vector *pos,
 	double theta, t_c3_hit_result *result)
@@ -319,39 +355,57 @@ int		c3_get_horizontal_hit(
 	index = 1;
 	while (1)
 	{
-		if (theta >= 0 && theta < M_PI)
-		{
-			hit.y = floor(pos->y) + index;
-			hit.x = pos->x + (hit.y - pos->y) / tan(theta);
-			facing_north = 0;
-			hit_cell.x = floor(hit.x) + 0.5;
-			hit_cell.y = floor(hit.y) + 0.5;
-		}
-		else
-		{
-			hit.y = floor(pos->y) - index + 1;
-			hit.x = pos->x + (hit.y - pos->y) / tan(theta);
-			facing_north = 1;
-			hit_cell.x = floor(hit.x) + 0.5;
-			hit_cell.y = floor(hit.y) - 1 + 0.5;
-		}
-
+		facing_north = !(theta >= 0 && theta < M_PI);
+		hit = c3_get_horizontal_hit_for_index(theta, index, pos);
+		hit_cell = c3_get_horizontal_hit_cell_for_index(theta, &hit);
 		if (c3_check_wall(stat, &hit_cell))
 			break ;
 		if (hit_sprites < C3_MAX_COLLINEAR_SPRITES
 			&& c3_check_sprite(stat, &hit_cell, pos, &result[hit_sprites + 1]))
-		{
 			if(c3_add_sprite(&hit, &hit_cell, pos, result + hit_sprites))
 				hit_sprites ++;
-		}
-
 		index++;
 	}
 	result->position = hit;
 	result->distance_sqared = c3_distance_squared(pos, &hit);
 	result->type = facing_north ? C3_OBJTYPE_WALL_N : C3_OBJTYPE_WALL_S;
-
 	return (hit_sprites);
+}
+
+t_c3_vector	c3_get_vertical_hit_for_index(
+	double theta, int index, t_c3_vector *pos)
+{
+	t_c3_vector	hit;
+
+	if (theta < M_PI_2 || theta >= 3 * M_PI_2)
+	{
+		hit.x = floor(pos->x) + index;
+		hit.y = pos->y + (hit.x - pos->x) * tan(theta);
+	}
+	else
+	{
+		hit.x = floor(pos->x) - index + 1;
+		hit.y = pos->y + (hit.x - pos->x) * tan(theta);
+	}
+	return (hit);
+}
+
+t_c3_vector	c3_get_vertical_hit_cell_for_index(
+	double theta, t_c3_vector *hit)
+{
+	t_c3_vector	hit_cell;
+
+	if (theta < M_PI_2 || theta >= 3 * M_PI_2)
+	{
+		hit_cell.x = floor(hit->x) + 0.5;
+		hit_cell.y = floor(hit->y) + 0.5;
+	}
+	else
+	{
+		hit_cell.x = floor(hit->x) - 1 + 0.5;
+		hit_cell.y = floor(hit->y) + 0.5;
+	}
+	return (hit_cell);
 }
 
 int		c3_get_vertical_hit(
@@ -361,57 +415,23 @@ int		c3_get_vertical_hit(
 	t_c3_vector	hit;
 	t_c3_vector	hit_cell;
 	int			facing_east;
-	int			i;
+	int			index;
 	int			hit_sprites;
 
 	hit_sprites = 0;
-	i = 1;
+	index = 1;
 	while (1)
 	{
-		if (theta < M_PI_2 || theta >= 3 * M_PI_2)
-		{
-			hit.x = floor(pos->x) + i;
-			hit.y = pos->y + (hit.x - pos->x) * tan(theta);
-			facing_east = 1;
-			hit_cell.x = floor(hit.x) + 0.5;
-			hit_cell.y = floor(hit.y) + 0.5;
-		}
-		else
-		{
-			hit.x = floor(pos->x) - i + 1;
-			hit.y = pos->y + (hit.x - pos->x) * tan(theta);
-			facing_east = 0;
-			hit_cell.x = floor(hit.x) - 1 + 0.5;
-			hit_cell.y = floor(hit.y) + 0.5;
-		}
-
+		facing_east = (theta < M_PI_2 || theta >= 3 * M_PI_2);
+		hit = c3_get_vertical_hit_for_index(theta, index, pos);
+		hit_cell = c3_get_vertical_hit_cell_for_index(theta, &hit);
 		if (c3_check_wall(stat, &hit_cell))
 			break ;
 		if (hit_sprites < C3_MAX_COLLINEAR_SPRITES
 			&& c3_check_sprite(stat, &hit_cell, pos, &result[hit_sprites + 1]))
-		{
-			double dot = c3_dot(pos, &hit_cell, &hit);
-			t_c3_vector	ad = {hit.x - pos->x, hit.y - pos->y};
-			double	c = result[hit_sprites + 1].distance_sqared / dot;
-			hit.x = pos->x + ad.x * c;
-			hit.y = pos->y + ad.y * c;
-
-			double	offset = sqrt(c3_distance_squared(&hit, &hit_cell));
-			if (offset <= 0.5)
-			{
-				t_c3_vector	ab = {hit_cell.x - pos->x, hit_cell.y - pos->y};
-				double	cross = ab.x * ad.y - ad.x * ab.y;
-
-				if (cross > 0)
-					offset = - offset;
-
-				result[hit_sprites + 1].position = hit;
-				result[hit_sprites + 1].offset = offset;
+			if(c3_add_sprite(&hit, &hit_cell, pos, result + hit_sprites))
 				hit_sprites ++;
-			}
-		}
-
-		i++;
+		index++;
 	}
 	result->position = hit;
 	result->distance_sqared = c3_distance_squared(pos, &hit);
