@@ -6,7 +6,7 @@
 /*   By: thisai <thisai@student.42tokyo.jp>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/01/13 16:23:13 by thisai            #+#    #+#             */
-/*   Updated: 2021/02/17 20:39:53 by thisai           ###   ########.fr       */
+/*   Updated: 2021/02/21 14:56:04 by thisai           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,20 +32,6 @@
 
 
 const int	c3_texture_size = 32;
-
-const char	c3_player_bitmap[] = {
-	0, 0, 0, 0, 1, 0, 0, 0,
-	0, 0, 0, 0, 1, 1, 0, 0,
-	1, 1, 1, 1, 1, 1, 1, 0,
-	1, 1, 1, 1, 1, 1, 1, 1,
-	1, 1, 1, 1, 1, 1, 1, 0,
-	0, 0, 0, 0, 1, 1, 0, 0,
-	0, 0, 0, 0, 1, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0,
-};
-const int	c3_player_bitmap_height = 8;
-const int	c3_player_bitmap_width = 8;
-
 
 void	c3_renderer_cleanup(t_c3_renderer *rend)
 {
@@ -231,6 +217,19 @@ int		c3_key_release_hook(int key, void *param)
 
 void	c3_draw_player_on_map(t_c3_state *stat)
 {
+	const char	c3_player_bitmap[] = {
+		0, 0, 0, 0, 1, 0, 0, 0,
+		0, 0, 0, 0, 1, 1, 0, 0,
+		1, 1, 1, 1, 1, 1, 1, 0,
+		1, 1, 1, 1, 1, 1, 1, 1,
+		1, 1, 1, 1, 1, 1, 1, 0,
+		0, 0, 0, 0, 1, 1, 0, 0,
+		0, 0, 0, 0, 1, 0, 0, 0,
+		0, 0, 0, 0, 0, 0, 0, 0,
+	};
+	const int	c3_player_bitmap_height = 8;
+	const int	c3_player_bitmap_width = 8;
+
 	int x = stat->player.position.x * stat->renderer.minimap_width / stat->map.width;
 	int y = stat->player.position.y * stat->renderer.minimap_height / stat->map.height;
 	double angle = stat->player.direction;

@@ -31,6 +31,9 @@ LDFLAGS = -fsanitize=address -L $(MLX_LIB) -lmlx -lXext -lX11 -lm -lbsd -L $(LIB
 # 	make -C test/
 
 run: $(NAME)
+	./$(NAME) test/valid.cub
+
+run-save: $(NAME)
 	./$(NAME) test/valid.cub --save
 
 $(OBJS): $(HEADERS)
