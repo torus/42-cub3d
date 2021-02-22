@@ -6,7 +6,7 @@
 /*   By: thisai <thisai@student.42tokyo.jp>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/01/13 16:23:13 by thisai            #+#    #+#             */
-/*   Updated: 2021/02/21 15:47:30 by thisai           ###   ########.fr       */
+/*   Updated: 2021/02/22 13:30:17 by thisai           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,9 +27,8 @@
 #include <mlx.h>
 
 #include "cub3d.h"
+#include "cub3d_int.h"
 #include "scene.h"
-#include "bmp.h"
-
 
 const int	c3_texture_size = 32;
 
@@ -46,7 +45,6 @@ void	c3_map_init(t_c3_map *map, t_c3_scene *scene)
 	map->map = scene->map;
 	map->width = scene->map_width;
 	map->height = scene->map_height;
-
 	i = 0;
 	while(i < map->width * map->height)
 	{
@@ -61,13 +59,22 @@ void	c3_map_init(t_c3_map *map, t_c3_scene *scene)
 	}
 }
 
-void	c3_player_init(t_c3_player *player, t_c3_map *map)
+double	c3_get_direction_from_symbol(char ch)
+{
+	if (ch == 'N')
+		return (-M_PI_2);
+	else if (ch == 'E')
+		return (0);
+	else if (ch == 'S')
+		return (M_PI_2);
+	return (M_PI);
+}
+
+int		c3_player_set_initial_position(t_c3_player *player, t_c3_map *map)
 {
 	int		i;
 	int		init_pos_found;
 	char	ch;
-	int		x;
-	int		y;
 
 	init_pos_found = 0;
 	i = 0;
@@ -82,26 +89,25 @@ void	c3_player_init(t_c3_player *player, t_c3_map *map)
 				exit(1);
 			}
 			init_pos_found = 1;
-			if (ch == 'N')
-				player->direction = -M_PI_2;
-			else if (ch == 'E')
-				player->direction = 0;
-			else if (ch == 'S')
-				player->direction = M_PI_2;
-			else
-				player->direction = M_PI;
-			x = i % map->width;
-			y = i / map->width;
+			player->direction = c3_get_direction_from_symbol(ch);
+			player->position.x = i % map->width + 0.5;
+			player->position.y = i / map->width + 0.5;
 		}
 		i++;
 	}
+	return (init_pos_found);
+}
+
+void	c3_player_init(t_c3_player *player, t_c3_map *map)
+{
+	int		init_pos_found;
+
+	init_pos_found = c3_player_set_initial_position(player, map);
 	if (!init_pos_found)
 	{
 		c3_log("Error\nStart position not found in the map\n");
 		exit(1);
 	}
-	player->position.x = x + 0.5;
-	player->position.y = y + 0.5;
 	player->walk_speed = 0.01;
 	player->rotation_speed = 0.01;
 }
@@ -146,15 +152,11 @@ void	c3_terminate(t_c3_state *stat)
 
 	tmp = mlx_do_key_autorepeaton(stat->mlx);
 	C3_CHECK(tmp, "mlx_do_key_autorepeaton() returned false.");
-
 	mlx_destroy_window(stat->mlx, stat->window);
 	if (stat->img)
 		mlx_destroy_image(stat->mlx, stat->img);
-
 	mlx_loop_end(stat->mlx);
-
 	c3_renderer_cleanup(&stat->renderer);
-
 	int	i;
 	i = 0;
 	while (i < C3_OBJTYPE_NUM)
@@ -163,7 +165,6 @@ void	c3_terminate(t_c3_state *stat)
 			mlx_destroy_image(stat->mlx, stat->texture_cache->cache[i].image);
 		i++;
 	}
-
 	mlx_destroy_display(stat->mlx);
 	free(stat->mlx);
 	c3_scene_cleanup(stat->scene);
@@ -174,7 +175,6 @@ int		c3_key_press_hook(int key, void *param)
 	t_c3_state	*stat;
 
 	stat = (t_c3_state*)param;
-
 	if (key == XK_W || key == XK_w)
 		stat->keystate.w = 1;
 	else if (key == XK_A || key == XK_a)
@@ -187,7 +187,6 @@ int		c3_key_press_hook(int key, void *param)
 		stat->keystate.left = 1;
 	else if (key == XK_Right)
 		stat->keystate.right = 1;
-
 	return (1);
 }
 
@@ -201,7 +200,6 @@ int		c3_key_release_hook(int key, void *param)
 		c3_terminate(stat);
 		exit(0);
 	}
-
 	if (key == XK_W || key == XK_w)
 		stat->keystate.w = 0;
 	else if (key == XK_A || key == XK_a)
@@ -215,53 +213,6 @@ int		c3_key_release_hook(int key, void *param)
 	else if (key == XK_Right)
 		stat->keystate.right = 0;
 	return (1);
-}
-
-void	c3_draw_player_on_map(t_c3_state *stat)
-{
-	const char	c3_player_bitmap[] = {
-		0, 0, 0, 0, 1, 0, 0, 0,
-		0, 0, 0, 0, 1, 1, 0, 0,
-		1, 1, 1, 1, 1, 1, 1, 0,
-		1, 1, 1, 1, 1, 1, 1, 1,
-		1, 1, 1, 1, 1, 1, 1, 0,
-		0, 0, 0, 0, 1, 1, 0, 0,
-		0, 0, 0, 0, 1, 0, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0,
-	};
-	const int	c3_player_bitmap_height = 8;
-	const int	c3_player_bitmap_width = 8;
-
-	int x = stat->player.position.x * stat->renderer.minimap_width / stat->map.width;
-	int y = stat->player.position.y * stat->renderer.minimap_height / stat->map.height;
-	double angle = stat->player.direction;
-	int max_index = stat->renderer.resolution_x * stat->imgdata.size_line;
-
-	for (int i = -8; i < 9; i++)
-	{
-		for (int j = -8; j < 9; j++)
-		{
-			int xx = j * cos(-angle) - i * sin(-angle);
-			int yy = j * sin(-angle) + i * cos(-angle) + 3;
-			if (xx >= 0 && xx < c3_player_bitmap_width
-				&& yy >= 0 && yy < c3_player_bitmap_height
-				&& c3_player_bitmap[yy * c3_player_bitmap_width + xx])
-			{
-				int index =
-					(i + y) * stat->imgdata.size_line +
-					(j + x) * stat->imgdata.bits_per_pixel / 8;
-				if (index >= 0 && index < max_index)
-				{
-					unsigned int col = mlx_get_color_value(
-						stat->mlx, (0 << 24) + (0 << 16) + (255 << 8));
-					stat->imgdata.data[index + 0] = (col >> 24) & 0xff;
-					stat->imgdata.data[index + 1] = (col >> 16) & 0xff;
-					stat->imgdata.data[index + 2] = (col >> 8) & 0xff;
-					stat->imgdata.data[index + 3] = col & 0xff;
-				}
-			}
-		}
-	}
 }
 
 char	c3_query_map(t_c3_state *stat, int x, int y)
@@ -282,35 +233,6 @@ char	c3_query_map(t_c3_state *stat, int x, int y)
 	/* return stat->map.map[y * stat->map.width + x]; */
 }
 
-void	c3_draw_map(t_c3_state *stat)
-{
-	for (int i = 0; i < stat->screen_height && i < stat->renderer.minimap_height; i++)
-	{
-		int y = stat->map.height * i / stat->renderer.minimap_height;
-		for (int j = 0; j < stat->screen_width && j < stat->renderer.minimap_width; j++)
-		{
-			int x = stat->map.width * j / stat->renderer.minimap_width;
-			/* int cell = stat->map.map[y * stat->map.width + x]; */
-			int cell = c3_query_map(stat, x, y);
-
-			int r = 127 * (1 - cell) + 128;
-			int g = 127 * (1 - cell) + 128;
-			int b = 127 * (1 - cell) + 128;
-
-			unsigned int col = mlx_get_color_value(
-				stat->mlx, (r << 24) + (g << 16) + (b << 8));
-			int index =
-				i * stat->imgdata.size_line +
-				j * stat->imgdata.bits_per_pixel / 8;
-			stat->imgdata.data[index + 0] = (col >> 24) & 0xff;
-			stat->imgdata.data[index + 1] = (col >> 16) & 0xff;
-			stat->imgdata.data[index + 2] = (col >> 8) & 0xff;
-			stat->imgdata.data[index + 3] = col & 0xff;
-		}
-	}
-	c3_draw_player_on_map(stat);
-}
-
 double	c3_distance_squared(t_c3_vector *p1, t_c3_vector *p2)
 {
 	double	dx;
@@ -319,274 +241,6 @@ double	c3_distance_squared(t_c3_vector *p1, t_c3_vector *p2)
 	dx = p1->x - p2->x;
 	dy = p1->y - p2->y;
 	return (dx * dx + dy * dy);
-}
-
-int		c3_check_wall(t_c3_state *stat, t_c3_vector *hit)
-{
-	if (hit->x < 0 || hit->x >= stat->map.width
-		|| hit->y < 0 || hit->y >= stat->map.height)
-		return (1);
-	if (c3_query_map(stat, hit->x, hit->y) == C3_MAP_SYMBOL_WALL)
-		return (1);
-	return (0);
-}
-
-int		c3_check_sprite(t_c3_state *stat, t_c3_vector *center, t_c3_vector *pos, t_c3_hit_result *result)
-{
-	if (c3_query_map(stat, center->x, center->y) == C3_MAP_SYMBOL_SPRITE)
-	{
-		result->type = C3_MAP_SYMBOL_SPRITE;
-		result->distance_sqared = c3_distance_squared(pos, center);
-		return (1);
-	}
-	return (0);
-}
-
-double	c3_dot(t_c3_vector *origin, t_c3_vector *a, t_c3_vector *b)
-{
-	return (a->x - origin->x) * (b->x - origin->x)
-		+ (a->y - origin->y) * (b->y - origin->y);
-}
-
-int		c3_get_horizontal_hit(
-	t_c3_state *stat, t_c3_vector *pos,
-	double theta, t_c3_hit_result *result)
-{
-	t_c3_vector	hit;
-	t_c3_vector	hit_cell;
-	int			facing_north;
-	int			index;
-	int			hit_sprites;
-
-	hit_sprites = 0;
-	index = 1;
-	while (1)
-	{
-		if (theta >= 0 && theta < M_PI)
-		{
-			hit.y = floor(pos->y) + index;
-			hit.x = pos->x + (hit.y - pos->y) / tan(theta);
-			facing_north = 0;
-			hit_cell.x = floor(hit.x) + 0.5;
-			hit_cell.y = floor(hit.y) + 0.5;
-		}
-		else
-		{
-			hit.y = floor(pos->y) - index + 1;
-			hit.x = pos->x + (hit.y - pos->y) / tan(theta);
-			facing_north = 1;
-			hit_cell.x = floor(hit.x) + 0.5;
-			hit_cell.y = floor(hit.y) - 1 + 0.5;
-		}
-
-		if (c3_check_wall(stat, &hit_cell))
-			break ;
-		if (hit_sprites < C3_MAX_COLLINEAR_SPRITES
-			&& c3_check_sprite(stat, &hit_cell, pos, &result[hit_sprites + 1]))
-		{
-
-			double dot = c3_dot(pos, &hit_cell, &hit);
-			t_c3_vector	ad = {hit.x - pos->x, hit.y - pos->y};
-			double	c = result[hit_sprites + 1].distance_sqared / dot;
-			hit.x = pos->x + ad.x * c;
-			hit.y = pos->y + ad.y * c;
-
-			double	offset = sqrt(c3_distance_squared(&hit, &hit_cell));
-			if (offset <= 0.5)
-			{
-				t_c3_vector	ab = {hit_cell.x - pos->x, hit_cell.y - pos->y};
-				double	cross = ab.x * ad.y - ad.x * ab.y;
-
-				if (cross > 0)
-					offset = - offset;
-
-				result[hit_sprites + 1].position = hit;
-				result[hit_sprites + 1].offset = offset;
-				hit_sprites ++;
-			}
-		}
-
-		index++;
-	}
-	result->position = hit;
-	result->distance_sqared = c3_distance_squared(pos, &hit);
-	result->type = facing_north ? C3_OBJTYPE_WALL_N : C3_OBJTYPE_WALL_S;
-
-	return (hit_sprites);
-}
-
-int		c3_get_vertical_hit(
-	t_c3_state *stat, t_c3_vector *pos,
-	double theta, t_c3_hit_result *result)
-{
-	t_c3_vector	hit;
-	t_c3_vector	hit_cell;
-	int			facing_east;
-	int			i;
-	int			hit_sprites;
-
-	hit_sprites = 0;
-	i = 1;
-	while (1)
-	{
-		if (theta < M_PI_2 || theta >= 3 * M_PI_2)
-		{
-			hit.x = floor(pos->x) + i;
-			hit.y = pos->y + (hit.x - pos->x) * tan(theta);
-			facing_east = 1;
-			hit_cell.x = floor(hit.x) + 0.5;
-			hit_cell.y = floor(hit.y) + 0.5;
-		}
-		else
-		{
-			hit.x = floor(pos->x) - i + 1;
-			hit.y = pos->y + (hit.x - pos->x) * tan(theta);
-			facing_east = 0;
-			hit_cell.x = floor(hit.x) - 1 + 0.5;
-			hit_cell.y = floor(hit.y) + 0.5;
-		}
-
-		if (c3_check_wall(stat, &hit_cell))
-			break ;
-		if (hit_sprites < C3_MAX_COLLINEAR_SPRITES
-			&& c3_check_sprite(stat, &hit_cell, pos, &result[hit_sprites + 1]))
-		{
-			double dot = c3_dot(pos, &hit_cell, &hit);
-			t_c3_vector	ad = {hit.x - pos->x, hit.y - pos->y};
-			double	c = result[hit_sprites + 1].distance_sqared / dot;
-			hit.x = pos->x + ad.x * c;
-			hit.y = pos->y + ad.y * c;
-
-			double	offset = sqrt(c3_distance_squared(&hit, &hit_cell));
-			if (offset <= 0.5)
-			{
-				t_c3_vector	ab = {hit_cell.x - pos->x, hit_cell.y - pos->y};
-				double	cross = ab.x * ad.y - ad.x * ab.y;
-
-				if (cross > 0)
-					offset = - offset;
-
-				result[hit_sprites + 1].position = hit;
-				result[hit_sprites + 1].offset = offset;
-				hit_sprites ++;
-			}
-		}
-
-		i++;
-	}
-	result->position = hit;
-	result->distance_sqared = c3_distance_squared(pos, &hit);
-	result->type = facing_east ? C3_OBJTYPE_WALL_E : C3_OBJTYPE_WALL_W;
-	return (hit_sprites);
-}
-
-int		c3_cast_ray(
-	t_c3_state *stat, t_c3_vector *pos, double theta, t_c3_hit_result *out)
-{
-	t_c3_hit_result	hori_hits[1 + C3_MAX_COLLINEAR_SPRITES];
-	t_c3_hit_result	vert_hits[1 + C3_MAX_COLLINEAR_SPRITES];
-	int				hori_sprites;
-	int				vert_sprites;
-	int				hori_index;
-	int				vert_index;
-	int				sprites;
-	double			wall_distance;
-
-	hori_sprites = tan(theta) != 0.0 ? c3_get_horizontal_hit(stat, pos, theta, hori_hits) : 0;
-	vert_sprites = c3_get_vertical_hit(stat, pos, theta, vert_hits);
-
-	if (tan(theta) != 0.0 &&
-		hori_hits[0].distance_sqared < vert_hits[0].distance_sqared)
-	{
-		*out = hori_hits[0];
-		wall_distance = hori_hits[0].distance_sqared;
-	}
-	else
-	{
-		*out = vert_hits[0];
-		wall_distance = vert_hits[0].distance_sqared;
-	}
-
-	hori_index = 0;
-	vert_index = 0;
-	sprites = 0;
-	while (sprites < C3_MAX_COLLINEAR_SPRITES
-		   && (hori_index < hori_sprites || vert_index < vert_sprites))
-	{
-		if (hori_index >= hori_sprites && vert_index < vert_sprites)
-		{
-			if (vert_hits[vert_index + 1].distance_sqared >= wall_distance)
-				vert_index++;
-			else
-				out[sprites++ + 1] = vert_hits[vert_index++ + 1];
-		}
-		else if (hori_index < hori_sprites && vert_index >= vert_sprites)
-		{
-			if (hori_hits[hori_index + 1].distance_sqared >= wall_distance)
-				hori_index++;
-			else
-				out[sprites++ + 1] = hori_hits[hori_index++ + 1];
-		}
-		else if (hori_hits[hori_index + 1].distance_sqared
-				 < vert_hits[vert_index + 1].distance_sqared)
-		{
-			if (hori_hits[vert_index + 1].distance_sqared >= wall_distance)
-				hori_index++;
-			else
-				out[sprites++ + 1] = hori_hits[hori_index++ + 1];
-		}
-		else
-		{
-			if (vert_hits[vert_index + 1].distance_sqared >= wall_distance)
-				vert_index++;
-			else
-				out[sprites++ + 1] = vert_hits[vert_index++ + 1];
-		}
-	}
-	return (sprites);
-}
-
-void	c3_draw_rays_on_map(t_c3_state *stat)
-{
-	double		world_x;
-	double		world_y;
-	double		screen_x;
-	double		screen_y;
-	int			x;
-	int			i;
-
-	x = 0;
-	while (x < stat->renderer.resolution_x)
-	{
-		world_x = stat->renderer.rays[x].hits[0].position.x;
-		world_y = stat->renderer.rays[x].hits[0].position.y;
-		screen_x = world_x * stat->renderer.minimap_width / stat->map.width;
-		screen_y = world_y * stat->renderer.minimap_height / stat->map.height;
-
-		int r = 255 * x / stat->renderer.resolution_x;
-		int col = (r << 16) + ((255 - r) << 0);
-		mlx_string_put(
-			stat->mlx, stat->window, screen_x, screen_y,
-			mlx_get_color_value(stat->mlx, col), "*");
-
-		i = 0;
-		while (i < stat->renderer.rays[x].hit_sprite_count)
-		{
-			world_x = stat->renderer.rays[x].hits[i + 1].position.x;
-			world_y = stat->renderer.rays[x].hits[i + 1].position.y;
-			screen_x = world_x * stat->renderer.minimap_width / stat->map.width;
-			screen_y = world_y * stat->renderer.minimap_height / stat->map.height;
-
-			int r = 255 * x / stat->renderer.resolution_x;
-			int col = (r << 16) + ((255 - r) << 0);
-			mlx_string_put(
-				stat->mlx, stat->window, screen_x, screen_y,
-				mlx_get_color_value(stat->mlx, col), "x");
-			i++;
-		}
-
-		x++;
-	}
 }
 
 void		c3_texture_cache_load(
@@ -788,112 +442,6 @@ void	c3_render_scene(t_c3_state *stat)
 	c3_draw_walls(stat);
 }
 
-void	c3_draw(t_c3_state *stat)
-{
-	c3_render_scene(stat);
-	/* c3_draw_map(stat); */
-
-	mlx_put_image_to_window(stat->mlx, stat->window, stat->img, 0, 0);
-
-	/* c3_draw_rays_on_map(stat); */
-
-	/* mlx_string_put( */
-	/* 	stat->mlx, stat->window, 10, 10, mlx_get_color_value(stat->mlx, 0xffffff), "CUB3D"); */
-}
-
-void	c3_scan(t_c3_state *stat)
-{
-	int	x;
-	int	half_res;
-	int	hit_sprites;
-
-	half_res = stat->renderer.resolution_x / 2;
-	x = -half_res;
-	while (x < half_res)
-	{
-		double a =
-			x * (stat->renderer.plane_distance * tan(stat->renderer.fov))
-			/ half_res;
-		double theta = atan(a / stat->renderer.plane_distance);
-		stat->renderer.rays[x + half_res].angle = theta;
-
-		double angle = theta + stat->player.direction;
-		if (angle >= M_PI * 2)
-			angle -= M_PI * 2;
-		if (angle < 0)
-			angle += M_PI * 2;
-		hit_sprites = c3_cast_ray(
-			stat, &stat->player.position, angle,
-			stat->renderer.rays[x + half_res].hits);
-		stat->renderer.rays[x + half_res].hit_sprite_count = hit_sprites;
-		x++;
-	}
-}
-
-void	c3_update(t_c3_state *stat)
-{
-	if (stat->keystate.left)
-	{
-		stat->player.direction -= stat->player.rotation_speed;
-		while (stat->player.direction < 0)
-			stat->player.direction += M_PI * 2;
-	}
-	else if (stat->keystate.right)
-	{
-		stat->player.direction += stat->player.rotation_speed;
-		while (stat->player.direction >= M_PI * 2)
-			stat->player.direction -= M_PI * 2;
-	}
-
-	if (stat->keystate.w || stat->keystate.s)
-	{
-		double delta_x = stat->player.walk_speed * cos(stat->player.direction);
-		double delta_y = stat->player.walk_speed * sin(stat->player.direction);
-		double new_x = stat->player.position.x + delta_x * (stat->keystate.w ? 1 : -1);
-		double new_y = stat->player.position.y + delta_y * (stat->keystate.w ? 1 : -1);
-		if (new_x >= 0 && new_x < stat->map.width
-			&& new_y >= 0 && new_y < stat->map.height)
-		{
-			stat->player.position.x = new_x;
-			stat->player.position.y = new_y;
-		}
-	}
-
-	if (stat->keystate.a || stat->keystate.d)
-	{
-		double delta_x = stat->player.walk_speed * sin(stat->player.direction);
-		double delta_y = stat->player.walk_speed * -cos(stat->player.direction);
-		double new_x = stat->player.position.x + delta_x * (stat->keystate.a ? 1 : -1);
-		double new_y = stat->player.position.y + delta_y * (stat->keystate.a ? 1 : -1);
-		if (new_x >= 0 && new_x < stat->map.width
-			&& new_y >= 0 && new_y < stat->map.height)
-		{
-			stat->player.position.x = new_x;
-			stat->player.position.y = new_y;
-		}
-	}
-
-	c3_scan(stat);
-}
-
-int		c3_loop_hook(void *param)
-{
-	t_c3_state	*stat;
-	/* static int	current_frame; */
-
-	stat = (t_c3_state*)param;
-
-	/* if (current_frame++ > 1000) */
-	/* { */
-	/* 	c3_terminate(stat); */
-	/* 	exit(0); */
-	/* } */
-
-	c3_update(stat);
-	c3_draw(stat);
-	return (1);
-}
-
 void	c3_texture_cache_init(t_c3_texture_cache *cache, t_c3_scene *scene)
 {
 	int	i;
@@ -1059,56 +607,10 @@ int		c3_init(t_c3_state *stat, t_c3_texture_cache *tex, t_c3_scene *scene)
 	tmp = mlx_do_key_autorepeatoff(stat->mlx);
 	C3_CHECK(tmp, "mlx_do_key_autorepeatoff() returned false.");
 
+	stat->is_drawing_minimap = 0;
+	stat->is_benchmarking = 0;
+	stat->is_showing_screen = 1;
 	return (1);
-}
-
-void	c3_generate_bmp(t_c3_state *stat)
-{
-	t_bitmap_file_header	file_header;
-	t_bitmap_info_header	info_header;
-	size_t					data_size;
-
-	c3_update(stat);
-	c3_draw(stat);
-
-	data_size = stat->screen_height * stat->imgdata.size_line;
-
-	file_header.file_type[0] = 'B';
-	file_header.file_type[1] = 'M';
-
-	c3_bmp_put_int32(
-		&file_header.file_size,
-		sizeof(file_header) + sizeof(info_header) + data_size);
-	c3_bmp_put_int16(&file_header.reserved1, 0);
-	c3_bmp_put_int16(&file_header.reserved2, 0);
-	c3_bmp_put_int32(&file_header.offset, sizeof(file_header) + sizeof(info_header));
-
-	c3_bmp_put_int32(&info_header.header_size, sizeof(info_header));
-
-
-	c3_bmp_put_int32(&info_header.image_width, stat->screen_width);
-	c3_bmp_put_int32(&info_header.image_height, -stat->screen_height);
-
-	c3_bmp_put_int16(&info_header.planes, 1);
-
-	c3_bmp_put_int16(&info_header.bpp, 32);
-	c3_bmp_put_int32(&info_header.compression, 0);
-	c3_bmp_put_int32(&info_header.image_size, data_size);
-	c3_bmp_put_int32(&info_header.resolution_x, 3780);
-	c3_bmp_put_int32(&info_header.resolution_y, 3780);
-	c3_bmp_put_int32(&info_header.num_colors, 0);
-	c3_bmp_put_int32(&info_header.num_important_colors, 0);
-
-	int		fd;
-	fd = open("out.bmp", O_WRONLY | O_CREAT | O_TRUNC, 0644);
-	if (fd < 0)
-	{
-		c3_log("Error\n%s\n", strerror(errno));
-		exit (1);
-	}
-	write(fd, &file_header, sizeof(file_header));
-	write(fd, &info_header, sizeof(info_header));
-	write(fd, stat->imgdata.data, data_size);
 }
 
 int		main(int argc, char **argv)
@@ -1146,7 +648,7 @@ int		main(int argc, char **argv)
 
 	if (argc == 3)
 	{
-		c3_generate_bmp(&stat);
+		c3_bmp_generate(&stat);
 		c3_terminate(&stat);
 	}
 	else
