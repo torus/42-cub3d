@@ -6,7 +6,7 @@
 /*   By: thisai <thisai@student.42tokyo.jp>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/01/13 16:23:13 by thisai            #+#    #+#             */
-/*   Updated: 2021/02/22 20:05:18 by thisai           ###   ########.fr       */
+/*   Updated: 2021/02/22 20:30:39 by thisai           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -312,7 +312,37 @@ unsigned int	c3_wall_texel(
 	return (col);
 }
 
-void	c3_draw_walls(t_c3_state *stat)
+int		c3_render_test_sprite(
+	t_c3_state *stat, t_c3_ray *ray, unsigned int *col, int y)
+{
+	int	i;
+	double	distance;
+	int height;
+	double	v;
+	double	u;
+
+	i = 0;
+	while (i < ray->hit_sprite_count)
+	{
+		distance = sqrt(ray->hits[i + 1].distance_sqared);
+		height = stat->renderer.resolution_y / distance;
+		if (y < (stat->renderer.resolution_y - height) / 2.0
+			|| y >= (stat->renderer.resolution_y + height) / 2.0)
+			break ;
+		v = (y - (stat->renderer.resolution_y - height) / 2.0) / height;
+		u = 0.5 + ray->hits[i + 1].offset * ((int)(distance * 5) % 2 ? -1 : 1);
+		if (u >= 0 && u < 1)
+		{
+			*col = c3_sample_texture(stat, C3_OBJTYPE_SPRITE, u, v);
+			if (*col != C3_TRANSPARENT_COLOR)
+				return (1);
+		}
+		i++;
+	}
+	return (0);
+}
+
+void	c3_render_scene(t_c3_state *stat)
 {
 	int				x;
 	int				y;
@@ -325,69 +355,15 @@ void	c3_draw_walls(t_c3_state *stat)
 	{
 		ray = &stat->renderer.rays[x];
 
-		int wall_height =
-			stat->renderer.resolution_y
+		int wall_height;
+		wall_height = stat->renderer.resolution_y
 			/ (sqrt(ray->hits[0].distance_sqared) * cos(ray->angle));
 
 		y = 0;
 		while (y < stat->renderer.resolution_y)
 		{
-			int	sprites;
-			int	i;
 			int	found_sprite;
-			double	distance;
-
-			found_sprite = 0;
-			sprites = ray->hit_sprite_count;
-			i = 0;
-			while (i < sprites)
-			{
-				distance = sqrt(ray->hits[i + 1].distance_sqared);
-
-				int sprite_height =
-					stat->renderer.resolution_y
-					/ distance;
-
-				if (y < (stat->renderer.resolution_y - sprite_height) / 2.0)
-				{
-					col = mlx_get_color_value(
-						stat->mlx, stat->renderer.ceiling_color);
-					break ;
-				}
-				else if (y >= (stat->renderer.resolution_y + sprite_height) / 2.0)
-				{
-					col = mlx_get_color_value(
-						stat->mlx, stat->renderer.ceiling_color);
-					break ;
-				}
-
-				double	v;
-				v = (y - (stat->renderer.resolution_y - sprite_height) / 2.0) /
-					sprite_height;
-
-				double	offset;
-				offset = ray->hits[i + 1].offset;
-				if ((int)(distance * 5) % 2)
-					offset = -offset;
-
-				double	u;
-				u = offset + 0.5;
-				if (u >= 0 && u < 1)
-				{
-					col = c3_sample_texture(
-						stat,
-						C3_OBJTYPE_SPRITE,
-						u,
-						v);
-					if (col != C3_TRANSPARENT_COLOR)
-					{
-						found_sprite = 1;
-						break ;
-					}
-				}
-
-				i++;
-			}
+			found_sprite = c3_render_test_sprite(stat, ray, &col, y);
 			if (!found_sprite)
 			{
 				if (y < (stat->renderer.resolution_y - wall_height) / 2.0)
@@ -421,11 +397,6 @@ void	c3_draw_walls(t_c3_state *stat)
 
 		x++;
 	}
-}
-
-void	c3_render_scene(t_c3_state *stat)
-{
-	c3_draw_walls(stat);
 }
 
 void	c3_texture_cache_init(t_c3_texture_cache *cache, t_c3_scene *scene)
