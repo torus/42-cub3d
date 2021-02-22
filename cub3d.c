@@ -6,7 +6,7 @@
 /*   By: thisai <thisai@student.42tokyo.jp>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/01/13 16:23:13 by thisai            #+#    #+#             */
-/*   Updated: 2021/02/22 13:30:17 by thisai           ###   ########.fr       */
+/*   Updated: 2021/02/22 17:20:05 by thisai           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,8 +29,6 @@
 #include "cub3d.h"
 #include "cub3d_int.h"
 #include "scene.h"
-
-const int	c3_texture_size = 32;
 
 void	c3_renderer_cleanup(t_c3_renderer *rend)
 {
@@ -263,23 +261,27 @@ void		c3_texture_cache_load(
 		exit(1);
 	}
 	tex->image = image;
+	tex->width = width;
+	tex->height = height;
 	stat->texture_cache->cache[type].data = mlx_get_data_addr(
 		image, &tex->bits_per_pixel, &tex->size_line, &tex->endian);
 }
 
 uint32_t	c3_sample_texture(
-	t_c3_state *stat, t_c3_object_type type, int u, int v)
+	t_c3_state *stat, t_c3_object_type type, double u, double v)
 {
 	uint32_t			texcol;
 	t_c3_texture_cache	*cache;
 	t_c3_texture		*tex;
+	int					index;
 
 	cache = stat->texture_cache;
 	tex = &cache->cache[type];
 	if (!tex->image)
 		c3_texture_cache_load(stat, type);
 
-	int	index = v * tex->size_line + u * tex->bits_per_pixel / 8;
+	index = (int)(v * tex->height) * tex->size_line
+		+ u * tex->width * tex->bits_per_pixel / 8;
 
 	texcol = ((uint32_t*)tex->data)[index / 4];
 
@@ -290,38 +292,37 @@ unsigned int	c3_wall_texel(
 	t_c3_state *stat, t_c3_ray *ray, int wall_height, int y)
 {
 	unsigned int	col;
-	int				v;
+	double			v;
 
-	v = c3_texture_size *
-		(y - (stat->renderer.resolution_y - wall_height) / 2) /
+	v = (y - (stat->renderer.resolution_y - wall_height) / 2.0) /
 		wall_height;
 
 	if (ray->hits[0].type == C3_OBJTYPE_WALL_N)
 		col = c3_sample_texture(
 			stat,
 			C3_OBJTYPE_WALL_N,
-			(int)(ray->hits[0].position.x * c3_texture_size) % c3_texture_size,
+			fmod(ray->hits[0].position.x, 1.0),
 			v);
 
 	else if (ray->hits[0].type == C3_OBJTYPE_WALL_E)
 		col = c3_sample_texture(
 			stat,
 			C3_OBJTYPE_WALL_E,
-			(int)(ray->hits[0].position.y * c3_texture_size) % c3_texture_size,
+			fmod(ray->hits[0].position.y, 1.0),
 			v);
 
 	else if (ray->hits[0].type == C3_OBJTYPE_WALL_S)
 		col = c3_sample_texture(
 			stat,
 			C3_OBJTYPE_WALL_S,
-			c3_texture_size - 1 - (int)(ray->hits[0].position.x * c3_texture_size) % c3_texture_size,
+			1.0 - fmod(ray->hits[0].position.x, 1.0),
 			v);
 
 	else //(ray->hit.type == C3_OBJTYPE_WALL_W)
 		col = c3_sample_texture(
 			stat,
 			C3_OBJTYPE_WALL_W,
-			c3_texture_size - 1 - (int)(ray->hits[0].position.y * c3_texture_size) % c3_texture_size,
+			1.0 - fmod(ray->hits[0].position.y, 1.0),
 			v);
 
 	return (col);
@@ -363,30 +364,31 @@ void	c3_draw_walls(t_c3_state *stat)
 					stat->renderer.resolution_y
 					/ distance;
 
-				if (y < (stat->renderer.resolution_y - sprite_height) / 2)
+				if (y < (stat->renderer.resolution_y - sprite_height) / 2.0)
 				{
 					col = mlx_get_color_value(
 						stat->mlx, stat->renderer.ceiling_color);
 					break ;
 				}
-				else if (y >= (stat->renderer.resolution_y + sprite_height) / 2)
+				else if (y >= (stat->renderer.resolution_y + sprite_height) / 2.0)
 				{
 					col = mlx_get_color_value(
 						stat->mlx, stat->renderer.ceiling_color);
 					break ;
 				}
 
-
-				int v = c3_texture_size *
-					(y - (stat->renderer.resolution_y - sprite_height) / 2) /
+				double	v;
+				v = (y - (stat->renderer.resolution_y - sprite_height) / 2.0) /
 					sprite_height;
 
-				double	offset = ray->hits[i + 1].offset;
+				double	offset;
+				offset = ray->hits[i + 1].offset;
 				if ((int)(distance * 5) % 2)
 					offset = -offset;
 
-				int	u = floor(c3_texture_size * (offset + 0.5));
-				if (u >= 0 && u < c3_texture_size)
+				double	u;
+				u = offset + 0.5;
+				if (u >= 0 && u < 1)
 				{
 					col = c3_sample_texture(
 						stat,
@@ -404,10 +406,10 @@ void	c3_draw_walls(t_c3_state *stat)
 			}
 			if (!found_sprite)
 			{
-				if (y < (stat->renderer.resolution_y - wall_height) / 2)
+				if (y < (stat->renderer.resolution_y - wall_height) / 2.0)
 					col = mlx_get_color_value(
 						stat->mlx, stat->renderer.ceiling_color);
-				else if (y >= (stat->renderer.resolution_y + wall_height) / 2)
+				else if (y >= (stat->renderer.resolution_y + wall_height) / 2.0)
 					col = mlx_get_color_value(
 						stat->mlx, stat->renderer.floor_color);
 				else
