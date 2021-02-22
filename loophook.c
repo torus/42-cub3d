@@ -10,6 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
+#include <stdlib.h>
 #include <math.h>
 #include <mlx.h>
 #include "cub3d.h"
@@ -18,14 +19,13 @@
 void	c3_draw(t_c3_state *stat)
 {
 	c3_render_scene(stat);
-	/* c3_draw_map(stat); */
-
-	mlx_put_image_to_window(stat->mlx, stat->window, stat->img, 0, 0);
-
-	/* c3_draw_rays_on_map(stat); */
-
-	/* mlx_string_put( */
-	/* 	stat->mlx, stat->window, 10, 10, mlx_get_color_value(stat->mlx, 0xffffff), "CUB3D"); */
+	if (stat->is_drawing_minimap)
+	{
+		c3_draw_map(stat);
+		c3_draw_rays_on_map(stat);
+	}
+	if (stat->is_showing_screen)
+		mlx_put_image_to_window(stat->mlx, stat->window, stat->img, 0, 0);
 }
 
 int		c3_cast_ray(
@@ -172,18 +172,15 @@ void	c3_update(t_c3_state *stat)
 int		c3_loop_hook(void *param)
 {
 	t_c3_state	*stat;
-	/* static int	current_frame; */
+	static int	current_frame;
 
 	stat = (t_c3_state*)param;
-
-	/* if (current_frame++ > 1000) */
-	/* { */
-	/* 	c3_terminate(stat); */
-	/* 	exit(0); */
-	/* } */
-
+	if (stat->is_benchmarking && current_frame++ > 1000)
+	{
+		c3_terminate(stat);
+		exit(0);
+	}
 	c3_update(stat);
 	c3_draw(stat);
 	return (1);
 }
-

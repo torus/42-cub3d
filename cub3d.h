@@ -137,6 +137,9 @@ typedef struct	s_c3_state
 	t_c3_map			map;
 	t_c3_texture_cache	*texture_cache;
 	void				*scene;
+	int					is_drawing_minimap;
+	int					is_benchmarking;
+	int					is_showing_screen;
 }		t_c3_state;
 
 #endif

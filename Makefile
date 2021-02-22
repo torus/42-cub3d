@@ -17,7 +17,7 @@ LIBFT_DIR = ../libft/libft
 SRCS = cub3d.c utils.c scene.c bmp.c scene_parser_storage.c			\
 	scene_parser_token.c scene_parser_token2.c scene_parser_color.c	\
 	scene_parser_resolution.c scene_parser_texture.c				\
-	scene_parser_map.c loophook.c ray.c ray2.c
+	scene_parser_map.c loophook.c ray.c ray2.c minimap.c
 
 HEADERS = cub3d.h scene.h scene_int.h
 OBJS = $(SRCS:%.c=%.o)

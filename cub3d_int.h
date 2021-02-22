@@ -80,4 +80,9 @@ int		c3_get_vertical_hit(
 char	c3_query_map(t_c3_state *stat, int x, int y);
 double	c3_distance_squared(t_c3_vector *p1, t_c3_vector *p2);
 
+void	c3_draw_map(t_c3_state *stat);
+void	c3_draw_rays_on_map(t_c3_state *stat);
+
+void	c3_terminate(t_c3_state *stat);
+
 #endif

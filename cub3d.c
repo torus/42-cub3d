@@ -6,7 +6,7 @@
 /*   By: thisai <thisai@student.42tokyo.jp>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/01/13 16:23:13 by thisai            #+#    #+#             */
-/*   Updated: 2021/02/22 12:58:21 by thisai           ###   ########.fr       */
+/*   Updated: 2021/02/22 13:30:17 by thisai           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -241,49 +241,6 @@ double	c3_distance_squared(t_c3_vector *p1, t_c3_vector *p2)
 	dx = p1->x - p2->x;
 	dy = p1->y - p2->y;
 	return (dx * dx + dy * dy);
-}
-
-void	c3_draw_rays_on_map(t_c3_state *stat)
-{
-	double		world_x;
-	double		world_y;
-	double		screen_x;
-	double		screen_y;
-	int			x;
-	int			i;
-
-	x = 0;
-	while (x < stat->renderer.resolution_x)
-	{
-		world_x = stat->renderer.rays[x].hits[0].position.x;
-		world_y = stat->renderer.rays[x].hits[0].position.y;
-		screen_x = world_x * stat->renderer.minimap_width / stat->map.width;
-		screen_y = world_y * stat->renderer.minimap_height / stat->map.height;
-
-		int r = 255 * x / stat->renderer.resolution_x;
-		int col = (r << 16) + ((255 - r) << 0);
-		mlx_string_put(
-			stat->mlx, stat->window, screen_x, screen_y,
-			mlx_get_color_value(stat->mlx, col), "*");
-
-		i = 0;
-		while (i < stat->renderer.rays[x].hit_sprite_count)
-		{
-			world_x = stat->renderer.rays[x].hits[i + 1].position.x;
-			world_y = stat->renderer.rays[x].hits[i + 1].position.y;
-			screen_x = world_x * stat->renderer.minimap_width / stat->map.width;
-			screen_y = world_y * stat->renderer.minimap_height / stat->map.height;
-
-			int r = 255 * x / stat->renderer.resolution_x;
-			int col = (r << 16) + ((255 - r) << 0);
-			mlx_string_put(
-				stat->mlx, stat->window, screen_x, screen_y,
-				mlx_get_color_value(stat->mlx, col), "x");
-			i++;
-		}
-
-		x++;
-	}
 }
 
 void		c3_texture_cache_load(
@@ -650,6 +607,9 @@ int		c3_init(t_c3_state *stat, t_c3_texture_cache *tex, t_c3_scene *scene)
 	tmp = mlx_do_key_autorepeatoff(stat->mlx);
 	C3_CHECK(tmp, "mlx_do_key_autorepeatoff() returned false.");
 
+	stat->is_drawing_minimap = 0;
+	stat->is_benchmarking = 0;
+	stat->is_showing_screen = 1;
 	return (1);
 }
 
