@@ -1,19 +1,23 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   bmp.h                                              :+:      :+:    :+:   */
+/*   cub3d_int.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: thisai <thisai@student.42tokyo.jp>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2021/02/17 14:49:53 by thisai            #+#    #+#             */
-/*   Updated: 2021/02/17 14:49:53 by thisai           ###   ########.fr       */
+/*   Created: 2021/02/22 12:30:44 by thisai            #+#    #+#             */
+/*   Updated: 2021/02/22 12:30:44 by thisai           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef BMP_H
-# define BMP_H
+#ifndef CUB3D_INT_H
+# define CUB3D_INT_H
 
-# include <stdint.h>
+#include <stdint.h>
+#include "cub3d.h"
+
+void	c3_update(t_c3_state *stat);
+void	c3_draw(t_c3_state *stat);
 
 typedef struct s_bitmap_file_header
 {
@@ -41,6 +45,6 @@ typedef struct	s_bitmap_info_header
 
 void	c3_bmp_put_int16(void *dest, int16_t val);
 void	c3_bmp_put_int32(void *dest, int32_t val);
-
+void	c3_bmp_generate(t_c3_state *stat);
 
 #endif
