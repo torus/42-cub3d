@@ -85,4 +85,16 @@ void	c3_draw_rays_on_map(t_c3_state *stat);
 
 void	c3_terminate(t_c3_state *stat);
 
+typedef struct	s_c3_ray_caster
+{
+	t_c3_hit_result	hori_hits[1 + C3_MAX_COLLINEAR_SPRITES];
+	t_c3_hit_result	vert_hits[1 + C3_MAX_COLLINEAR_SPRITES];
+	int				hori_sprites;
+	int				vert_sprites;
+	double			wall_distance;
+}				t_c3_ray_caster;
+
+void	c3_scan(t_c3_state *stat);
+
+
 #endif
