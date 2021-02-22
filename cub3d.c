@@ -6,7 +6,7 @@
 /*   By: thisai <thisai@student.42tokyo.jp>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/01/13 16:23:13 by thisai            #+#    #+#             */
-/*   Updated: 2021/02/22 17:20:05 by thisai           ###   ########.fr       */
+/*   Updated: 2021/02/22 20:05:18 by thisai           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -294,37 +294,21 @@ unsigned int	c3_wall_texel(
 	unsigned int	col;
 	double			v;
 
-	v = (y - (stat->renderer.resolution_y - wall_height) / 2.0) /
-		wall_height;
-
+	v = (y - (stat->renderer.resolution_y - wall_height) / 2.0) / wall_height;
 	if (ray->hits[0].type == C3_OBJTYPE_WALL_N)
 		col = c3_sample_texture(
-			stat,
-			C3_OBJTYPE_WALL_N,
-			fmod(ray->hits[0].position.x, 1.0),
-			v);
-
+			stat, C3_OBJTYPE_WALL_N, fmod(ray->hits[0].position.x, 1.0), v);
 	else if (ray->hits[0].type == C3_OBJTYPE_WALL_E)
 		col = c3_sample_texture(
-			stat,
-			C3_OBJTYPE_WALL_E,
-			fmod(ray->hits[0].position.y, 1.0),
-			v);
-
+			stat, C3_OBJTYPE_WALL_E, fmod(ray->hits[0].position.y, 1.0), v);
 	else if (ray->hits[0].type == C3_OBJTYPE_WALL_S)
 		col = c3_sample_texture(
-			stat,
-			C3_OBJTYPE_WALL_S,
-			1.0 - fmod(ray->hits[0].position.x, 1.0),
-			v);
-
-	else //(ray->hit.type == C3_OBJTYPE_WALL_W)
+			stat, C3_OBJTYPE_WALL_S,
+			1.0 - fmod(ray->hits[0].position.x, 1.0), v);
+	else
 		col = c3_sample_texture(
-			stat,
-			C3_OBJTYPE_WALL_W,
-			1.0 - fmod(ray->hits[0].position.y, 1.0),
-			v);
-
+			stat, C3_OBJTYPE_WALL_W,
+			1.0 - fmod(ray->hits[0].position.y, 1.0), v);
 	return (col);
 }
 
