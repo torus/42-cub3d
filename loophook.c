@@ -28,69 +28,87 @@ void	c3_draw(t_c3_state *stat)
 		mlx_put_image_to_window(stat->mlx, stat->window, stat->img, 0, 0);
 }
 
-int		c3_cast_ray(
-	t_c3_state *stat, t_c3_vector *pos, double theta, t_c3_hit_result *out)
+typedef struct	s_c3_ray_caster
 {
 	t_c3_hit_result	hori_hits[1 + C3_MAX_COLLINEAR_SPRITES];
 	t_c3_hit_result	vert_hits[1 + C3_MAX_COLLINEAR_SPRITES];
 	int				hori_sprites;
 	int				vert_sprites;
+	/* int				hori_index; */
+	/* int				vert_index; */
+	/* int				sprites; */
+	double			wall_distance;
+}				t_c3_ray_caster;
+
+int		c3_cast_ray_to_sprites(t_c3_ray_caster *caster, t_c3_hit_result *out)
+{
 	int				hori_index;
 	int				vert_index;
 	int				sprites;
-	double			wall_distance;
-
-	hori_sprites = tan(theta) != 0.0 ? c3_get_horizontal_hit(stat, pos, theta, hori_hits) : 0;
-	vert_sprites = c3_get_vertical_hit(stat, pos, theta, vert_hits);
-
-	if (tan(theta) != 0.0 &&
-		hori_hits[0].distance_sqared < vert_hits[0].distance_sqared)
-	{
-		*out = hori_hits[0];
-		wall_distance = hori_hits[0].distance_sqared;
-	}
-	else
-	{
-		*out = vert_hits[0];
-		wall_distance = vert_hits[0].distance_sqared;
-	}
 
 	hori_index = 0;
 	vert_index = 0;
 	sprites = 0;
 	while (sprites < C3_MAX_COLLINEAR_SPRITES
-		   && (hori_index < hori_sprites || vert_index < vert_sprites))
+		   && (hori_index < caster->hori_sprites || vert_index < caster->vert_sprites))
 	{
-		if (hori_index >= hori_sprites && vert_index < vert_sprites)
+		if (hori_index >= caster->hori_sprites && vert_index < caster->vert_sprites)
 		{
-			if (vert_hits[vert_index + 1].distance_sqared >= wall_distance)
+			if (caster->vert_hits[vert_index + 1].distance_sqared >= caster->wall_distance)
 				vert_index++;
 			else
-				out[sprites++ + 1] = vert_hits[vert_index++ + 1];
+				out[sprites++ + 1] = caster->vert_hits[vert_index++ + 1];
 		}
-		else if (hori_index < hori_sprites && vert_index >= vert_sprites)
+		else if (hori_index < caster->hori_sprites && vert_index >= caster->vert_sprites)
 		{
-			if (hori_hits[hori_index + 1].distance_sqared >= wall_distance)
+			if (caster->hori_hits[hori_index + 1].distance_sqared >= caster->wall_distance)
 				hori_index++;
 			else
-				out[sprites++ + 1] = hori_hits[hori_index++ + 1];
+				out[sprites++ + 1] = caster->hori_hits[hori_index++ + 1];
 		}
-		else if (hori_hits[hori_index + 1].distance_sqared
-				 < vert_hits[vert_index + 1].distance_sqared)
+		else if (caster->hori_hits[hori_index + 1].distance_sqared
+				 < caster->vert_hits[vert_index + 1].distance_sqared)
 		{
-			if (hori_hits[vert_index + 1].distance_sqared >= wall_distance)
+			if (caster->hori_hits[vert_index + 1].distance_sqared >= caster->wall_distance)
 				hori_index++;
 			else
-				out[sprites++ + 1] = hori_hits[hori_index++ + 1];
+				out[sprites++ + 1] = caster->hori_hits[hori_index++ + 1];
 		}
 		else
 		{
-			if (vert_hits[vert_index + 1].distance_sqared >= wall_distance)
+			if (caster->vert_hits[vert_index + 1].distance_sqared >= caster->wall_distance)
 				vert_index++;
 			else
-				out[sprites++ + 1] = vert_hits[vert_index++ + 1];
+				out[sprites++ + 1] = caster->vert_hits[vert_index++ + 1];
 		}
 	}
+	return (sprites);
+}
+
+int		c3_cast_ray(
+	t_c3_state *stat, t_c3_vector *pos, double theta, t_c3_hit_result *out)
+{
+	t_c3_ray_caster	caster;
+	int				sprites;
+
+	caster.hori_sprites = tan(theta) != 0.0
+		? c3_get_horizontal_hit(stat, pos, theta, caster.hori_hits) : 0;
+	caster.vert_sprites = c3_get_vertical_hit(
+		stat, pos, theta, caster.vert_hits);
+
+	if (tan(theta) != 0.0 &&
+		caster.hori_hits[0].distance_sqared
+		< caster.vert_hits[0].distance_sqared)
+	{
+		*out = caster.hori_hits[0];
+		caster.wall_distance = caster.hori_hits[0].distance_sqared;
+	}
+	else
+	{
+		*out = caster.vert_hits[0];
+		caster.wall_distance = caster.vert_hits[0].distance_sqared;
+	}
+	sprites = c3_cast_ray_to_sprites(&caster, out);
 	return (sprites);
 }
 
