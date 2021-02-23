@@ -6,7 +6,7 @@
 /*   By: thisai <thisai@student.42tokyo.jp>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/01/13 16:23:13 by thisai            #+#    #+#             */
-/*   Updated: 2021/02/23 17:14:59 by thisai           ###   ########.fr       */
+/*   Updated: 2021/02/23 18:03:22 by thisai           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -338,57 +338,67 @@ int		c3_render_test_sprite(
 	return (0);
 }
 
+void	c3_render_fill_pixel(t_c3_state *stat, int x, int y, uint32_t col)
+{
+	int	screen_y;
+	int	screen_x;
+	int	index;
+
+	screen_y = y * stat->screen_height / stat->renderer.resolution_y;
+	while (screen_y < (y + 1) * stat->screen_height / stat->renderer.resolution_y)
+	{
+
+		for (screen_x = stat->screen_width * x / stat->renderer.resolution_x;
+			 screen_x < stat->screen_width * (x + 1) / stat->renderer.resolution_x;
+			 screen_x++)
+		{
+			index =
+				screen_y * stat->imgdata.size_line +
+				screen_x * stat->imgdata.bits_per_pixel / 8;
+			((uint32_t*)stat->imgdata.data)[index / 4] = col;
+		}
+		screen_y++;
+	}
+}
+
+uint32_t	c3_render_get_wall_pixel(
+	t_c3_state *stat, int wall_height, int y, t_c3_ray *ray)
+{
+	uint32_t	col;
+
+	if (y < (stat->renderer.resolution_y - wall_height) / 2.0)
+		col = mlx_get_color_value(
+			stat->mlx, stat->renderer.ceiling_color);
+	else if (y >= (stat->renderer.resolution_y + wall_height) / 2.0)
+		col = mlx_get_color_value(
+			stat->mlx, stat->renderer.floor_color);
+	else
+		col = c3_wall_texel(stat, ray, wall_height, y);
+	return (col);
+}
+
 void	c3_render_scene(t_c3_state *stat)
 {
 	int				x;
 	int				y;
 	t_c3_ray		*ray;
 	unsigned int	col;
-	int				screen_y;
+	int				wall_height;
 
 	x = 0;
 	while (x < stat->renderer.resolution_x)
 	{
 		ray = &stat->renderer.rays[x];
-
-		int wall_height;
 		wall_height = stat->renderer.resolution_y
 			/ (sqrt(ray->hits[0].distance_sqared) * cos(ray->angle));
-
 		y = 0;
 		while (y < stat->renderer.resolution_y)
 		{
 			if (!c3_render_test_sprite(stat, ray, &col, y))
-			{
-				if (y < (stat->renderer.resolution_y - wall_height) / 2.0)
-					col = mlx_get_color_value(
-						stat->mlx, stat->renderer.ceiling_color);
-				else if (y >= (stat->renderer.resolution_y + wall_height) / 2.0)
-					col = mlx_get_color_value(
-						stat->mlx, stat->renderer.floor_color);
-				else
-					col = c3_wall_texel(stat, ray, wall_height, y);
-			}
-
-			screen_y = y * stat->screen_height / stat->renderer.resolution_y;
-			while (screen_y < (y + 1) * stat->screen_height / stat->renderer.resolution_y)
-			{
-
-				for (int screen_x = stat->screen_width * x / stat->renderer.resolution_x;
-					 screen_x < stat->screen_width * (x + 1) / stat->renderer.resolution_x;
-					 screen_x++)
-				{
-					int index =
-						screen_y * stat->imgdata.size_line +
-						screen_x * stat->imgdata.bits_per_pixel / 8;
-
-					((uint32_t*)stat->imgdata.data)[index / 4] = col;
-				}
-				screen_y++;
-			}
+				col = c3_render_get_wall_pixel(stat, wall_height, y, ray);
+			c3_render_fill_pixel(stat, x, y, col);
 			y++;
 		}
-
 		x++;
 	}
 }
@@ -414,7 +424,6 @@ int		c3_focusin_hook(void *param)
 	stat = (t_c3_state*)param;
 	tmp = mlx_do_key_autorepeatoff(stat->mlx);
 	C3_CHECK(tmp, "mlx_do_key_autorepeatoff() returned false.");
-
 	return (1);
 }
 
@@ -426,7 +435,6 @@ int		c3_focusout_hook(void *param)
 	stat = (t_c3_state*)param;
 	tmp = mlx_do_key_autorepeaton(stat->mlx);
 	C3_CHECK(tmp, "mlx_do_key_autorepeatoff() returned false.");
-
 	return (1);
 }
 
@@ -564,6 +572,26 @@ int		c3_init(t_c3_state *stat, t_c3_texture_cache *tex, t_c3_scene *scene)
 	return (1);
 }
 
+int		c3_read_scene(t_c3_scene *scene, const char *path)
+{
+	t_c3_scene_parser	buf;
+	t_c3_file			file;
+
+	buf.container.file = &file;
+	if (!c3_scene_parser_init_with_file(&buf, path))
+	{
+		c3_log("Error\n%s\n", buf.error);
+		return (0);
+	}
+	c3_scene_init(scene);
+	if (c3_scene_parse(scene, &buf) != C3_PARSE_SUCCESS)
+	{
+		c3_log("Error\n%s\n", buf.error);
+		return (0);
+	}
+	return (1);
+}
+
 int		main(int argc, char **argv)
 {
 	t_c3_state			stat;
@@ -575,30 +603,11 @@ int		main(int argc, char **argv)
 		c3_log("Error\nusage: cub3d scene.cub [--save]\n");
 		return (1);
 	}
-
-	t_c3_scene_parser	buf;
-	int					result;
-	t_c3_file			file;
-
-	buf.container.file = &file;
-	result = c3_scene_parser_init_with_file(&buf, argv[1]);
-	if (!result)
-	{
-		c3_log("Error\n%s\n", buf.error);
-		return (1);
-	}
-
-	c3_scene_init(&scene);
-	if (c3_scene_parse(&scene, &buf) != C3_PARSE_SUCCESS)
-	{
-		c3_log("Error\n%s\n", buf.error);
-		return (1);
-	}
-
+	c3_read_scene(&scene, argv[1]);
 	c3_init(&stat, &tex, &scene);
-
 	if (argc == 3)
 	{
+		stat.is_showing_screen = 0;
 		c3_bmp_generate(&stat);
 		c3_terminate(&stat);
 	}
