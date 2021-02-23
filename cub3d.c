@@ -6,7 +6,7 @@
 /*   By: thisai <thisai@student.42tokyo.jp>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/01/13 16:23:13 by thisai            #+#    #+#             */
-/*   Updated: 2021/02/22 20:30:39 by thisai           ###   ########.fr       */
+/*   Updated: 2021/02/23 17:14:59 by thisai           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -253,7 +253,6 @@ void		c3_texture_cache_load(
 	tex = &stat->texture_cache->cache[type];
 	path = stat->texture_cache->path[type];
 	image = mlx_xpm_file_to_image(stat->mlx, path, &width, &height);
-
 	if (!image)
 	{
 		c3_log("Error\ntexture not found.\n");
@@ -279,12 +278,9 @@ uint32_t	c3_sample_texture(
 	tex = &cache->cache[type];
 	if (!tex->image)
 		c3_texture_cache_load(stat, type);
-
 	index = (int)(v * tex->height) * tex->size_line
 		+ u * tex->width * tex->bits_per_pixel / 8;
-
 	texcol = ((uint32_t*)tex->data)[index / 4];
-
 	return (texcol);
 }
 
@@ -362,9 +358,7 @@ void	c3_render_scene(t_c3_state *stat)
 		y = 0;
 		while (y < stat->renderer.resolution_y)
 		{
-			int	found_sprite;
-			found_sprite = c3_render_test_sprite(stat, ray, &col, y);
-			if (!found_sprite)
+			if (!c3_render_test_sprite(stat, ray, &col, y))
 			{
 				if (y < (stat->renderer.resolution_y - wall_height) / 2.0)
 					col = mlx_get_color_value(
