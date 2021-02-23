@@ -6,7 +6,7 @@
 /*   By: thisai <thisai@student.42tokyo.jp>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/01/13 16:23:13 by thisai            #+#    #+#             */
-/*   Updated: 2021/02/23 18:52:56 by thisai           ###   ########.fr       */
+/*   Updated: 2021/02/23 19:25:20 by thisai           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,7 +50,7 @@ void	c3_map_init(t_c3_map *map, t_c3_scene *scene)
 		if (ch != ' ' && ch != '0' && ch != '1' && ch != '2' &&
 			ch != 'N' && ch != 'E' && ch != 'S' && ch != 'W')
 		{
-			c3_log("Error\nInvalid map.\n");
+			C3_LOG("Error\nInvalid map.\n");
 			exit(1);
 		}
 		i++;
@@ -83,7 +83,7 @@ int		c3_player_set_initial_position(t_c3_player *player, t_c3_map *map)
 		{
 			if (init_pos_found)
 			{
-				c3_log("Error\nMultiple start position contained in the map\n");
+				C3_LOG("Error\nMultiple start position contained in the map\n");
 				exit(1);
 			}
 			init_pos_found = 1;
@@ -103,7 +103,7 @@ void	c3_player_init(t_c3_player *player, t_c3_map *map)
 	init_pos_found = c3_player_set_initial_position(player, map);
 	if (!init_pos_found)
 	{
-		c3_log("Error\nStart position not found in the map\n");
+		C3_LOG("Error\nStart position not found in the map\n");
 		exit(1);
 	}
 	player->walk_speed = 0.01;
@@ -139,7 +139,7 @@ void	c3_check(int64_t val, const char *message)
 {
 	if (!val)
 	{
-		c3_log("Error\nCheck failed: %s\n", message);
+		C3_LOG("Error\nCheck failed: %s\n", message);
 		exit(1);
 	}
 }
@@ -150,7 +150,7 @@ void	c3_terminate(t_c3_state *stat)
 	int	i;
 
 	tmp = mlx_do_key_autorepeaton(stat->mlx);
-	C3_CHECK(tmp, "mlx_do_key_autorepeaton() returned false.");
+	c3_check(!!tmp, "mlx_do_key_autorepeaton() returned false.");
 	mlx_destroy_window(stat->mlx, stat->window);
 	if (stat->img)
 		mlx_destroy_image(stat->mlx, stat->img);
@@ -253,7 +253,7 @@ void		c3_texture_cache_load(
 	image = mlx_xpm_file_to_image(stat->mlx, path, &width, &height);
 	if (!image)
 	{
-		c3_log("Error\ntexture not found.\n");
+		C3_LOG("Error\ntexture not found.\n");
 		c3_terminate(stat);
 		exit(1);
 	}
@@ -423,7 +423,7 @@ int		c3_focusin_hook(void *param)
 
 	stat = (t_c3_state*)param;
 	tmp = mlx_do_key_autorepeatoff(stat->mlx);
-	C3_CHECK(tmp, "mlx_do_key_autorepeatoff() returned false.");
+	c3_check(!!tmp, "mlx_do_key_autorepeatoff() returned false.");
 	return (1);
 }
 
@@ -434,7 +434,7 @@ int		c3_focusout_hook(void *param)
 
 	stat = (t_c3_state*)param;
 	tmp = mlx_do_key_autorepeaton(stat->mlx);
-	C3_CHECK(tmp, "mlx_do_key_autorepeatoff() returned false.");
+	c3_check(!!tmp, "mlx_do_key_autorepeatoff() returned false.");
 	return (1);
 }
 
@@ -467,7 +467,7 @@ void	c3_check_map_closed_iter(t_c3_state *stat, int x, int y)
 		}
 		return ;
 	}
-	c3_log("Error\nThe map is not closed.\n");
+	C3_LOG("Error\nThe map is not closed.\n");
 	exit(1);
 }
 
@@ -495,27 +495,27 @@ void	c3_check_map_closed(t_c3_state *stat, int x, int y)
 
 void	c3_init_hooks(t_c3_state *stat)
 {
-	C3_CHECK(
+	c3_check(!!
 		mlx_key_hook(stat->window, c3_key_release_hook, stat),
 		"mlx_key_hook() returned false.");
-	C3_CHECK(
+	c3_check(!!
 		mlx_hook(stat->window, KeyPress, KeyPressMask, c3_key_press_hook, stat),
 		"mlx_hook() returned false.");
-	C3_CHECK(
+	c3_check(!!
 		mlx_hook(stat->window, FocusIn, FocusChangeMask, c3_focusin_hook, stat),
 		"mlx_hook() returned false.");
-	C3_CHECK(
+	c3_check(!!
 		mlx_hook(
 			stat->window, FocusOut, FocusChangeMask, c3_focusout_hook, stat),
 		"mlx_hook() returned false.");
-	C3_CHECK(
+	c3_check(!!
 		mlx_hook(
 			stat->window, ClientMessage, NoEventMask, c3_client_hook, stat),
 		"mlx_hook() returned false.");
-	C3_CHECK(
+	c3_check(!!
 		mlx_loop_hook(stat->mlx, c3_loop_hook, stat),
 		"mlx_loop_hook() returned false.");
-	C3_CHECK(
+	c3_check(!!
 		mlx_do_key_autorepeatoff(stat->mlx),
 		"mlx_do_key_autorepeatoff() returned false.");
 }
@@ -536,7 +536,7 @@ void	c3_init_render_target(t_c3_state *stat)
 {
 	stat->img = mlx_new_image(
 		stat->mlx, stat->screen_width, stat->screen_height);
-	C3_CHECK(stat->img, "mlx_new_image() returned NULL.");
+	c3_check(!!stat->img, "mlx_new_image() returned NULL.");
 	stat->imgdata.data = mlx_get_data_addr(
 		stat->img, &stat->imgdata.bits_per_pixel,
 		&stat->imgdata.size_line, &stat->imgdata.endian);
@@ -550,13 +550,13 @@ void	c3_init(t_c3_state *stat, t_c3_texture_cache *tex, t_c3_scene *scene)
 	c3_player_init(&stat->player, &stat->map);
 	c3_check_map_closed(stat, stat->player.position.x, stat->player.position.y);
 	stat->mlx = mlx_init();
-	C3_CHECK(stat->mlx, "mlx is NULL.");
+	c3_check(!!stat->mlx, "mlx is NULL.");
 	c3_init_set_screen_size(stat, scene);
 	c3_renderer_init(
 		&stat->renderer, scene, stat->map.width * 8, stat->map.height * 8);
 	stat->window = mlx_new_window(
 		stat->mlx, stat->screen_width, stat->screen_height, "Cub3D!");
-	C3_CHECK(stat->window, "window is NULL.");
+	c3_check(!!stat->window, "window is NULL.");
 	c3_init_render_target(stat);
 	c3_texture_cache_init(tex, scene);
 	stat->texture_cache = tex;
@@ -574,13 +574,13 @@ int		c3_read_scene(t_c3_scene *scene, const char *path)
 	buf.container.file = &file;
 	if (!c3_scene_parser_init_with_file(&buf, path))
 	{
-		c3_log("Error\n%s\n", buf.error);
+		C3_LOG("Error\n%s\n", buf.error);
 		return (0);
 	}
 	c3_scene_init(scene);
 	if (c3_scene_parse(scene, &buf) != C3_PARSE_SUCCESS)
 	{
-		c3_log("Error\n%s\n", buf.error);
+		C3_LOG("Error\n%s\n", buf.error);
 		return (0);
 	}
 	return (1);
@@ -594,7 +594,7 @@ int		main(int argc, char **argv)
 
 	if (argc < 2 || argc > 3)
 	{
-		c3_log("Error\nusage: cub3d scene.cub [--save]\n");
+		C3_LOG("Error\nusage: cub3d scene.cub [--save]\n");
 		return (1);
 	}
 	c3_read_scene(&scene, argv[1]);

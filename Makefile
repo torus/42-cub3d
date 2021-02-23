@@ -14,7 +14,7 @@ MLX_INC = ../minilibx-linux
 MLX_LIB = ../minilibx-linux
 LIBFT_DIR = ../libft/libft
 
-SRCS = cub3d.c utils.c scene.c bmp.c scene_parser_storage.c			\
+SRCS = cub3d.c scene.c bmp.c scene_parser_storage.c					\
 	scene_parser_token.c scene_parser_token2.c scene_parser_color.c	\
 	scene_parser_resolution.c scene_parser_texture.c				\
 	scene_parser_map.c loophook.c ray.c ray2.c ray3.c minimap.c

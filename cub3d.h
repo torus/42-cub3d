@@ -13,11 +13,9 @@
 #ifndef CUB3D_H
 # define CUB3D_H
 
-# define C3_CHECK(val, mesg) c3_check((int64_t)val, mesg)
 # define C3_MAX_COLLINEAR_SPRITES 10
 # define C3_TRANSPARENT_COLOR 0x00ffffff
-
-# define c3_log printf
+# define C3_LOG printf
 
 typedef struct	s_c3_imgdata
 {
@@ -102,9 +100,9 @@ typedef struct	s_c3_map
 	int			height;
 }				t_c3_map;
 
-#define C3_MAP_SYMBOL_EMPTY 0
-#define C3_MAP_SYMBOL_WALL 1
-#define C3_MAP_SYMBOL_SPRITE 2
+# define C3_MAP_SYMBOL_EMPTY 0
+# define C3_MAP_SYMBOL_WALL 1
+# define C3_MAP_SYMBOL_SPRITE 2
 
 typedef struct	s_c3_texture
 {

@@ -13,8 +13,8 @@
 #ifndef CUB3D_INT_H
 # define CUB3D_INT_H
 
-#include <stdint.h>
-#include "cub3d.h"
+# include <stdint.h>
+# include "cub3d.h"
 
 void		c3_update(t_c3_state *stat);
 void		c3_draw(t_c3_state *stat);
