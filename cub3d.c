@@ -6,7 +6,7 @@
 /*   By: thisai <thisai@student.42tokyo.jp>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/01/13 16:23:13 by thisai            #+#    #+#             */
-/*   Updated: 2021/02/23 18:03:22 by thisai           ###   ########.fr       */
+/*   Updated: 2021/02/23 18:52:56 by thisai           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,7 +44,7 @@ void	c3_map_init(t_c3_map *map, t_c3_scene *scene)
 	map->width = scene->map_width;
 	map->height = scene->map_height;
 	i = 0;
-	while(i < map->width * map->height)
+	while (i < map->width * map->height)
 	{
 		ch = map->map[i];
 		if (ch != ' ' && ch != '0' && ch != '1' && ch != '2' &&
@@ -76,7 +76,7 @@ int		c3_player_set_initial_position(t_c3_player *player, t_c3_map *map)
 
 	init_pos_found = 0;
 	i = 0;
-	while(i < map->width * map->height)
+	while (i < map->width * map->height)
 	{
 		ch = map->map[i];
 		if (ch == 'N' || ch == 'S' || ch == 'E' || ch == 'W')
@@ -147,6 +147,7 @@ void	c3_check(int64_t val, const char *message)
 void	c3_terminate(t_c3_state *stat)
 {
 	int	tmp;
+	int	i;
 
 	tmp = mlx_do_key_autorepeaton(stat->mlx);
 	C3_CHECK(tmp, "mlx_do_key_autorepeaton() returned false.");
@@ -155,7 +156,6 @@ void	c3_terminate(t_c3_state *stat)
 		mlx_destroy_image(stat->mlx, stat->img);
 	mlx_loop_end(stat->mlx);
 	c3_renderer_cleanup(&stat->renderer);
-	int	i;
 	i = 0;
 	while (i < C3_OBJTYPE_NUM)
 	{
@@ -210,25 +210,23 @@ int		c3_key_release_hook(int key, void *param)
 		stat->keystate.left = 0;
 	else if (key == XK_Right)
 		stat->keystate.right = 0;
+	else if (key == XK_Tab)
+		stat->is_drawing_minimap = !stat->is_drawing_minimap;
 	return (1);
 }
 
 char	c3_query_map(t_c3_state *stat, int x, int y)
 {
-	char ch = stat->map.map[y * stat->map.width + x];
+	char ch;
 
-	switch (ch)
-	{
-	case '1':
-		return 1;
-	case '0':
-		return 0;
-	case '2':
-		return 2;
-	default:
-		return 0;
-	}
-	/* return stat->map.map[y * stat->map.width + x]; */
+	ch = stat->map.map[y * stat->map.width + x];
+	if (ch == '1')
+		return (1);
+	else if (ch == '0')
+		return (0);
+	else if (ch == '2')
+		return (2);
+	return (0);
 }
 
 double	c3_distance_squared(t_c3_vector *p1, t_c3_vector *p2)
@@ -311,9 +309,9 @@ unsigned int	c3_wall_texel(
 int		c3_render_test_sprite(
 	t_c3_state *stat, t_c3_ray *ray, unsigned int *col, int y)
 {
-	int	i;
+	int		i;
 	double	distance;
-	int height;
+	int		height;
 	double	v;
 	double	u;
 
@@ -345,17 +343,19 @@ void	c3_render_fill_pixel(t_c3_state *stat, int x, int y, uint32_t col)
 	int	index;
 
 	screen_y = y * stat->screen_height / stat->renderer.resolution_y;
-	while (screen_y < (y + 1) * stat->screen_height / stat->renderer.resolution_y)
+	while (
+		screen_y < (y + 1) * stat->screen_height / stat->renderer.resolution_y)
 	{
-
-		for (screen_x = stat->screen_width * x / stat->renderer.resolution_x;
-			 screen_x < stat->screen_width * (x + 1) / stat->renderer.resolution_x;
-			 screen_x++)
+		screen_x = stat->screen_width * x / stat->renderer.resolution_x;
+		while (
+			screen_x <
+			stat->screen_width * (x + 1) / stat->renderer.resolution_x)
 		{
 			index =
 				screen_y * stat->imgdata.size_line +
 				screen_x * stat->imgdata.bits_per_pixel / 8;
 			((uint32_t*)stat->imgdata.data)[index / 4] = col;
+			screen_x++;
 		}
 		screen_y++;
 	}
@@ -460,10 +460,10 @@ void	c3_check_map_closed_iter(t_c3_state *stat, int x, int y)
 				stat->map.map[y * stat->map.width + x] = 'o';
 			else
 				stat->map.map[y * stat->map.width + x] = 'x';
-			c3_check_map_closed_iter(stat, x    , y - 1);
-			c3_check_map_closed_iter(stat, x + 1, y    );
-			c3_check_map_closed_iter(stat, x    , y + 1);
-			c3_check_map_closed_iter(stat, x - 1, y    );
+			c3_check_map_closed_iter(stat, x, y - 1);
+			c3_check_map_closed_iter(stat, x + 1, y);
+			c3_check_map_closed_iter(stat, x, y + 1);
+			c3_check_map_closed_iter(stat, x - 1, y);
 		}
 		return ;
 	}
@@ -493,83 +493,77 @@ void	c3_check_map_closed(t_c3_state *stat, int x, int y)
 	}
 }
 
-int		c3_init(t_c3_state *stat, t_c3_texture_cache *tex, t_c3_scene *scene)
+void	c3_init_hooks(t_c3_state *stat)
 {
-	int		tmp;
+	C3_CHECK(
+		mlx_key_hook(stat->window, c3_key_release_hook, stat),
+		"mlx_key_hook() returned false.");
+	C3_CHECK(
+		mlx_hook(stat->window, KeyPress, KeyPressMask, c3_key_press_hook, stat),
+		"mlx_hook() returned false.");
+	C3_CHECK(
+		mlx_hook(stat->window, FocusIn, FocusChangeMask, c3_focusin_hook, stat),
+		"mlx_hook() returned false.");
+	C3_CHECK(
+		mlx_hook(
+			stat->window, FocusOut, FocusChangeMask, c3_focusout_hook, stat),
+		"mlx_hook() returned false.");
+	C3_CHECK(
+		mlx_hook(
+			stat->window, ClientMessage, NoEventMask, c3_client_hook, stat),
+		"mlx_hook() returned false.");
+	C3_CHECK(
+		mlx_loop_hook(stat->mlx, c3_loop_hook, stat),
+		"mlx_loop_hook() returned false.");
+	C3_CHECK(
+		mlx_do_key_autorepeatoff(stat->mlx),
+		"mlx_do_key_autorepeatoff() returned false.");
+}
+
+void	c3_init_set_screen_size(t_c3_state *stat, t_c3_scene *scene)
+{
 	int		width;
 	int		height;
 
-	stat->scene = scene;
-	c3_map_init(&stat->map, scene);
-
-	c3_keystate_init(&stat->keystate);
-	c3_player_init(&stat->player, &stat->map);
-
-	c3_check_map_closed(stat, stat->player.position.x, stat->player.position.y);
-
-	stat->mlx = mlx_init();
-	C3_CHECK(stat->mlx, "mlx is NULL.");
-
 	mlx_get_screen_size(stat->mlx, &width, &height);
-	stat->screen_width = width > scene->resolution.x ? scene->resolution.x : width;
-	stat->screen_height = height > scene->resolution.y ? scene->resolution.y : height;
+	stat->screen_width = width > scene->resolution.x
+		? scene->resolution.x : width;
+	stat->screen_height = height > scene->resolution.y
+		? scene->resolution.y : height;
+}
 
-	c3_renderer_init(&stat->renderer, scene, stat->map.width * 8, stat->map.height * 8);
-
-	stat->window = mlx_new_window(
-		stat->mlx, stat->screen_width, stat->screen_height, "Cub3D!");
-	C3_CHECK(stat->window, "window is NULL.");
-
-
-	tmp = mlx_key_hook(stat->window, c3_key_release_hook, stat);
-	C3_CHECK(tmp, "mlx_key_hook() returned false.");
-
-	tmp = mlx_hook(
-		stat->window, KeyPress,
-		KeyPressMask,
-		c3_key_press_hook, stat);
-	C3_CHECK(tmp, "mlx_hook() returned false.");
-
-	tmp = mlx_hook(
-		stat->window, FocusIn,
-		FocusChangeMask,
-		c3_focusin_hook, stat);
-	C3_CHECK(tmp, "mlx_hook() returned false.");
-
-	tmp = mlx_hook(
-		stat->window, FocusOut,
-		FocusChangeMask,
-		c3_focusout_hook, stat);
-	C3_CHECK(tmp, "mlx_hook() returned false.");
-
-	tmp = mlx_hook(
-		stat->window, ClientMessage,
-		NoEventMask,
-		c3_client_hook, stat);
-	C3_CHECK(tmp, "mlx_hook() returned false.");
-
+void	c3_init_render_target(t_c3_state *stat)
+{
 	stat->img = mlx_new_image(
 		stat->mlx, stat->screen_width, stat->screen_height);
 	C3_CHECK(stat->img, "mlx_new_image() returned NULL.");
 	stat->imgdata.data = mlx_get_data_addr(
-		stat->img,
-		&stat->imgdata.bits_per_pixel,
-		&stat->imgdata.size_line,
-		&stat->imgdata.endian);
+		stat->img, &stat->imgdata.bits_per_pixel,
+		&stat->imgdata.size_line, &stat->imgdata.endian);
+}
 
-	tmp = mlx_loop_hook(stat->mlx, c3_loop_hook, stat);
-	C3_CHECK(tmp, "mlx_loop_hook() returned false.");
-
+void	c3_init(t_c3_state *stat, t_c3_texture_cache *tex, t_c3_scene *scene)
+{
+	stat->scene = scene;
+	c3_map_init(&stat->map, scene);
+	c3_keystate_init(&stat->keystate);
+	c3_player_init(&stat->player, &stat->map);
+	c3_check_map_closed(stat, stat->player.position.x, stat->player.position.y);
+	stat->mlx = mlx_init();
+	C3_CHECK(stat->mlx, "mlx is NULL.");
+	c3_init_set_screen_size(stat, scene);
+	c3_renderer_init(
+		&stat->renderer, scene, stat->map.width * 8, stat->map.height * 8);
+	stat->window = mlx_new_window(
+		stat->mlx, stat->screen_width, stat->screen_height, "Cub3D!");
+	C3_CHECK(stat->window, "window is NULL.");
+	c3_init_render_target(stat);
 	c3_texture_cache_init(tex, scene);
 	stat->texture_cache = tex;
-
-	tmp = mlx_do_key_autorepeatoff(stat->mlx);
-	C3_CHECK(tmp, "mlx_do_key_autorepeatoff() returned false.");
-
+	c3_init_hooks(stat);
 	stat->is_drawing_minimap = 0;
 	stat->is_benchmarking = 0;
 	stat->is_showing_screen = 1;
-	return (1);
 }
 
 int		c3_read_scene(t_c3_scene *scene, const char *path)
