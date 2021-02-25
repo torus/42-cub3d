@@ -68,13 +68,6 @@ int		c3_check_sprite(
 	return (0);
 }
 
-double	c3_dot(t_c3_vector *origin, t_c3_vector *a, t_c3_vector *b)
-{
-	return (
-		(a->x - origin->x) * (b->x - origin->x)
-		+ (a->y - origin->y) * (b->y - origin->y));
-}
-
 int		c3_get_horizontal_hit(
 	t_c3_state *stat, t_c3_vector *pos,
 	double theta, t_c3_hit_result *result)

@@ -17,18 +17,19 @@ LIBFT_DIR = ../libft/libft
 SRCS = cub3d.c scene.c bmp.c scene_parser_storage.c					\
 	scene_parser_token.c scene_parser_token2.c scene_parser_color.c	\
 	scene_parser_resolution.c scene_parser_texture.c				\
-	scene_parser_map.c loophook.c ray.c ray2.c ray3.c minimap.c
+	scene_parser_map.c loophook.c ray.c ray2.c ray3.c minimap.c		\
+	render2.c render.c texture.c hooks.c map.c player.c utils.c
 
-HEADERS = cub3d.h scene.h scene_int.h
+HEADERS = cub3d_int.h cub3d.h scene.h scene_int.h
 OBJS = $(SRCS:%.c=%.o)
 
 NAME = cub3d
 
-CFLAGS = -I $(MLX_INC) -I $(LIBFT_DIR) -Wall -Wextra -Werror
-LDFLAGS = -L $(MLX_LIB) -lmlx -lXext -lX11 -lm -lbsd -L $(LIBFT_DIR) -lft
+# CFLAGS = -I $(MLX_INC) -I $(LIBFT_DIR) -Wall -Wextra -Werror
+# LDFLAGS = -L $(MLX_LIB) -lmlx -lXext -lX11 -lm -lbsd -L $(LIBFT_DIR) -lft
 
-# CFLAGS = -g -fsanitize=address -I $(MLX_INC) -I $(LIBFT_DIR) -Wall -Wextra -Werror
-# LDFLAGS = -fsanitize=address -L $(MLX_LIB) -lmlx -lXext -lX11 -lm -lbsd -L $(LIBFT_DIR) -lft
+CFLAGS = -g -fsanitize=address -I $(MLX_INC) -I $(LIBFT_DIR) -Wall -Wextra -Werror
+LDFLAGS = -fsanitize=address -L $(MLX_LIB) -lmlx -lXext -lX11 -lm -lbsd -L $(LIBFT_DIR) -lft
 
 # run-test:
 # 	make -C test/
