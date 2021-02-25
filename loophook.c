@@ -20,10 +20,7 @@ void	c3_draw(t_c3_state *stat)
 {
 	c3_render_scene(stat);
 	if (stat->is_drawing_minimap)
-	{
 		c3_draw_map(stat);
-		c3_draw_rays_on_map(stat);
-	}
 	if (stat->is_showing_screen)
 		mlx_put_image_to_window(stat->mlx, stat->window, stat->img, 0, 0);
 }

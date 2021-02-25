@@ -75,7 +75,7 @@ void	c3_bmp_generate(t_c3_state *stat)
 	fd = open("out.bmp", O_WRONLY | O_CREAT | O_TRUNC, 0644);
 	if (fd < 0)
 	{
-		c3_log("Error\n%s\n", strerror(errno));
+		C3_LOG("Error\n%s\n", strerror(errno));
 		exit(1);
 	}
 	write(fd, &file_header, sizeof(file_header));

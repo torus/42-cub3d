@@ -96,5 +96,6 @@ int					c3_scene_parser_init_with_file(
 void				c3_scene_init(t_c3_scene *scene);
 t_c3_parse_result	c3_scene_parse(t_c3_scene *scene, t_c3_scene_parser *buf);
 void				c3_scene_cleanup(t_c3_scene *scene);
+int					c3_read_scene(t_c3_scene *scene, const char *path);
 
 #endif

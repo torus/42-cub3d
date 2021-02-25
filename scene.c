@@ -96,3 +96,23 @@ int					c3_scene_parser_init_with_file(
 		buf->is_specified[i++] = 0;
 	return (1);
 }
+
+int					c3_read_scene(t_c3_scene *scene, const char *path)
+{
+	t_c3_scene_parser	buf;
+	t_c3_file			file;
+
+	buf.container.file = &file;
+	if (!c3_scene_parser_init_with_file(&buf, path))
+	{
+		C3_LOG("Error\n%s\n", buf.error);
+		return (0);
+	}
+	c3_scene_init(scene);
+	if (c3_scene_parse(scene, &buf) != C3_PARSE_SUCCESS)
+	{
+		C3_LOG("Error\n%s\n", buf.error);
+		return (0);
+	}
+	return (1);
+}

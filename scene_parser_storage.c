@@ -46,7 +46,7 @@ void	c3_file_ungetc(t_c3_scene_container cont)
 	file = cont.file;
 	if (file->is_ungotten)
 	{
-		c3_log("ungetc: too many chars ungotten.");
+		C3_LOG("ungetc: too many chars ungotten.");
 		return ;
 	}
 	file->is_ungotten = 1;

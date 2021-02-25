@@ -23,6 +23,7 @@ int		c3_add_sprite(
 	t_c3_vector	ad;
 	double		c;
 	double		offset;
+	t_c3_vector	ab;
 
 	dot = c3_dot(pos, hit_cell, hit);
 	ad.x = hit->x - pos->x;
@@ -33,10 +34,10 @@ int		c3_add_sprite(
 	offset = sqrt(c3_distance_squared(hit, hit_cell));
 	if (offset <= 0.5)
 	{
-		t_c3_vector	ab = {hit_cell->x - pos->x, hit_cell->y - pos->y};
-		double	cross = ab.x * ad.y - ad.x * ab.y;
-		if (cross > 0)
-			offset = - offset;
+		ab.x = hit_cell->x - pos->x;
+		ab.y = hit_cell->y - pos->y;
+		if (ab.x * ad.y - ad.x * ab.y > 0)
+			offset = -offset;
 		result[1].position = *hit;
 		result[1].offset = offset;
 		return (1);
@@ -67,12 +68,6 @@ int		c3_check_sprite(
 	return (0);
 }
 
-double	c3_dot(t_c3_vector *origin, t_c3_vector *a, t_c3_vector *b)
-{
-	return (a->x - origin->x) * (b->x - origin->x)
-		+ (a->y - origin->y) * (b->y - origin->y);
-}
-
 int		c3_get_horizontal_hit(
 	t_c3_state *stat, t_c3_vector *pos,
 	double theta, t_c3_hit_result *result)
@@ -94,8 +89,8 @@ int		c3_get_horizontal_hit(
 			break ;
 		if (hit_sprites < C3_MAX_COLLINEAR_SPRITES
 			&& c3_check_sprite(stat, &hit_cell, pos, &result[hit_sprites + 1]))
-			if(c3_add_sprite(&hit, &hit_cell, pos, result + hit_sprites))
-				hit_sprites ++;
+			if (c3_add_sprite(&hit, &hit_cell, pos, result + hit_sprites))
+				hit_sprites++;
 		index++;
 	}
 	result->position = hit;
@@ -125,8 +120,8 @@ int		c3_get_vertical_hit(
 			break ;
 		if (hit_sprites < C3_MAX_COLLINEAR_SPRITES
 			&& c3_check_sprite(stat, &hit_cell, pos, &result[hit_sprites + 1]))
-			if(c3_add_sprite(&hit, &hit_cell, pos, result + hit_sprites))
-				hit_sprites ++;
+			if (c3_add_sprite(&hit, &hit_cell, pos, result + hit_sprites))
+				hit_sprites++;
 		index++;
 	}
 	result->position = hit;

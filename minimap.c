@@ -6,7 +6,7 @@
 /*   By: thisai <thisai@student.42tokyo.jp>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/02/21 18:20:58 by thisai            #+#    #+#             */
-/*   Updated: 2021/02/21 18:20:58 by thisai           ###   ########.fr       */
+/*   Updated: 2021/02/24 18:20:38 by thisai           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,121 +15,84 @@
 #include "cub3d.h"
 #include "cub3d_int.h"
 
+int		c3_minimap_lookup_player_pixel(int x, int y)
+{
+	static const char	bitmap[] = {
+		8, 12, 254, 255, 254, 12, 8, 0
+	};
+
+	if (x >= 0 && x < 8 && y >= 0 && y < 8)
+		return (bitmap[y] & (1 << (8 - x)));
+	else
+		return (0);
+}
+
+void	c3_minimap_put_pixel(t_c3_state *stat, int x, int y, uint32_t col)
+{
+	int	index;
+	int	max_index;
+
+	max_index = stat->screen_width * stat->imgdata.size_line;
+	index =
+		y * stat->imgdata.size_line +
+		x * stat->imgdata.bits_per_pixel / 8;
+	if (index >= 0 && index < max_index)
+		((uint32_t*)stat->imgdata.data)[index / 4] = col;
+}
+
 void	c3_draw_player_on_map(t_c3_state *stat)
 {
-	const char	c3_player_bitmap[] = {
-		0, 0, 0, 0, 1, 0, 0, 0,
-		0, 0, 0, 0, 1, 1, 0, 0,
-		1, 1, 1, 1, 1, 1, 1, 0,
-		1, 1, 1, 1, 1, 1, 1, 1,
-		1, 1, 1, 1, 1, 1, 1, 0,
-		0, 0, 0, 0, 1, 1, 0, 0,
-		0, 0, 0, 0, 1, 0, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0,
-	};
-	const int	c3_player_bitmap_height = 8;
-	const int	c3_player_bitmap_width = 8;
+	int		x;
+	int		y;
+	double	angle;
+	int		i;
+	int		j;
 
-	int x = stat->player.position.x * stat->renderer.minimap_width / stat->map.width;
-	int y = stat->player.position.y * stat->renderer.minimap_height / stat->map.height;
-	double angle = stat->player.direction;
-	int max_index = stat->renderer.resolution_x * stat->imgdata.size_line;
-
-	for (int i = -8; i < 9; i++)
+	x = stat->player.position.x
+		* stat->renderer.minimap_width / stat->map.width;
+	y = stat->player.position.y
+		* stat->renderer.minimap_height / stat->map.height;
+	angle = stat->player.direction;
+	i = -8;
+	while (i < 9)
 	{
-		for (int j = -8; j < 9; j++)
+		j = -8;
+		while (j < 9)
 		{
-			int xx = j * cos(-angle) - i * sin(-angle);
-			int yy = j * sin(-angle) + i * cos(-angle) + 3;
-			if (xx >= 0 && xx < c3_player_bitmap_width
-				&& yy >= 0 && yy < c3_player_bitmap_height
-				&& c3_player_bitmap[yy * c3_player_bitmap_width + xx])
-			{
-				int index =
-					(i + y) * stat->imgdata.size_line +
-					(j + x) * stat->imgdata.bits_per_pixel / 8;
-				if (index >= 0 && index < max_index)
-				{
-					unsigned int col = mlx_get_color_value(
-						stat->mlx, (0 << 24) + (0 << 16) + (255 << 8));
-					stat->imgdata.data[index + 0] = (col >> 24) & 0xff;
-					stat->imgdata.data[index + 1] = (col >> 16) & 0xff;
-					stat->imgdata.data[index + 2] = (col >> 8) & 0xff;
-					stat->imgdata.data[index + 3] = col & 0xff;
-				}
-			}
+			if (c3_minimap_lookup_player_pixel(
+					j * cos(-angle) - i * sin(-angle),
+					j * sin(-angle) + i * cos(-angle) + 3))
+				c3_minimap_put_pixel(stat, j + x, i + y, 255 << 16);
+			j++;
 		}
+		i++;
 	}
 }
 
 void	c3_draw_map(t_c3_state *stat)
 {
-	for (int i = 0; i < stat->screen_height && i < stat->renderer.minimap_height; i++)
+	int	i;
+	int	j;
+	int	y;
+	int	x;
+	int	v;
+
+	i = 0;
+	while (i < stat->screen_height && i < stat->renderer.minimap_height)
 	{
-		int y = stat->map.height * i / stat->renderer.minimap_height;
-		for (int j = 0; j < stat->screen_width && j < stat->renderer.minimap_width; j++)
+		y = stat->map.height * i / stat->renderer.minimap_height;
+		j = 0;
+		while (j < stat->screen_width && j < stat->renderer.minimap_width)
 		{
-			int x = stat->map.width * j / stat->renderer.minimap_width;
-			/* int cell = stat->map.map[y * stat->map.width + x]; */
-			int cell = c3_query_map(stat, x, y);
-
-			int r = 127 * (1 - cell) + 128;
-			int g = 127 * (1 - cell) + 128;
-			int b = 127 * (1 - cell) + 128;
-
-			unsigned int col = mlx_get_color_value(
-				stat->mlx, (r << 24) + (g << 16) + (b << 8));
-			int index =
-				i * stat->imgdata.size_line +
-				j * stat->imgdata.bits_per_pixel / 8;
-			stat->imgdata.data[index + 0] = (col >> 24) & 0xff;
-			stat->imgdata.data[index + 1] = (col >> 16) & 0xff;
-			stat->imgdata.data[index + 2] = (col >> 8) & 0xff;
-			stat->imgdata.data[index + 3] = col & 0xff;
+			x = stat->map.width * j / stat->renderer.minimap_width;
+			v = 127 * (1 - c3_query_map(stat, x, y)) + 128;
+			((uint32_t*)stat->imgdata.data)[
+				(i * stat->imgdata.size_line
+				+ j * stat->imgdata.bits_per_pixel / 8)
+				/ 4] = (v << 16) + (v << 8) + v;
+			j++;
 		}
+		i++;
 	}
 	c3_draw_player_on_map(stat);
-}
-
-void	c3_draw_rays_on_map(t_c3_state *stat)
-{
-	double		world_x;
-	double		world_y;
-	double		screen_x;
-	double		screen_y;
-	int			x;
-	int			i;
-
-	x = 0;
-	while (x < stat->renderer.resolution_x)
-	{
-		world_x = stat->renderer.rays[x].hits[0].position.x;
-		world_y = stat->renderer.rays[x].hits[0].position.y;
-		screen_x = world_x * stat->renderer.minimap_width / stat->map.width;
-		screen_y = world_y * stat->renderer.minimap_height / stat->map.height;
-
-		int r = 255 * x / stat->renderer.resolution_x;
-		int col = (r << 16) + ((255 - r) << 0);
-		mlx_string_put(
-			stat->mlx, stat->window, screen_x, screen_y,
-			mlx_get_color_value(stat->mlx, col), "*");
-
-		i = 0;
-		while (i < stat->renderer.rays[x].hit_sprite_count)
-		{
-			world_x = stat->renderer.rays[x].hits[i + 1].position.x;
-			world_y = stat->renderer.rays[x].hits[i + 1].position.y;
-			screen_x = world_x * stat->renderer.minimap_width / stat->map.width;
-			screen_y = world_y * stat->renderer.minimap_height / stat->map.height;
-
-			int r = 255 * x / stat->renderer.resolution_x;
-			int col = (r << 16) + ((255 - r) << 0);
-			mlx_string_put(
-				stat->mlx, stat->window, screen_x, screen_y,
-				mlx_get_color_value(stat->mlx, col), "x");
-			i++;
-		}
-
-		x++;
-	}
 }
