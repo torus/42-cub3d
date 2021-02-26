@@ -58,3 +58,21 @@ int					c3_scene_try_wall(
 	}
 	return (1);
 }
+
+int					c3_scene_check_textures_specified(
+	t_c3_scene *scene, t_c3_scene_parser *buf)
+{
+	int	i;
+
+	i = 0;
+	while (i < C3_OBJTYPE_NUM)
+	{
+		if (!scene->tex_path[i])
+		{
+			buf->error = "some textures are missing.";
+			return (0);
+		}
+		i++;
+	}
+	return (1);
+}

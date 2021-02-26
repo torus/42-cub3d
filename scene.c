@@ -107,21 +107,21 @@ int					c3_read_scene(t_c3_scene *scene, const char *path)
 
 	pathlen = ft_strlen(path);
 	if (pathlen < 4 || ft_strncmp(path + pathlen - 4, ".cub", 4))
-	{
 		C3_LOG("Error\n%s: Unknown file type.\n", path);
-		return (0);
-	}
-	buf.container.file = &file;
-	if (!c3_scene_parser_init_with_file(&buf, path))
+	else
 	{
-		C3_LOG("Error\n%s\n", buf.error);
-		return (0);
+		buf.container.file = &file;
+		if (!c3_scene_parser_init_with_file(&buf, path))
+			C3_LOG("Error\n%s\n", buf.error);
+		else
+		{
+			c3_scene_init(scene);
+			if (c3_scene_parse(scene, &buf) != C3_PARSE_SUCCESS
+				|| !c3_scene_check_textures_specified(scene, &buf))
+				C3_LOG("Error\n%s\n", buf.error);
+			else
+				return (1);
+		}
 	}
-	c3_scene_init(scene);
-	if (c3_scene_parse(scene, &buf) != C3_PARSE_SUCCESS)
-	{
-		C3_LOG("Error\n%s\n", buf.error);
-		return (0);
-	}
-	return (1);
+	return (0);
 }
