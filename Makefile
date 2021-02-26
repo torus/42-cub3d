@@ -10,9 +10,10 @@
 #                                                                              #
 #******************************************************************************#
 
-MLX_INC = ../minilibx-linux
-MLX_LIB = ../minilibx-linux
+MLX_DIR = ./minilibx-linux
 LIBFT_DIR = ../libft/libft
+
+MLX = $(MLX_DIR)/libmlx.a
 
 SRCS = cub3d.c scene.c bmp.c scene_parser_storage.c					\
 	scene_parser_token.c scene_parser_token2.c scene_parser_color.c	\
@@ -25,14 +26,31 @@ OBJS = $(SRCS:%.c=%.o)
 
 NAME = cub3d
 
-# CFLAGS = -I $(MLX_INC) -I $(LIBFT_DIR) -Wall -Wextra -Werror
-# LDFLAGS = -L $(MLX_LIB) -lmlx -lXext -lX11 -lm -lbsd -L $(LIBFT_DIR) -lft
+CFLAGS = -I $(MLX_DIR) -I $(LIBFT_DIR) -Wall -Wextra -Werror
+LDFLAGS = -L $(MLX_DIR) -lmlx -lXext -lX11 -lm -lbsd -L $(LIBFT_DIR) -lft
 
-CFLAGS = -g -fsanitize=address -I $(MLX_INC) -I $(LIBFT_DIR) -Wall -Wextra -Werror
-LDFLAGS = -fsanitize=address -L $(MLX_LIB) -lmlx -lXext -lX11 -lm -lbsd -L $(LIBFT_DIR) -lft
+# CFLAGS = -g -fsanitize=address -I $(MLX_DIR) -I $(LIBFT_DIR) -Wall -Wextra -Werror
+# LDFLAGS = -fsanitize=address -L $(MLX_DIR) -lmlx -lXext -lX11 -lm -lbsd -L $(LIBFT_DIR) -lft
 
-# run-test:
-# 	make -C test/
+all: $(NAME)
+
+$(NAME)	:$(OBJS) $(MLX)
+	$(CC) -o $(NAME) $^ $(LDFLAGS)
+
+$(MLX):
+	cd $(MLX_DIR) && ./configure && make
+
+$(OBJS): $(HEADERS)
+
+clean:
+	$(MAKE) -c $(MLX_DIR) clean
+	$(RM) $(OBJS) *~
+
+fclean: clean
+	$(MAKE) -c $(MLX_DIR) fclean
+	$(RM) $(NAME)
+
+re: fclean $(NAME)
 
 run: $(NAME)
 	./$(NAME) test/valid-sprites.cub
@@ -40,15 +58,7 @@ run: $(NAME)
 run-save: $(NAME)
 	valgrind ./$(NAME) test/valid.cub --save
 
-$(OBJS): $(HEADERS)
+test:
+	make -C test/
 
-$(NAME)	:$(OBJS)
-	$(CC) -o $(NAME) $^ $(LDFLAGS)
-
-clean:
-	$(RM) $(OBJS)
-
-fclean: clean
-	$(RM) $(NAME)
-
-re: fclean $(NAME)
+.PHONY: test clean re run run-save

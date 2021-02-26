@@ -3,9 +3,7 @@ cub3d
 test/test
 test/bmptest
 test/*.bmp
-
 *.bmp
-
 *.png
-
 *.dot
+Makefile.gen
