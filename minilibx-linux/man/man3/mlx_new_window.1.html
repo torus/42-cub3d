@@ -1,0 +1,143 @@
+Content-type: text/html; charset=UTF-8
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML><HEAD><TITLE>Man page of MiniLibX</TITLE>
+</HEAD><BODY>
+<H1>MiniLibX</H1>
+Section: C Library Functions (3)<BR>Updated: September 19, 2002<BR><A HREF="#index">Index</A>
+<A HREF="/cgi-bin/man/man2html">Return to Main Contents</A><HR>
+
+<A NAME="lbAB">&nbsp;</A>
+<H2>NAME</H2>
+
+MiniLibX - Managing windows
+<A NAME="lbAC">&nbsp;</A>
+<H2>SYNOPSYS</H2>
+
+<P>
+<PRE>
+<I>void *</I>
+</PRE>
+
+<B>mlx_new_window</B>
+
+(
+<I>void *mlx_ptr, int size_x, int size_y, char *title</I>
+
+);
+<P>
+<PRE>
+<I>int</I>
+</PRE>
+
+<B>mlx_clear_window</B>
+
+(
+<I>void *mlx_ptr, void *win_ptr</I>
+
+);
+<P>
+<PRE>
+<I>int</I>
+</PRE>
+
+<B>mlx_destroy_window</B>
+
+(
+<I>void *mlx_ptr, void *win_ptr</I>
+
+);
+<P>
+<P>
+<A NAME="lbAD">&nbsp;</A>
+<H2>DESCRIPTION</H2>
+
+The
+<B>mlx_new_window</B>
+
+() function creates a new window on the screen, using the
+<I>size_x</I>
+
+and
+<I>size_y</I>
+
+parameters to determine its size, and
+<I>title</I>
+
+as the text that should be displayed in the window's title bar.
+The
+<I>mlx_ptr</I>
+
+parameter is the connection identifier returned by
+<B>mlx_init</B>
+
+() (see the
+<B>mlx</B>
+
+man page).
+<B>mlx_new_window</B>
+
+() returns a
+<I>void *</I>
+
+window identifier that can be used by other MiniLibX calls.
+Note that the MiniLibX
+can handle an arbitrary number of separate windows.
+<P>
+<B>mlx_clear_window</B>
+
+() and
+<B>mlx_destroy_window</B>
+
+() respectively clear (in black) and destroy the given window. They both have
+the same parameters:
+<I>mlx_ptr</I>
+
+is the screen connection identifier, and
+<I>win_ptr</I>
+
+is a window identifier.
+<P>
+<A NAME="lbAE">&nbsp;</A>
+<H2>RETURN VALUES</H2>
+
+If
+<B>mlx_new_window()</B>
+
+fails to create a new window (for wathever reason), it will return NULL,
+otherwise a non-null pointer is returned as a window identifier.
+<B>mlx_clear_window</B>
+
+and
+<B>mlx_destroy_window</B>
+
+right now return nothing.
+<P>
+<A NAME="lbAF">&nbsp;</A>
+<H2>SEE ALSO</H2>
+
+<A HREF="/cgi-bin/man/man2html?3+mlx">mlx</A>(3), <A HREF="/cgi-bin/man/man2html?3+mlx_pixel_put">mlx_pixel_put</A>(3), <A HREF="/cgi-bin/man/man2html?3+mlx_new_image">mlx_new_image</A>(3), <A HREF="/cgi-bin/man/man2html?3+mlx_loop">mlx_loop</A>(3)
+<P>
+<A NAME="lbAG">&nbsp;</A>
+<H2>AUTHOR</H2>
+
+Copyright ol@ - 2002-2014 - Olivier Crouzet
+<P>
+
+<HR>
+<A NAME="index">&nbsp;</A><H2>Index</H2>
+<DL>
+<DT><A HREF="#lbAB">NAME</A><DD>
+<DT><A HREF="#lbAC">SYNOPSYS</A><DD>
+<DT><A HREF="#lbAD">DESCRIPTION</A><DD>
+<DT><A HREF="#lbAE">RETURN VALUES</A><DD>
+<DT><A HREF="#lbAF">SEE ALSO</A><DD>
+<DT><A HREF="#lbAG">AUTHOR</A><DD>
+</DL>
+<HR>
+This document was created by
+<A HREF="/cgi-bin/man/man2html">man2html</A>,
+using the manual pages.<BR>
+Time: 10:39:26 GMT, January 05, 2021
+</BODY>
+</HTML>

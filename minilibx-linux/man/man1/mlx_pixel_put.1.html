@@ -1,0 +1,139 @@
+Content-type: text/html; charset=UTF-8
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML><HEAD><TITLE>Man page of MiniLibX</TITLE>
+</HEAD><BODY>
+<H1>MiniLibX</H1>
+Section: C Library Functions (3)<BR>Updated: September 19, 2002<BR><A HREF="#index">Index</A>
+<A HREF="/cgi-bin/man/man2html">Return to Main Contents</A><HR>
+
+<A NAME="lbAB">&nbsp;</A>
+<H2>NAME</H2>
+
+MiniLibX - Drawing inside windows
+<A NAME="lbAC">&nbsp;</A>
+<H2>SYNOPSYS</H2>
+
+<P>
+<PRE>
+<I>int</I>
+</PRE>
+
+<B>mlx_pixel_put</B>
+
+(
+<I>void *mlx_ptr, void *win_ptr, int x, int y, int color</I>
+
+);
+<P>
+<PRE>
+<I>int</I>
+</PRE>
+
+<B>mlx_string_put</B>
+
+(
+<I>void *mlx_ptr, void *win_ptr, int x, int y, int color, char *string</I>
+
+);
+<P>
+<P>
+<A NAME="lbAD">&nbsp;</A>
+<H2>DESCRIPTION</H2>
+
+The
+<B>mlx_pixel_put</B>
+
+() function draws a defined pixel in the window
+<I>win_ptr</I>
+
+using the (
+<I>x</I>
+
+,
+<I>y</I>
+
+) coordinates, and the specified
+<I>color</I>
+
+. The origin (0,0) is the upper left corner of the window, the x and y axis
+respectively pointing right and down. The connection
+identifier,
+<I>mlx_ptr</I>
+
+, is needed (see the
+<B>mlx</B>
+
+man page).
+<P>
+Parameters for
+<B>mlx_string_put</B>
+
+() have the same meaning. Instead of a simple pixel, the specified
+<I>string</I>
+
+will be displayed at (
+<I>x</I>
+
+,
+<I>y</I>
+
+).
+<P>
+In both functions, it is impossible to display anything outside the
+specified window, nor display in another window in front of the selected one.
+<P>
+<A NAME="lbAE">&nbsp;</A>
+<H2>COLOR MANAGEMENT</H2>
+
+The
+<I>color</I>
+
+parameter has an integer type. The displayed color needs to be encoded
+in this integer, following a defined scheme. All displayable colors
+can be split in 3 basic colors: red, green and blue. Three associated
+values, in the 0-255 range, represent how much of each color is mixed up
+to create the original color. Theses three values must be set inside the
+integer to display the right color. The three least significant bytes of
+this integer are filled as shown in the picture below:
+<P>
+<TABLE BORDER>
+<TR VALIGN=top><TD ALIGN=center COLSPAN=5>Color Integer<BR></TD></TR>
+<TR VALIGN=top><TD ALIGN=right>Interpretation</TD><TD ALIGN=center>&alpha;</TD><TD ALIGN=center>R</TD><TD ALIGN=center>G</TD><TD ALIGN=center>B<BR></TD></TR>
+<TR VALIGN=top><TD ALIGN=right>Bit numbers</TD><TD ALIGN=center>31..24</TD><TD ALIGN=center>23..16</TD><TD ALIGN=center>15..8</TD><TD ALIGN=center>7..0<BR></TD></TR>
+</TABLE>
+
+<P>
+While filling the integer, make sure you avoid endian problems. Remember
+that the &quot;blue&quot; byte should always be the least significant one.
+<P>
+<P>
+<A NAME="lbAF">&nbsp;</A>
+<H2>SEE ALSO</H2>
+
+<A HREF="/cgi-bin/man/man2html?3+mlx">mlx</A>(3), <A HREF="/cgi-bin/man/man2html?3+mlx_new_window">mlx_new_window</A>(3), <A HREF="/cgi-bin/man/man2html?3+mlx_new_image">mlx_new_image</A>(3), <A HREF="/cgi-bin/man/man2html?3+mlx_loop">mlx_loop</A>(3)
+<P>
+<P>
+<A NAME="lbAG">&nbsp;</A>
+<H2>AUTHOR</H2>
+
+Copyright ol@ - 2002-2014 - Olivier Crouzet
+<P>
+
+<HR>
+<A NAME="index">&nbsp;</A><H2>Index</H2>
+<DL>
+<DT><A HREF="#lbAB">NAME</A><DD>
+<DT><A HREF="#lbAC">SYNOPSYS</A><DD>
+<DT><A HREF="#lbAD">DESCRIPTION</A><DD>
+<DT><A HREF="#lbAE">COLOR MANAGEMENT</A><DD>
+<DT><A HREF="#lbAF">SEE ALSO</A><DD>
+<DT><A HREF="#lbAG">AUTHOR</A><DD>
+</DL>
+<HR>
+This document was created by
+<A HREF="/cgi-bin/man/man2html">man2html</A>,
+using the manual pages.<BR>
+Time: 10:39:26 GMT, January 05, 2021
+</BODY>
+</HTML>

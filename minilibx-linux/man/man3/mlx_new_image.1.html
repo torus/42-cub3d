@@ -1,0 +1,297 @@
+Content-type: text/html; charset=UTF-8
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML><HEAD><TITLE>Man page of MiniLibX</TITLE>
+</HEAD><BODY>
+<H1>MiniLibX</H1>
+Section: C Library Functions (3)<BR>Updated: September 19, 2002<BR><A HREF="#index">Index</A>
+<A HREF="/cgi-bin/man/man2html">Return to Main Contents</A><HR>
+
+<A NAME="lbAB">&nbsp;</A>
+<H2>NAME</H2>
+
+MiniLibX - Manipulating images
+<A NAME="lbAC">&nbsp;</A>
+<H2>SYNOPSYS</H2>
+
+<P>
+<PRE>
+<I>void *</I>
+</PRE>
+
+<B>mlx_new_image</B>
+
+(
+<I>void *mlx_ptr, int width, int height</I>
+
+);
+<P>
+<PRE>
+<I>char *</I>
+</PRE>
+
+<B>mlx_get_data_addr</B>
+
+(
+<I>void *img_ptr, int *bits_per_pixel, int *size_line, int *endian</I>
+
+);
+<P>
+<PRE>
+<I>int</I>
+</PRE>
+
+<B>mlx_put_image_to_window</B>
+
+(
+<I>void *mlx_ptr, void *win_ptr, void *img_ptr, int x, int y</I>
+
+);
+<P>
+<PRE>
+<I>unsigned int</I>
+</PRE>
+
+<B>mlx_get_color_value</B>
+
+(
+<I>void *mlx_ptr, int color</I>
+
+);
+<P>
+<PRE>
+<I>void *</I>
+</PRE>
+
+<B>mlx_xpm_to_image</B>
+
+(
+<I>void *mlx_ptr, char **xpm_data, int *width, int *height</I>
+
+);
+<P>
+<PRE>
+<I>void *</I>
+</PRE>
+
+<B>mlx_xpm_file_to_image</B>
+
+(
+<I>void *mlx_ptr, char *filename, int *width, int *height</I>
+
+);
+<P>
+<PRE>
+<I>int</I>
+</PRE>
+
+<B>mlx_destroy_image</B>
+
+(
+<I>void *mlx_ptr, void *img_ptr</I>
+
+);
+<P>
+<P>
+<A NAME="lbAD">&nbsp;</A>
+<H2>DESCRIPTION</H2>
+
+<P>
+<B>mlx_new_image</B>
+
+() creates a new image in memory. It returns a
+<I>void *</I>
+
+identifier needed to manipulate this image later. It only needs
+the size of the image to be created, using the
+<I>width</I>
+
+and
+<I>height</I>
+
+parameters, and the
+<I>mlx_ptr</I>
+
+connection identifier (see the
+<B>mlx</B>
+
+manual).
+<P>
+The user can draw inside the image (see below), and
+can dump the image inside a specified window at any time to
+display it on the screen. This is done using
+<B>mlx_put_image_to_window</B>
+
+(). Three identifiers are needed here, for the connection to the
+display, the window to use, and the image (respectively
+<I>mlx_ptr</I>
+
+,
+<I>win_ptr</I>
+
+and
+<I>img_ptr</I>
+
+). The (
+<I>x</I>
+
+,
+<I>y</I>
+
+) coordinates define where the image should be placed in the window.
+<P>
+<B>mlx_get_data_addr</B>
+
+() returns information about the created image, allowing a user
+to modify it later. The
+<I>img_ptr</I>
+
+parameter specifies the image to use. The three next parameters should
+be the addresses of three different valid integers.
+<I>bits_per_pixel</I>
+
+will be filled with the number of bits needed to represent a pixel color
+(also called the depth of the image).
+<I>size_line</I>
+
+is the number of bytes used to store one line of the image in memory.
+This information is needed to move from one line to another in the image.
+<I>endian</I>
+
+tells you wether the pixel color in the image needs to be stored in
+little endian (
+<I>endian</I>
+
+== 0), or big endian (
+<I>endian</I>
+
+== 1).
+<P>
+<B>mlx_get_data_addr</B>
+
+returns a
+<I>char *</I>
+
+address that represents the begining of the memory area where the image
+is stored. From this adress, the first
+<I>bits_per_pixel</I>
+
+bits represent the color of the first pixel in the first line of
+the image. The second group of
+<I>bits_per_pixel</I>
+
+bits represent the second pixel of the first line, and so on.
+Add
+<I>size_line</I>
+
+to the adress to get the begining of the second line. You can reach any
+pixels of the image that way.
+<P>
+<B>mlx_destroy_image</B>
+
+destroys the given image (
+<I>img_ptr</I>
+
+).
+<P>
+<A NAME="lbAE">&nbsp;</A>
+<H2>STORING COLOR INSIDE IMAGES</H2>
+
+<P>
+Depending on the display, the number of bits used to store a pixel color
+can change. The user usually represents a color in RGB mode, using
+one byte for each component (see
+<B>mlx_pixel_put</B>
+
+manual). This must be translated to fit the
+<I>bits_per_pixel</I>
+
+requirement of the image, and make the color understandable to the X-Server.
+That is the purpose of the
+<B>mlx_get_color_value</B>
+
+() function. It takes a standard RGB
+<I>color</I>
+
+parameter, and returns an
+<I>unsigned int</I>
+
+value.
+The
+<I>bits_per_pixel</I>
+
+least significant bits of this value can be stored in the image.
+<P>
+Keep in mind that the least significant bits position depends on the local
+computer's endian. If the endian of the image (in fact the endian of
+the X-Server's computer) differs from the local endian, then the value should
+be transformed before being used.
+<P>
+<A NAME="lbAF">&nbsp;</A>
+<H2>XPM IMAGES</H2>
+
+<P>
+The
+<B>mlx_xpm_to_image</B>
+
+() and
+<B>mlx_xpm_file_to_image</B>
+
+() functions will create a new image the same way.
+They will fill it using the specified
+<I>xpm_data</I>
+
+or
+<I>filename</I>
+
+, depending on which function is used.
+Note that MiniLibX does not use the standard
+Xpm library to deal with xpm images. You may not be able to
+read all types of xpm images. It however handles transparency.
+<P>
+<A NAME="lbAG">&nbsp;</A>
+<H2>RETURN VALUES</H2>
+
+The three functions that create images,
+<B>mlx_new_image()</B>
+
+,
+<B>mlx_xpm_to_image()</B>
+
+and
+<B>mlx_xpm_file_to_image()</B>
+
+, will return NULL if an error occurs. Otherwise they return a non-null pointer
+as an image identifier.
+<P>
+<P>
+<A NAME="lbAH">&nbsp;</A>
+<H2>SEE ALSO</H2>
+
+<A HREF="/cgi-bin/man/man2html?3+mlx">mlx</A>(3), <A HREF="/cgi-bin/man/man2html?3+mlx_new_window">mlx_new_window</A>(3), <A HREF="/cgi-bin/man/man2html?3+mlx_pixel_put">mlx_pixel_put</A>(3), <A HREF="/cgi-bin/man/man2html?3+mlx_loop">mlx_loop</A>(3)
+<P>
+<A NAME="lbAI">&nbsp;</A>
+<H2>AUTHOR</H2>
+
+Copyright ol@ - 2002-2014 - Olivier Crouzet
+<P>
+
+<HR>
+<A NAME="index">&nbsp;</A><H2>Index</H2>
+<DL>
+<DT><A HREF="#lbAB">NAME</A><DD>
+<DT><A HREF="#lbAC">SYNOPSYS</A><DD>
+<DT><A HREF="#lbAD">DESCRIPTION</A><DD>
+<DT><A HREF="#lbAE">STORING COLOR INSIDE IMAGES</A><DD>
+<DT><A HREF="#lbAF">XPM IMAGES</A><DD>
+<DT><A HREF="#lbAG">RETURN VALUES</A><DD>
+<DT><A HREF="#lbAH">SEE ALSO</A><DD>
+<DT><A HREF="#lbAI">AUTHOR</A><DD>
+</DL>
+<HR>
+This document was created by
+<A HREF="/cgi-bin/man/man2html">man2html</A>,
+using the manual pages.<BR>
+Time: 10:39:26 GMT, January 05, 2021
+</BODY>
+</HTML>

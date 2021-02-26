@@ -1,0 +1,220 @@
+Content-type: text/html; charset=UTF-8
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML><HEAD><TITLE>Man page of MiniLibX</TITLE>
+</HEAD><BODY>
+<H1>MiniLibX</H1>
+Section: C Library Functions (3)<BR>Updated: September 19, 2002<BR><A HREF="#index">Index</A>
+<A HREF="/cgi-bin/man/man2html">Return to Main Contents</A><HR>
+
+<A NAME="lbAB">&nbsp;</A>
+<H2>NAME</H2>
+
+MiniLibX - Handle events
+<A NAME="lbAC">&nbsp;</A>
+<H2>SYNOPSYS</H2>
+
+<P>
+<PRE>
+<I>int</I>
+</PRE>
+
+<B>mlx_loop</B>
+
+(
+<I>void *mlx_ptr</I>
+
+);
+<P>
+<PRE>
+<I>int</I>
+</PRE>
+
+<B>mlx_key_hook</B>
+
+(
+<I>void *win_ptr, int (*funct_ptr)(), void *param</I>
+
+);
+<P>
+<PRE>
+<I>int</I>
+</PRE>
+
+<B>mlx_mouse_hook</B>
+
+(
+<I>void *win_ptr, int (*funct_ptr)(), void *param</I>
+
+);
+<P>
+<PRE>
+<I>int</I>
+</PRE>
+
+<B>mlx_expose_hook</B>
+
+(
+<I>void *win_ptr, int (*funct_ptr)(), void *param</I>
+
+);
+<P>
+<PRE>
+<I>int</I>
+</PRE>
+
+<B>mlx_loop_hook</B>
+
+(
+<I>void *mlx_ptr, int (*funct_ptr)(), void *param</I>
+
+);
+<P>
+<A NAME="lbAD">&nbsp;</A>
+<H2>X-WINDOW EVENTS</H2>
+
+<P>
+The X-Window system is bi-directionnal. On one hand, the program sends orders to
+the screen to display pixels, images, and so on. On the other hand,
+it can get information from the keyboard and mouse associated to
+the screen. To do so, the program receives &quot;events&quot; from the keyboard or the
+mouse.
+<P>
+<A NAME="lbAE">&nbsp;</A>
+<H2>DESCRIPTION</H2>
+
+<P>
+To receive events, you must use
+<B>mlx_loop</B>
+
+(). This function never returns. It is an infinite loop that waits for
+an event, and then calls a user-defined function associated with this event.
+A single parameter is needed, the connection identifier
+<I>mlx_ptr</I>
+
+(see the
+<B>mlx manual).</B>
+
+<P>
+You can assign different functions to the three following events:
+<BR>
+
+- A key is pressed
+<BR>
+
+- The mouse button is pressed
+<BR>
+
+- A part of the window should be re-drawn
+(this is called an &quot;expose&quot; event, and it is your program's job to handle it).
+<BR>
+
+<P>
+Each window can define a different function for the same event.
+<P>
+The three functions
+<B>mlx_key_hook</B>
+
+(),
+<B>mlx_mouse_hook</B>
+
+() and
+<B>mlx_expose_hook</B>
+
+() work exactly the same way.
+<I>funct_ptr</I>
+
+is a pointer to the function you want to be called
+when an event occurs. This assignment is specific to the window defined by the
+<I>win_ptr</I>
+
+identifier. The
+<I>param</I>
+
+adress will be passed to the function everytime it is called, and should be
+used to store the parameters it might need.
+<P>
+The syntax for the
+<B>mlx_loop_hook</B>
+
+() function is identical to the previous ones, but the given function will be
+called when no event occurs.
+<P>
+When it catches an event, the MiniLibX calls the corresponding function
+with fixed parameters:
+<PRE>
+
+  expose_hook(void *param);
+  key_hook(int keycode,void *param);
+  mouse_hook(int button,int x,int y,void *param);
+  loop_hook(void *param);
+
+</PRE>
+
+These function names are arbitrary. They here are used to distinguish
+parameters according to the event. These functions are NOT part of the
+MiniLibX.
+<P>
+<I>param</I>
+
+is the address specified in the mlx_*_hook calls. This address is never
+used nor modified by the MiniLibX. On key and mouse events, additional
+information is passed:
+<I>keycode</I>
+
+tells you which key is pressed (look for the X11 include file &quot;keysymdef.h&quot;),
+(
+<I>x</I>
+
+,
+<I>y</I>
+
+) are the coordinates of the mouse click in the window, and
+<I>button</I>
+
+tells you which mouse button was pressed.
+<P>
+<A NAME="lbAF">&nbsp;</A>
+<H2>GOING FURTHER WITH EVENTS</H2>
+
+The MiniLibX provides a much generic access to all X-Window events. The
+<I>mlx.h</I>
+
+include define
+<B>mlx_hook()</B>
+
+in the same manner mlx_*_hook functions work. The event and mask values
+will be taken from the X11 include file &quot;X.h&quot;.
+<P>
+See source code of mlx_int_param_event.c to find out how the MiniLibX will
+call your own function for a specific event.
+<P>
+<A NAME="lbAG">&nbsp;</A>
+<H2>SEE ALSO</H2>
+
+<A HREF="/cgi-bin/man/man2html?3+mlx">mlx</A>(3), <A HREF="/cgi-bin/man/man2html?3+mlx_new_window">mlx_new_window</A>(3), <A HREF="/cgi-bin/man/man2html?3+mlx_pixel_put">mlx_pixel_put</A>(3), <A HREF="/cgi-bin/man/man2html?3+mlx_new_image">mlx_new_image</A>(3)
+<P>
+<A NAME="lbAH">&nbsp;</A>
+<H2>AUTHOR</H2>
+
+Copyright ol@ - 2002-2014 - Olivier Crouzet
+<P>
+
+<HR>
+<A NAME="index">&nbsp;</A><H2>Index</H2>
+<DL>
+<DT><A HREF="#lbAB">NAME</A><DD>
+<DT><A HREF="#lbAC">SYNOPSYS</A><DD>
+<DT><A HREF="#lbAD">X-WINDOW EVENTS</A><DD>
+<DT><A HREF="#lbAE">DESCRIPTION</A><DD>
+<DT><A HREF="#lbAF">GOING FURTHER WITH EVENTS</A><DD>
+<DT><A HREF="#lbAG">SEE ALSO</A><DD>
+<DT><A HREF="#lbAH">AUTHOR</A><DD>
+</DL>
+<HR>
+This document was created by
+<A HREF="/cgi-bin/man/man2html">man2html</A>,
+using the manual pages.<BR>
+Time: 10:39:26 GMT, January 05, 2021
+</BODY>
+</HTML>
