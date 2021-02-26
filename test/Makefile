@@ -1,16 +1,16 @@
 NAME = test
 
-MLX_INC = ../../minilibx-linux
-MLX_LIB = ../../minilibx-linux
-LIBFT_DIR = ../../libft/libft
+MLX_INC = ../minilibx-linux
+MLX_LIB = ../minilibx-linux
+LIBFT_DIR = ../libft
 
-SRCS = parsecub.c ../scene.c ../bmp.c ../scene_parser_storage.c		\
-	../scene_parser_token.c ../scene_parser_token2.c				\
-	../scene_parser_color.c ../scene_parser_resolution.c			\
-	../scene_parser_texture.c ../scene_parser_map.c ../loophook.c	\
-	../ray.c ../ray2.c ../ray3.c ../minimap.c ../render2.c			\
-	../render.c ../texture.c ../hooks.c ../map.c ../player.c		\
-	../utils.c
+SRCS = parsecub.c ../scene.c ../bmp.c ../scene_parser_storage.c			\
+	../scene_parser_token.c ../scene_parser_token2.c					\
+	../scene_parser_color.c ../scene_parser_color2.c					\
+	../scene_parser_resolution.c ../scene_parser_texture.c				\
+	../scene_parser_map.c ../loophook.c ../ray.c ../ray2.c ../ray3.c	\
+	../minimap.c ../render2.c ../render.c ../texture.c ../hooks.c		\
+	../map.c ../player.c ../utils.c
 
 OBJS = $(SRCS:%.c=%.o)
 HEADERS = $(wildcard ../*.h)

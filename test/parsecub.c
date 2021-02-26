@@ -238,6 +238,81 @@ int main()
 	}
 
 	{
+		t_c3_scene	scene;
+		c3_scene_init(&scene);
+
+		set_strbuf(
+			&buf, &strbuf,
+			"R 1920 1080\n"
+			"NO ./path_to_the_north_texture\n"
+			"SO ./path_to_the_south_texture\n"
+			"WE ./path_to_the_west_texture\n"
+			"EA ./path_to_the_east_texture\n"
+			"S ./path_to_the_sprite_texture\n"
+			"F 220,100,0\n"
+			"11111\n"
+			"10001\n"
+			"10S01\n"
+			"10001\n"
+			"11111\n"
+			);
+
+		CHECK(c3_scene_parse(&scene, &buf) == C3_PARSE_SUCCESS);
+		CHECK(!c3_scene_check_colors_specified(&buf));
+		c3_scene_cleanup(&scene);
+	}
+
+	{
+		t_c3_scene	scene;
+		c3_scene_init(&scene);
+
+		set_strbuf(
+			&buf, &strbuf,
+			"R 1920 1080\n"
+			"NO ./path_to_the_north_texture\n"
+			"SO ./path_to_the_south_texture\n"
+			"WE ./path_to_the_west_texture\n"
+			"EA ./path_to_the_east_texture\n"
+			"S ./path_to_the_sprite_texture\n"
+			"C 225,30,0\n"
+			"11111\n"
+			"10001\n"
+			"10S01\n"
+			"10001\n"
+			"11111\n"
+			);
+
+		CHECK(c3_scene_parse(&scene, &buf) == C3_PARSE_SUCCESS);
+		CHECK(!c3_scene_check_colors_specified(&buf));
+		c3_scene_cleanup(&scene);
+	}
+
+	{
+		t_c3_scene	scene;
+		c3_scene_init(&scene);
+
+		set_strbuf(
+			&buf, &strbuf,
+			"R 1920 1080\n"
+			"SO ./path_to_the_south_texture\n"
+			"WE ./path_to_the_west_texture\n"
+			"EA ./path_to_the_east_texture\n"
+			"S ./path_to_the_sprite_texture\n"
+			"F 220,100,0\n"
+			"C 225,30,0\n"
+			"11111\n"
+			"10001\n"
+			"10S01\n"
+			"10001\n"
+			"11111\n"
+			);
+
+		CHECK(c3_scene_parse(&scene, &buf) == C3_PARSE_SUCCESS);
+		CHECK(!c3_scene_check_textures_specified(&buf));
+		c3_scene_cleanup(&scene);
+	}
+
+	{
 		t_c3_scene_parser	buf;
 		t_c3_file			file;
 

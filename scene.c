@@ -117,7 +117,8 @@ int					c3_read_scene(t_c3_scene *scene, const char *path)
 		{
 			c3_scene_init(scene);
 			if (c3_scene_parse(scene, &buf) != C3_PARSE_SUCCESS
-				|| !c3_scene_check_textures_specified(scene, &buf))
+				|| !c3_scene_check_textures_specified(&buf)
+				|| !c3_scene_check_colors_specified(&buf))
 				C3_LOG("Error\n%s\n", buf.error);
 			else
 				return (1);
