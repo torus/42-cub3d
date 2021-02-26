@@ -27,9 +27,16 @@ do-test: $(NAME)
 	./$(NAME)
 
 fail-test:
-	for i in fail/*.cub; do \
+	@cd .. && \
+		echo Testing invalid file name...; \
+		./cub3d test/fail/invalid-filename.ceb \
+			&& echo '[[=====UNEXPECTEDLY SUCCESS=====]]' \
+			|| echo '[: SUCCESSFULLY FAILED :]'
+	@cd .. && for i in test/fail/*.cub; do \
 		echo Testing $$i...; \
-		../cub3d $$i && echo '[[=UNEXPECTEDLY SUCCESS=]]' || echo '[: SUCCESSFULLY FAILED :]'; \
+		./cub3d $$i \
+			&& echo '[[=====UNEXPECTEDLY SUCCESS=====]]' \
+			|| echo '[: SUCCESSFULLY FAILED :]'; \
 	done
 
 bmptest: bmptest.c ../bmp.c ../bmp.h
