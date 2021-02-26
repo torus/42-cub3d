@@ -35,6 +35,8 @@ LDFLAGS = -L $(MLX_DIR) -lmlx -lXext -lX11 -lm -lbsd -L $(LIBFT_DIR) -lft
 
 all: $(NAME)
 
+bonus: all
+
 $(NAME)	:$(OBJS) $(MLX) $(FT)
 	$(CC) -o $(NAME) $^ $(LDFLAGS)
 
