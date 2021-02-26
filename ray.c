@@ -95,7 +95,7 @@ int		c3_get_horizontal_hit(
 	}
 	result->position = hit;
 	result->distance_sqared = c3_distance_squared(pos, &hit);
-	result->type = facing_north ? C3_OBJTYPE_WALL_N : C3_OBJTYPE_WALL_S;
+	result->type = facing_north ? C3_OBJTYPE_WALL_S : C3_OBJTYPE_WALL_N;
 	return (hit_sprites);
 }
 
@@ -126,6 +126,6 @@ int		c3_get_vertical_hit(
 	}
 	result->position = hit;
 	result->distance_sqared = c3_distance_squared(pos, &hit);
-	result->type = facing_east ? C3_OBJTYPE_WALL_E : C3_OBJTYPE_WALL_W;
+	result->type = facing_east ? C3_OBJTYPE_WALL_W : C3_OBJTYPE_WALL_E;
 	return (hit_sprites);
 }

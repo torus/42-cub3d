@@ -24,18 +24,20 @@ unsigned int	c3_wall_texel(
 	v = (y - (stat->renderer.resolution_y - wall_height) / 2.0) / wall_height;
 	if (ray->hits[0].type == C3_OBJTYPE_WALL_N)
 		col = c3_sample_texture(
-			stat, C3_OBJTYPE_WALL_N, fmod(ray->hits[0].position.x, 1.0), v);
+			stat, C3_OBJTYPE_WALL_N,
+			1.0 - fmod(ray->hits[0].position.x, 1.0), v);
 	else if (ray->hits[0].type == C3_OBJTYPE_WALL_E)
 		col = c3_sample_texture(
-			stat, C3_OBJTYPE_WALL_E, fmod(ray->hits[0].position.y, 1.0), v);
+			stat, C3_OBJTYPE_WALL_E,
+			1.0 - fmod(ray->hits[0].position.y, 1.0), v);
 	else if (ray->hits[0].type == C3_OBJTYPE_WALL_S)
 		col = c3_sample_texture(
 			stat, C3_OBJTYPE_WALL_S,
-			1.0 - fmod(ray->hits[0].position.x, 1.0), v);
+			fmod(ray->hits[0].position.x, 1.0), v);
 	else
 		col = c3_sample_texture(
 			stat, C3_OBJTYPE_WALL_W,
-			1.0 - fmod(ray->hits[0].position.y, 1.0), v);
+			fmod(ray->hits[0].position.y, 1.0), v);
 	return (col);
 }
 
