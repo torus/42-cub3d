@@ -11,9 +11,10 @@
 #******************************************************************************#
 
 MLX_DIR = ./minilibx-linux
-LIBFT_DIR = ../libft/libft
+LIBFT_DIR = ./libft
 
 MLX = $(MLX_DIR)/libmlx.a
+FT = $(LIBFT_DIR)/libft.a
 
 SRCS = cub3d.c scene.c bmp.c scene_parser_storage.c					\
 	scene_parser_token.c scene_parser_token2.c scene_parser_color.c	\
@@ -34,20 +35,24 @@ LDFLAGS = -L $(MLX_DIR) -lmlx -lXext -lX11 -lm -lbsd -L $(LIBFT_DIR) -lft
 
 all: $(NAME)
 
-$(NAME)	:$(OBJS) $(MLX)
+$(NAME)	:$(OBJS) $(MLX) $(FT)
 	$(CC) -o $(NAME) $^ $(LDFLAGS)
 
 $(MLX):
 	cd $(MLX_DIR) && ./configure && make
 
+$(FT):
+	$(MAKE) -C $(LIBFT_DIR)
+
 $(OBJS): $(HEADERS)
 
 clean:
-	$(MAKE) -c $(MLX_DIR) clean
+	$(MAKE) -C $(MLX_DIR) clean
+	$(MAKE) -C $(LIBFT_DIR) clean
 	$(RM) $(OBJS) *~
 
 fclean: clean
-	$(MAKE) -c $(MLX_DIR) fclean
+	$(MAKE) -C $(LIBFT_DIR) fclean
 	$(RM) $(NAME)
 
 re: fclean $(NAME)

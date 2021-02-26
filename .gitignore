@@ -7,3 +7,5 @@ test/*.bmp
 *.png
 *.dot
 Makefile.gen
+*.a
+minilibx-linux/test/mlx-test
