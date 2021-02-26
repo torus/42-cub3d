@@ -16,6 +16,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <libft.h>
+
 #include "cub3d.h"
 #include "scene.h"
 #include "scene_int.h"
@@ -101,7 +103,14 @@ int					c3_read_scene(t_c3_scene *scene, const char *path)
 {
 	t_c3_scene_parser	buf;
 	t_c3_file			file;
+	int					pathlen;
 
+	pathlen = ft_strlen(path);
+	if (pathlen < 4 || ft_strncmp(path + pathlen - 4, ".cub", 4))
+	{
+		C3_LOG("Error\n%s: Unknown file type.\n", path);
+		return (0);
+	}
 	buf.container.file = &file;
 	if (!c3_scene_parser_init_with_file(&buf, path))
 	{
