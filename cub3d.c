@@ -6,7 +6,7 @@
 /*   By: thisai <thisai@student.42tokyo.jp>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/01/13 16:23:13 by thisai            #+#    #+#             */
-/*   Updated: 2021/02/25 18:12:34 by thisai           ###   ########.fr       */
+/*   Updated: 2021/02/26 11:52:09 by thisai           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -111,7 +111,8 @@ int		main(int argc, char **argv)
 		C3_LOG("Error\nusage: cub3d scene.cub [--save]\n");
 		return (1);
 	}
-	c3_read_scene(&scene, argv[1]);
+	if (!c3_read_scene(&scene, argv[1]))
+		return (1);
 	c3_init(&stat, &tex, &scene);
 	if (argc == 3)
 	{
