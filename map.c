@@ -32,6 +32,7 @@ void	c3_map_init(t_c3_map *map, t_c3_scene *scene)
 			ch != 'N' && ch != 'E' && ch != 'S' && ch != 'W')
 		{
 			C3_LOG("Error\nInvalid map.\n");
+			c3_scene_cleanup(scene);
 			exit(1);
 		}
 		i++;
