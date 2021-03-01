@@ -15,10 +15,11 @@
             (if (= x *width*)
                 (newline)
                 (begin
-                  (if (and (= x (- *width* 2))
-                           (= y (- *height* 2)))
+                  (if (and (= x (- *width* 2)) (= y (- *height* 2)))
                       (display "2")
-                      (display (if (array-ref *array* x y) "0" "1")))
+                      (if (and (= x 1) (= y 1))
+                          (display "S")
+                          (display (if (array-ref *array* x y) "0" "1"))))
                   (loop (+ x 1)))))
           (loop (+ y 1))))))
 
