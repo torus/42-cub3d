@@ -17,5 +17,6 @@ int					c3_scene_check_colors_specified(t_c3_scene_parser *buf)
 	if (buf->is_specified[C3_SCENE_TOKEN_C]
 		&& buf->is_specified[C3_SCENE_TOKEN_F])
 		return (1);
+	buf->error = "Floor and/or ceiling are not specified.";
 	return (0);
 }
