@@ -112,7 +112,10 @@ int		main(int argc, char **argv)
 		return (1);
 	}
 	if (!c3_read_scene(&scene, argv[1]))
+	{
+		c3_scene_cleanup(&scene);
 		return (1);
+	}
 	c3_init(&stat, &tex, &scene);
 	if (argc == 3)
 	{
