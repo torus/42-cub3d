@@ -6,7 +6,7 @@
 /*   By: thisai <thisai@student.42tokyo.jp>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/02/25 18:07:22 by thisai            #+#    #+#             */
-/*   Updated: 2021/03/01 13:14:00 by thisai           ###   ########.fr       */
+/*   Updated: 2021/03/01 14:20:44 by thisai           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,7 +60,8 @@ void	c3_terminate(t_c3_state *stat)
 		while (i < C3_OBJTYPE_NUM)
 		{
 			if (stat->texture_cache->cache[i].image)
-				mlx_destroy_image(stat->mlx, stat->texture_cache->cache[i].image);
+				mlx_destroy_image(
+					stat->mlx, stat->texture_cache->cache[i].image);
 			i++;
 		}
 		mlx_destroy_display(stat->mlx);
