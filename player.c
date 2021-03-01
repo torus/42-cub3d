@@ -27,7 +27,8 @@ double	c3_get_direction_from_symbol(char ch)
 	return (M_PI);
 }
 
-int		c3_player_set_initial_position(t_c3_player *player, t_c3_map *map)
+int		c3_player_set_initial_position(
+	t_c3_state *stat, t_c3_player *player, t_c3_map *map)
 {
 	int		i;
 	int		init_pos_found;
@@ -43,6 +44,7 @@ int		c3_player_set_initial_position(t_c3_player *player, t_c3_map *map)
 			if (init_pos_found)
 			{
 				C3_LOG("Error\nMultiple start position contained in the map\n");
+				c3_terminate(stat);
 				exit(1);
 			}
 			init_pos_found = 1;
@@ -55,14 +57,15 @@ int		c3_player_set_initial_position(t_c3_player *player, t_c3_map *map)
 	return (init_pos_found);
 }
 
-void	c3_player_init(t_c3_player *player, t_c3_map *map)
+void	c3_player_init(t_c3_state *stat, t_c3_player *player, t_c3_map *map)
 {
 	int		init_pos_found;
 
-	init_pos_found = c3_player_set_initial_position(player, map);
+	init_pos_found = c3_player_set_initial_position(stat, player, map);
 	if (!init_pos_found)
 	{
 		C3_LOG("Error\nStart position not found in the map\n");
+		c3_terminate(stat);
 		exit(1);
 	}
 	player->walk_speed = 0.01;

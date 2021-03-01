@@ -105,6 +105,7 @@ int					c3_read_scene(t_c3_scene *scene, const char *path)
 	t_c3_file			file;
 	int					pathlen;
 
+	c3_scene_init(scene);
 	pathlen = ft_strlen(path);
 	if (pathlen < 4 || ft_strncmp(path + pathlen - 4, ".cub", 4))
 		C3_LOG("Error\n%s: Unknown file type.\n", path);
@@ -115,7 +116,6 @@ int					c3_read_scene(t_c3_scene *scene, const char *path)
 			C3_LOG("Error\n%s\n", buf.error);
 		else
 		{
-			c3_scene_init(scene);
 			if (c3_scene_parse(scene, &buf) != C3_PARSE_SUCCESS
 				|| !c3_scene_check_textures_specified(&buf)
 				|| !c3_scene_check_colors_specified(&buf))

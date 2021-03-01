@@ -29,12 +29,12 @@ do-test: $(NAME)
 fail-test:
 	@cd .. && \
 		echo Testing invalid file name...; \
-		./cub3d test/fail/invalid-filename.ceb \
+		valgrind ./cub3d test/fail/invalid-filename.ceb \
 			&& echo '[[=====UNEXPECTEDLY SUCCESS=====]]' \
 			|| echo '[: SUCCESSFULLY FAILED :]'
 	@cd .. && for i in test/fail/*.cub; do \
 		echo Testing $$i...; \
-		./cub3d $$i \
+		valgrind ./cub3d $$i \
 			&& echo '[[=====UNEXPECTEDLY SUCCESS=====]]' \
 			|| echo '[: SUCCESSFULLY FAILED :]'; \
 	done

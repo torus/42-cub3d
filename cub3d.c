@@ -78,10 +78,13 @@ void	c3_init_hooks(t_c3_state *stat)
 
 void	c3_init(t_c3_state *stat, t_c3_texture_cache *tex, t_c3_scene *scene)
 {
+	stat->mlx = NULL;
+	stat->window = NULL;
 	stat->scene = scene;
+	stat->renderer.rays = NULL;
 	c3_map_init(&stat->map, scene);
 	c3_keystate_init(&stat->keystate);
-	c3_player_init(&stat->player, &stat->map);
+	c3_player_init(stat, &stat->player, &stat->map);
 	c3_check_map_closed(stat, stat->player.position.x, stat->player.position.y);
 	stat->mlx = mlx_init();
 	c3_check(!!stat->mlx, "mlx is NULL.");
@@ -112,7 +115,10 @@ int		main(int argc, char **argv)
 		return (1);
 	}
 	if (!c3_read_scene(&scene, argv[1]))
+	{
+		c3_scene_cleanup(&scene);
 		return (1);
+	}
 	c3_init(&stat, &tex, &scene);
 	if (argc == 3)
 	{

@@ -52,7 +52,8 @@ void		c3_renderer_init(
 void		c3_init_render_target(t_c3_state *stat);
 void		c3_init_set_screen_size(t_c3_state *stat, t_c3_scene *scene);
 
-void		c3_player_init(t_c3_player *player, t_c3_map *map);
+void		c3_player_init(
+	t_c3_state *stat, t_c3_player *player, t_c3_map *map);
 
 double		c3_dot(t_c3_vector *origin, t_c3_vector *a, t_c3_vector *b);
 double		c3_distance_squared(t_c3_vector *p1, t_c3_vector *p2);
