@@ -6,7 +6,7 @@
 /*   By: thisai <thisai@student.42tokyo.jp>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/02/25 18:07:22 by thisai            #+#    #+#             */
-/*   Updated: 2021/02/25 18:07:22 by thisai           ###   ########.fr       */
+/*   Updated: 2021/03/01 13:14:00 by thisai           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,21 +47,25 @@ void	c3_terminate(t_c3_state *stat)
 	int	tmp;
 	int	i;
 
-	tmp = mlx_do_key_autorepeaton(stat->mlx);
-	c3_check(!!tmp, "mlx_do_key_autorepeaton() returned false.");
-	mlx_destroy_window(stat->mlx, stat->window);
-	if (stat->img)
-		mlx_destroy_image(stat->mlx, stat->img);
-	mlx_loop_end(stat->mlx);
-	c3_renderer_cleanup(&stat->renderer);
-	i = 0;
-	while (i < C3_OBJTYPE_NUM)
+	if (stat->mlx)
 	{
-		if (stat->texture_cache->cache[i].image)
-			mlx_destroy_image(stat->mlx, stat->texture_cache->cache[i].image);
-		i++;
+		tmp = mlx_do_key_autorepeaton(stat->mlx);
+		c3_check(!!tmp, "mlx_do_key_autorepeaton() returned false.");
+		if (stat->window)
+			mlx_destroy_window(stat->mlx, stat->window);
+		if (stat->img)
+			mlx_destroy_image(stat->mlx, stat->img);
+		mlx_loop_end(stat->mlx);
+		i = 0;
+		while (i < C3_OBJTYPE_NUM)
+		{
+			if (stat->texture_cache->cache[i].image)
+				mlx_destroy_image(stat->mlx, stat->texture_cache->cache[i].image);
+			i++;
+		}
+		mlx_destroy_display(stat->mlx);
+		free(stat->mlx);
 	}
-	mlx_destroy_display(stat->mlx);
-	free(stat->mlx);
+	c3_renderer_cleanup(&stat->renderer);
 	c3_scene_cleanup(stat->scene);
 }

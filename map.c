@@ -74,6 +74,7 @@ void	c3_check_map_closed_iter(t_c3_state *stat, int x, int y)
 		return ;
 	}
 	C3_LOG("Error\nThe map is not closed.\n");
+	c3_terminate(stat);
 	exit(1);
 }
 
