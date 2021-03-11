@@ -38,6 +38,12 @@ fail-test:
 			&& echo '[[=====UNEXPECTEDLY SUCCESS=====]]' \
 			|| echo '[: SUCCESSFULLY FAILED :]'; \
 	done
+	valgrind ./cub3d test/valid.cub --sawe \
+			&& echo '[[=====UNEXPECTEDLY SUCCESS=====]]' \
+			|| echo '[: SUCCESSFULLY FAILED :]'; \
+	valgrind ./cub3d test/valid.cub --saved \
+			&& echo '[[=====UNEXPECTEDLY SUCCESS=====]]' \
+			|| echo '[: SUCCESSFULLY FAILED :]'; \
 
 bmptest: bmptest.c ../bmp.c ../bmp.h
 	$(CC) -o $@ $^

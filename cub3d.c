@@ -6,7 +6,7 @@
 /*   By: thisai <thisai@student.42tokyo.jp>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/01/13 16:23:13 by thisai            #+#    #+#             */
-/*   Updated: 2021/02/26 11:52:09 by thisai           ###   ########.fr       */
+/*   Updated: 2021/03/11 10:13:57 by thisai           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,7 @@
 
 #include <X11/XKBlib.h>
 #include <mlx.h>
+#include <libft.h>
 
 #include "cub3d.h"
 #include "cub3d_int.h"
@@ -109,7 +110,8 @@ int		main(int argc, char **argv)
 	t_c3_texture_cache	tex;
 	t_c3_scene			scene;
 
-	if (argc < 2 || argc > 3)
+	if (argc < 2 || argc > 3
+		|| (argc == 3 && ft_strncmp(argv[2], "--save", 6)))
 	{
 		C3_LOG("Error\nusage: cub3d scene.cub [--save]\n");
 		return (1);
