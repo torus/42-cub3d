@@ -57,3 +57,12 @@ void	c3_init_set_screen_size(t_c3_state *stat, t_c3_scene *scene)
 	stat->screen_height = height > scene->resolution.y
 		? scene->resolution.y : height;
 }
+
+void	c3_start_rendering_loop(t_c3_state *stat)
+{
+	stat->window = mlx_new_window(
+		stat->mlx, stat->screen_width, stat->screen_height, "Cub3D!");
+	c3_check(!!stat->window, "window is NULL.");
+	c3_init_hooks(stat);
+	mlx_loop(stat->mlx);
+}

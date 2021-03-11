@@ -32,7 +32,9 @@ void		c3_draw_rays_on_map(t_c3_state *stat);
 void		c3_scan(t_c3_state *stat);
 uint32_t	c3_sample_texture(
 	t_c3_state *stat, t_c3_object_type type, double u, double v);
+void		c3_texture_preload_all(t_c3_state *stat);
 
+void		c3_init_hooks(t_c3_state *stat);
 int			c3_loop_hook(void *param);
 int			c3_focusin_hook(void *param);
 int			c3_focusout_hook(void *param);
@@ -51,6 +53,7 @@ void		c3_renderer_init(
 	int minimap_width, int minimap_height);
 void		c3_init_render_target(t_c3_state *stat);
 void		c3_init_set_screen_size(t_c3_state *stat, t_c3_scene *scene);
+void		c3_start_rendering_loop(t_c3_state *stat);
 
 void		c3_player_init(
 	t_c3_state *stat, t_c3_player *player, t_c3_map *map);

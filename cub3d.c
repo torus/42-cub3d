@@ -92,13 +92,10 @@ void	c3_init(t_c3_state *stat, t_c3_texture_cache *tex, t_c3_scene *scene)
 	c3_init_set_screen_size(stat, scene);
 	c3_renderer_init(
 		&stat->renderer, scene, stat->map.width * 8, stat->map.height * 8);
-	stat->window = mlx_new_window(
-		stat->mlx, stat->screen_width, stat->screen_height, "Cub3D!");
-	c3_check(!!stat->window, "window is NULL.");
 	c3_init_render_target(stat);
 	c3_texture_cache_init(tex, scene);
 	stat->texture_cache = tex;
-	c3_init_hooks(stat);
+	c3_texture_preload_all(stat);
 	stat->is_drawing_minimap = 0;
 	stat->is_benchmarking = 0;
 	stat->is_showing_screen = 1;
@@ -129,6 +126,6 @@ int		main(int argc, char **argv)
 		c3_terminate(&stat);
 	}
 	else
-		mlx_loop(stat.mlx);
+		c3_start_rendering_loop(&stat);
 	return (0);
 }

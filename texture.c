@@ -58,3 +58,15 @@ uint32_t	c3_sample_texture(
 	texcol = ((uint32_t*)tex->data)[index / 4];
 	return (texcol);
 }
+
+void		c3_texture_preload_all(t_c3_state *stat)
+{
+	int	i;
+
+	i = 0;
+	while (i < C3_OBJTYPE_NUM)
+	{
+		c3_texture_cache_load(stat, i);
+		i++;
+	}
+}
