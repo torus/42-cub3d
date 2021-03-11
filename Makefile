@@ -26,7 +26,7 @@ SRCS = cub3d.c scene.c bmp.c scene_parser_storage.c						\
 HEADERS = cub3d_int.h cub3d.h scene.h scene_int.h
 OBJS = $(SRCS:%.c=%.o)
 
-NAME = cub3d
+NAME = cub3D
 
 CFLAGS = -I $(MLX_DIR) -I $(LIBFT_DIR) -Wall -Wextra -Werror
 LDFLAGS = -L $(MLX_DIR) -lmlx -lXext -lX11 -lm -lbsd -L $(LIBFT_DIR) -lft
