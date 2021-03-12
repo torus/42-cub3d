@@ -108,7 +108,7 @@ int		main(int argc, char **argv)
 	t_c3_scene			scene;
 
 	if (argc < 2 || argc > 3
-		|| (argc == 3 && ft_strncmp(argv[2], "--save", 6)))
+		|| (argc == 3 && ft_strncmp(argv[2], "--save", 7)))
 	{
 		C3_LOG("Error\nusage: cub3d scene.cub [--save]\n");
 		return (1);
