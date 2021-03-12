@@ -15,10 +15,12 @@ SRCS = parsecub.c ../scene.c ../bmp.c ../scene_parser_storage.c			\
 OBJS = $(SRCS:%.c=%.o)
 HEADERS = $(wildcard ../*.h)
 
-CFLAGS = -g -fsanitize=address -I $(MLX_INC) -I $(LIBFT_DIR) -Wall	\
-	-Wextra -Werror -Wno-unused-parameter
-LDFLAGS = -fsanitize=address -L $(MLX_LIB) -lmlx -lXext -lX11 -lm	\
-	-lbsd -L $(LIBFT_DIR) -lft
+CFLAGS = -I $(MLX_INC) -I $(LIBFT_DIR) -Wall -Wextra -Werror	\
+	-Wno-unused-parameter
+LDFLAGS = -L $(MLX_LIB) -lmlx -lXext -lX11 -lm -lbsd -L $(LIBFT_DIR)	\
+	-lft
+
+VALGRIND = valgrind --show-leak-kinds=all --leak-check=full -q
 
 # test.bmp: bmptest
 # 	./bmptest > $@
@@ -29,19 +31,19 @@ do-test: $(NAME)
 fail-test:
 	@cd .. && \
 		echo Testing invalid file name...; \
-		valgrind ./cub3D test/fail/invalid-filename.ceb \
+		$(VALGRIND) ./cub3D test/fail/invalid-filename.ceb \
 			&& echo '[[=====UNEXPECTEDLY SUCCESS=====]]' \
 			|| echo '[: SUCCESSFULLY FAILED :]'
 	@cd .. && for i in test/fail/*.cub; do \
 		echo Testing $$i...; \
-		valgrind ./cub3D $$i \
+		$(VALGRIND) ./cub3D $$i \
 			&& echo '[[=====UNEXPECTEDLY SUCCESS=====]]' \
 			|| echo '[: SUCCESSFULLY FAILED :]'; \
 	done
-	@cd .. && valgrind ./cub3D test/valid.cub --sawe \
+	@cd .. && $(VALGRIND) ./cub3D test/valid.cub --sawe \
 			&& echo '[[=====UNEXPECTEDLY SUCCESS=====]]' \
 			|| echo '[: SUCCESSFULLY FAILED :]';
-	@cd .. && valgrind ./cub3D test/valid.cub --saved \
+	@cd .. && $(VALGRIND) ./cub3D test/valid.cub --saved \
 			&& echo '[[=====UNEXPECTEDLY SUCCESS=====]]' \
 			|| echo '[: SUCCESSFULLY FAILED :]'; \
 

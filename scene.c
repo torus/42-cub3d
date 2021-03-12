@@ -6,7 +6,7 @@
 /*   By: thisai <thisai@student.42tokyo.jp>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/02/08 14:12:59 by thisai            #+#    #+#             */
-/*   Updated: 2021/02/08 20:42:32 by thisai           ###   ########.fr       */
+/*   Updated: 2021/03/12 10:09:49 by thisai           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,8 @@ t_c3_parse_result	c3_scene_parse(t_c3_scene *scene, t_c3_scene_parser *buf)
 	tok = c3_scene_get_token(buf);
 	while (tok != C3_SCENE_TOKEN_POSSIBLY_MAP)
 	{
-		if (tok == C3_SCENE_TOKEN_EOF || tok == C3_SCENE_TOKEN_UNKNOWN)
+		if (tok == C3_SCENE_TOKEN_EOF || tok == C3_SCENE_TOKEN_NUM
+			|| tok == C3_SCENE_TOKEN_COMMA || tok == C3_SCENE_TOKEN_UNKNOWN)
 		{
 			buf->error = "Parse error.";
 			return (C3_PARSE_FAIL);
