@@ -30,9 +30,9 @@ t_c3_parse_result	c3_scene_parse(t_c3_scene *scene, t_c3_scene_parser *buf)
 	tok = c3_scene_get_token(buf);
 	while (tok != C3_SCENE_TOKEN_POSSIBLY_MAP)
 	{
-		if (tok == C3_SCENE_TOKEN_EOF)
+		if (tok == C3_SCENE_TOKEN_EOF || tok == C3_SCENE_TOKEN_UNKNOWN)
 		{
-			buf->error = "Map not included";
+			buf->error = "Parse error.";
 			return (C3_PARSE_FAIL);
 		}
 		if (!c3_scene_try_resolution(scene, buf, tok, &result))
