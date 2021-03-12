@@ -329,7 +329,7 @@ int main()
 		t_c3_file			file;
 
 		buf.container.file = &file;
-		CHECK(c3_scene_parser_init_with_file(&buf, "sample.cub"));
+		CHECK(c3_scene_parser_init_with_file(&buf, "fail/sample.cub"));
 
 		t_c3_scene	scene;
 		c3_scene_init(&scene);

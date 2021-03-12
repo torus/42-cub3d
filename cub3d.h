@@ -173,4 +173,18 @@ typedef struct	s_c3_ray_caster
 	double			wall_distance;
 }				t_c3_ray_caster;
 
+typedef struct	s_c3_xy_list
+{
+	int					x;
+	int					y;
+	struct s_c3_xy_list	*next;
+	struct s_c3_xy_list	*prev;
+}				t_c3_xy_list;
+
+typedef struct	s_c3_xy_queue
+{
+	struct s_c3_xy_list	*first;
+	struct s_c3_xy_list	*last;
+}				t_c3_xy_queue;
+
 #endif

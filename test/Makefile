@@ -10,7 +10,7 @@ SRCS = parsecub.c ../scene.c ../bmp.c ../scene_parser_storage.c			\
 	../scene_parser_resolution.c ../scene_parser_texture.c				\
 	../scene_parser_map.c ../loophook.c ../ray.c ../ray2.c ../ray3.c	\
 	../minimap.c ../render2.c ../render.c ../texture.c ../hooks.c		\
-	../hooks2.c ../map.c ../player.c ../utils.c
+	../hooks2.c ../map.c ../map2.c ../player.c ../utils.c
 
 OBJS = $(SRCS:%.c=%.o)
 HEADERS = $(wildcard ../*.h)

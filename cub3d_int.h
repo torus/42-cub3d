@@ -46,6 +46,7 @@ int			c3_key_release_hook(int key, void *param);
 void		c3_map_init(t_c3_map *map, t_c3_scene *scene);
 char		c3_query_map(t_c3_state *stat, int x, int y);
 void		c3_check_map_closed(t_c3_state *stat, int x, int y);
+void		c3_check_map_closed_iter(t_c3_state *stat, int x, int y);
 
 void		c3_renderer_cleanup(t_c3_renderer *rend);
 void		c3_renderer_init(

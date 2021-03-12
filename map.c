@@ -53,31 +53,6 @@ char	c3_query_map(t_c3_state *stat, int x, int y)
 	return (0);
 }
 
-void	c3_check_map_closed_iter(t_c3_state *stat, int x, int y)
-{
-	char	ch;
-
-	if (x >= 0 && x < stat->map.width && y >= 0 && y < stat->map.height)
-	{
-		ch = stat->map.map[y * stat->map.width + x];
-		if (ch != '1' && ch != 'x' && ch != 'o')
-		{
-			if (ch == '2')
-				stat->map.map[y * stat->map.width + x] = 'o';
-			else
-				stat->map.map[y * stat->map.width + x] = 'x';
-			c3_check_map_closed_iter(stat, x, y - 1);
-			c3_check_map_closed_iter(stat, x + 1, y);
-			c3_check_map_closed_iter(stat, x, y + 1);
-			c3_check_map_closed_iter(stat, x - 1, y);
-		}
-		return ;
-	}
-	C3_LOG("Error\nThe map is not closed.\n");
-	c3_terminate(stat);
-	exit(1);
-}
-
 void	c3_check_map_closed(t_c3_state *stat, int x, int y)
 {
 	char	ch;
