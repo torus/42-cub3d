@@ -31,8 +31,11 @@ static t_c3_parse_result	parse_color(
 				&& c3_scene_get_token(buf) == C3_SCENE_TOKEN_NUM)
 			{
 				b = c3_scene_get_int(buf);
-				*result = ((r & 0xff) << 16) + ((g & 0xff) << 8) + (b & 0xff);
-				return (C3_PARSE_SUCCESS);
+				if (r < 256 && g < 256 && b < 256)
+				{
+					*result = ((r & 0xff) << 16) + ((g & 0xff) << 8) + b;
+					return (C3_PARSE_SUCCESS);
+				}
 			}
 		}
 	}
