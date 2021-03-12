@@ -47,6 +47,13 @@ fail-test:
 			&& echo '[[=====UNEXPECTEDLY SUCCESS=====]]' \
 			|| echo '[: SUCCESSFULLY FAILED :]'; \
 
+cub-test:
+	@cd .. && for i in test/*.cub; do \
+		echo -n Testing $$i...; \
+		$(VALGRIND) ./cub3D $$i \
+			&& echo '[: SUCCESS :]'; \
+	done
+
 bmptest: bmptest.c ../bmp.c
 	$(CC) -o $@ $^
 
