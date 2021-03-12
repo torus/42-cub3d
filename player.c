@@ -68,6 +68,6 @@ void	c3_player_init(t_c3_state *stat, t_c3_player *player, t_c3_map *map)
 		c3_terminate(stat);
 		exit(1);
 	}
-	player->walk_speed = 0.01;
-	player->rotation_speed = 0.01;
+	player->walk_speed = 0.05;
+	player->rotation_speed = 0.05;
 }
