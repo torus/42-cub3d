@@ -57,7 +57,7 @@ void	c3_terminate(t_c3_state *stat)
 			mlx_destroy_image(stat->mlx, stat->img);
 		mlx_loop_end(stat->mlx);
 		i = 0;
-		while (i < C3_OBJTYPE_NUM)
+		while (stat->texture_cache && i < C3_OBJTYPE_NUM)
 		{
 			if (stat->texture_cache->cache[i].image)
 				mlx_destroy_image(

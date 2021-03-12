@@ -53,8 +53,10 @@ void	c3_init(t_c3_state *stat, t_c3_texture_cache *tex, t_c3_scene *scene)
 {
 	stat->mlx = NULL;
 	stat->window = NULL;
-	stat->scene = scene;
+	stat->img = NULL;
 	stat->renderer.rays = NULL;
+	stat->texture_cache = NULL;
+	stat->scene = scene;
 	c3_map_init(&stat->map, scene);
 	c3_keystate_init(&stat->keystate);
 	c3_player_init(stat, &stat->player, &stat->map);

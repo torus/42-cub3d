@@ -10,6 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include <mlx.h>
@@ -56,9 +57,12 @@ void	c3_init_set_screen_size(t_c3_state *stat, t_c3_scene *scene)
 		? scene->resolution.x : width;
 	stat->screen_height = height > scene->resolution.y
 		? scene->resolution.y : height;
-	c3_check(
-		stat->screen_width > 0 && stat->screen_height > 0,
-		"Resolution must be positive.");
+	if (!(stat->screen_width > 0 && stat->screen_height > 0))
+	{
+		C3_LOG("Error\nResolution must be positive.\n");
+		c3_terminate(stat);
+		exit(1);
+	}
 }
 
 void	c3_start_rendering_loop(t_c3_state *stat)
