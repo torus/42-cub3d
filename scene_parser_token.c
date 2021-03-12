@@ -20,6 +20,8 @@ int			c3_scene_read_int(t_c3_scene_parser *buf)
 
 	ch = buf->getc(buf->container);
 	result = 0;
+	if (ch == '0')
+		return (result);
 	while (ch >= '0' && ch <= '9' && result < 100000)
 	{
 		result = result * 10 + (ch - '0');
