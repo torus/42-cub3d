@@ -155,10 +155,22 @@ int main()
 	CHECK(c3_scene_parse_floor(&scene, &buf) == C3_PARSE_SUCCESS);
 	CHECK(scene.color_floor == 0x00dc6400);
 
-	set_strbuf(&buf, &strbuf, " 100,200,300");
+	set_strbuf(&buf, &strbuf, " 100,200,255");
 	buf.is_beginning_of_line = 0;
 	CHECK(c3_scene_parse_ceiling(&scene, &buf) == C3_PARSE_SUCCESS);
-	CHECK(scene.color_ceiling == 0x0064c82c);
+	CHECK(scene.color_ceiling == 0x0064c8ff);
+
+	set_strbuf(&buf, &strbuf, " 100,300,255");
+	buf.is_beginning_of_line = 0;
+	CHECK(c3_scene_parse_ceiling(&scene, &buf) == C3_PARSE_FAIL);
+
+	set_strbuf(&buf, &strbuf, " 100,300,255aa");
+	buf.is_beginning_of_line = 0;
+	CHECK(c3_scene_parse_ceiling(&scene, &buf) == C3_PARSE_FAIL);
+
+	set_strbuf(&buf, &strbuf, " 100,300,255,");
+	buf.is_beginning_of_line = 0;
+	CHECK(c3_scene_parse_ceiling(&scene, &buf) == C3_PARSE_FAIL);
 
 	set_strbuf(
 		&buf, &strbuf,

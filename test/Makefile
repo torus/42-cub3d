@@ -10,7 +10,7 @@ SRCS = parsecub.c ../scene.c ../bmp.c ../scene_parser_storage.c			\
 	../scene_parser_resolution.c ../scene_parser_texture.c				\
 	../scene_parser_map.c ../loophook.c ../ray.c ../ray2.c ../ray3.c	\
 	../minimap.c ../render2.c ../render.c ../texture.c ../hooks.c		\
-	../map.c ../player.c ../utils.c
+	../hooks2.c ../map.c ../player.c ../utils.c
 
 OBJS = $(SRCS:%.c=%.o)
 HEADERS = $(wildcard ../*.h)
@@ -29,23 +29,23 @@ do-test: $(NAME)
 fail-test:
 	@cd .. && \
 		echo Testing invalid file name...; \
-		valgrind ./cub3d test/fail/invalid-filename.ceb \
+		valgrind ./cub3D test/fail/invalid-filename.ceb \
 			&& echo '[[=====UNEXPECTEDLY SUCCESS=====]]' \
 			|| echo '[: SUCCESSFULLY FAILED :]'
 	@cd .. && for i in test/fail/*.cub; do \
 		echo Testing $$i...; \
-		valgrind ./cub3d $$i \
+		valgrind ./cub3D $$i \
 			&& echo '[[=====UNEXPECTEDLY SUCCESS=====]]' \
 			|| echo '[: SUCCESSFULLY FAILED :]'; \
 	done
-	valgrind ./cub3d test/valid.cub --sawe \
+	@cd .. && valgrind ./cub3D test/valid.cub --sawe \
 			&& echo '[[=====UNEXPECTEDLY SUCCESS=====]]' \
-			|| echo '[: SUCCESSFULLY FAILED :]'; \
-	valgrind ./cub3d test/valid.cub --saved \
+			|| echo '[: SUCCESSFULLY FAILED :]';
+	@cd .. && valgrind ./cub3D test/valid.cub --saved \
 			&& echo '[[=====UNEXPECTEDLY SUCCESS=====]]' \
 			|| echo '[: SUCCESSFULLY FAILED :]'; \
 
-bmptest: bmptest.c ../bmp.c ../bmp.h
+bmptest: bmptest.c ../bmp.c
 	$(CC) -o $@ $^
 
 $(OBJS): $(HEADERS)
