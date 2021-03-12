@@ -54,3 +54,20 @@ const char	*c3_scene_get_rest(t_c3_scene_parser *buf)
 	buf->string_value[index] = '\0';
 	return (buf->string_value);
 }
+
+t_c3_token	c3_scene_get_token_for_map(t_c3_scene_parser *buf)
+{
+	int	ch;
+
+	ch = buf->getc(buf->container);
+	if (ch == '\n')
+	{
+		buf->is_beginning_of_line = 1;
+		ch = buf->getc(buf->container);
+	}
+	if (buf->is_beginning_of_line)
+		return (c3_scene_get_token_head(buf, ch));
+	if (ch < 0)
+		return (C3_SCENE_TOKEN_EOF);
+	return (C3_SCENE_TOKEN_UNKNOWN);
+}

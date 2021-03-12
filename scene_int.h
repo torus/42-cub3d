@@ -37,6 +37,8 @@ t_c3_parse_result	c3_scene_parse_map(
 int					c3_scene_get_int(t_c3_scene_parser *buf);
 const char			*c3_scene_get_string(t_c3_scene_parser *buf);
 const char			*c3_scene_get_rest(t_c3_scene_parser *buf);
+t_c3_token			c3_scene_get_token_for_map(t_c3_scene_parser *buf);
+t_c3_token			c3_scene_get_token_head(t_c3_scene_parser *buf, int ch);
 
 t_c3_parse_result	c3_scene_parse_resolution(
 	t_c3_scene *scene, t_c3_scene_parser *buf);

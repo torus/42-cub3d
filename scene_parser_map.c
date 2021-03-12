@@ -59,7 +59,7 @@ t_c3_map_rows		*c3_scene_parse_read_rows(
 		if (!(rows = t_c3_map_rows_create(buf, rows, c3_scene_get_rest(buf))))
 			return (NULL);
 		width = ft_strlen(rows->row);
-		tok = c3_scene_get_token(buf);
+		tok = c3_scene_get_token_for_map(buf);
 		scene->map_width = scene->map_width < width ? width : scene->map_width;
 		scene->map_height++;
 	}
