@@ -13,11 +13,18 @@
 #include <stdio.h>
 #include <assert.h>
 #include <unistd.h>
-#include "../bmp.h"
+#include <stdint.h>
+#include "../cub3d.h"
+
+void	c3_bmp_put_int16(void *dest, int16_t val);
+void	c3_bmp_put_int32(void *dest, int32_t val);
 
 #define IMAGE_WIDTH 640
 #define IMAGE_HEIGHT 480
 #define BPP 32
+
+void		c3_draw(t_c3_state *stat) {}
+void		c3_update(t_c3_state *stat) {}
 
 int	main()
 {
