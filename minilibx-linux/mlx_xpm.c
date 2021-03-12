@@ -14,7 +14,7 @@
 extern struct s_col_name mlx_col_name[];
 
 
-#define	RETURN	{ if (colors) free(colors); if (tab) free(tab); \
+#define	RETURN	{ if (colors) free(colors); if (tab) free(tab), tab = (void*)0; \
 		if (colors_direct) free(colors_direct); \
 		if (img) {XDestroyImage(img->image); \
 				XFreePixmap(xvar->display,img->pix);free(img);} \
@@ -167,7 +167,7 @@ void	*mlx_int_parse_xpm(t_xvar *xvar,void *info,int info_size,char *(*f)())
 						!(height = atoi(tab[1])) || !(nc = atoi(tab[2])) ||
 						!(cpp = atoi(tab[3])) )
 				RETURN;
-		free(tab);
+		free(tab), tab = (void*)0;
 		tab = 0;
 
 		method = 0;
@@ -214,7 +214,7 @@ void	*mlx_int_parse_xpm(t_xvar *xvar,void *info,int info_size,char *(*f)())
 						colors[i].name = mlx_int_get_col_name(line,cpp);
 						colors[i].col = rgb_col; //rgb_col>=0?mlx_get_color_value(xvar,rgb_col):rgb_col;
 				}
-				free(tab);
+				free(tab), tab = (void*)0;
 		}
 
 		if (!(img = mlx_new_image(xvar,width,height)))
