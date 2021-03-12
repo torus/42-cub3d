@@ -59,7 +59,7 @@ int				c3_render_test_sprite(
 			|| y >= (stat->renderer.resolution_y + height) / 2.0)
 			break ;
 		v = (y - (stat->renderer.resolution_y - height) / 2.0) / height;
-		u = 0.5 + ray->hits[i + 1].offset * ((int)(distance * 5) % 2 ? -1 : 1);
+		u = 0.5 + ray->hits[i + 1].offset;
 		if (u >= 0 && u < 1)
 		{
 			*col = c3_sample_texture(stat, C3_OBJTYPE_SPRITE, u, v);
